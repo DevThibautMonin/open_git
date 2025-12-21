@@ -18,10 +18,10 @@ class DeleteBranch extends BranchesEvent {
   });
 }
 
-class UpdateStatus extends BranchesEvent {
+class UpdateBranchesStatus extends BranchesEvent {
   final BranchesBlocStatus status;
 
-  UpdateStatus({
+  UpdateBranchesStatus({
     required this.status,
   });
 }

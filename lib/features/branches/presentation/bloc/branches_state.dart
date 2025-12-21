@@ -7,6 +7,7 @@ enum BranchesBlocStatus {
   error,
   createNewBranchAndCheckout,
   branchCreated,
+  branchesRetrieved,
 }
 
 @MappableClass()

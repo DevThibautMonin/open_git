@@ -20,7 +20,7 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
     required this.gitService,
     required this.sharedPreferencesService,
   }) : super(BranchesState()) {
-    on<UpdateStatus>((event, emit) {
+    on<UpdateBranchesStatus>((event, emit) {
       emit(state.copyWith(status: event.status));
     });
 
@@ -83,6 +83,7 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
         emit(
           state.copyWith(
             branches: branches,
+            status: BranchesBlocStatus.branchesRetrieved,
           ),
         );
       }

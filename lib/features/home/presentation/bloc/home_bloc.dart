@@ -19,23 +19,39 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required this.gitService,
     required this.sharedPreferencesService,
   }) : super(HomeState()) {
-    String repoNameFromPath(String fullPath) {
-      return p.basename(fullPath);
-    }
+    String repoNameFromPath(String path) => p.basename(path);
+
+    on<UpdateHomeStatus>((event, emit) {
+      emit(state.copyWith(status: event.status));
+    });
 
     on<SelectRepository>((event, emit) async {
-      final repositoryPath = await gitService.selectRepoDirectory() ?? "";
-      final repositoryName = repoNameFromPath(repositoryPath);
+      final repositoryPath = await gitService.selectRepoDirectory();
+      if (repositoryPath == null || repositoryPath.isEmpty) return;
 
       await sharedPreferencesService.setString(SharedPreferencesKeys.repositoryPath, repositoryPath);
 
       emit(
         state.copyWith(
-          currentRepositoryName: repositoryName,
           repositoryPath: repositoryPath,
+          currentRepositoryName: repoNameFromPath(repositoryPath),
           status: HomeBlocStatus.repositorySelected,
         ),
       );
+    });
+
+    on<InitLastRepository>((event, emit) async {
+      final lastPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath);
+
+      if (lastPath != null && lastPath.isNotEmpty) {
+        emit(
+          state.copyWith(
+            repositoryPath: lastPath,
+            currentRepositoryName: repoNameFromPath(lastPath),
+            status: HomeBlocStatus.repositorySelected,
+          ),
+        );
+      }
     });
   }
 }

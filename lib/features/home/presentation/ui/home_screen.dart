@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => getIt<HomeBloc>(),
+          create: (context) => getIt<HomeBloc>()..add(InitLastRepository()),
         ),
         BlocProvider(
           create: (context) => getIt<BranchesBloc>(),
@@ -35,8 +35,12 @@ class HomeScreen extends StatelessWidget {
             },
           ),
           BlocListener<BranchesBloc, BranchesState>(
+            listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
+                case BranchesBlocStatus.branchesRetrieved:
+                  context.read<HomeBloc>().add(UpdateHomeStatus(status: HomeBlocStatus.initial));
+                  context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
                 case BranchesBlocStatus.error:
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
@@ -48,7 +52,7 @@ class HomeScreen extends StatelessWidget {
                         backgroundColor: Colors.red.shade400,
                       ),
                     );
-                  context.read<BranchesBloc>().add(UpdateStatus(status: BranchesBlocStatus.initial));
+                  context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
                 case BranchesBlocStatus.branchCreated:
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
@@ -60,7 +64,7 @@ class HomeScreen extends StatelessWidget {
                         backgroundColor: Theme.of(context).primaryColor,
                       ),
                     );
-                  context.read<BranchesBloc>().add(UpdateStatus(status: BranchesBlocStatus.initial));
+                  context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
                   break;
                 case BranchesBlocStatus.createNewBranchAndCheckout:
                   final name = await showDialog<String>(
@@ -73,7 +77,7 @@ class HomeScreen extends StatelessWidget {
 
                   if (!context.mounted) return;
 
-                  context.read<BranchesBloc>().add(UpdateStatus(status: BranchesBlocStatus.initial));
+                  context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
 
                   if (name != null && name.isNotEmpty) {
                     context.read<BranchesBloc>().add(
@@ -116,7 +120,7 @@ class HomeScreen extends StatelessWidget {
                       child: BranchesSidebar(
                         branches: state.branches,
                         onNewBranch: () {
-                          context.read<BranchesBloc>().add(UpdateStatus(status: BranchesBlocStatus.createNewBranchAndCheckout));
+                          context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.createNewBranchAndCheckout));
                         },
                       ),
                     );

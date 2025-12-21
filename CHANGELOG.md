@@ -4,6 +4,7 @@
 
 ### New
 - [Repository] Open repository directory.
+- [Repository] Open last repository at launch.
 - [Branches] List branches.
 - [Branches] Show current branch.
 - [Branches] Switch branch.
