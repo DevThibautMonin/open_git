@@ -113,14 +113,21 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
                 Divider(),
-                BlocBuilder<BranchesBloc, BranchesState>(
-                  buildWhen: (previous, current) => previous.branches != current.branches,
+                BlocBuilder<HomeBloc, HomeState>(
                   builder: (context, state) {
-                    return Expanded(
-                      child: BranchesSidebar(
-                        branches: state.branches,
-                        onNewBranch: () {
-                          context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.createNewBranchAndCheckout));
+                    return Visibility(
+                      visible: state.repositoryPath.isNotEmpty,
+                      child: BlocBuilder<BranchesBloc, BranchesState>(
+                        buildWhen: (previous, current) => previous.branches != current.branches,
+                        builder: (context, state) {
+                          return Expanded(
+                            child: BranchesSidebar(
+                              branches: state.branches,
+                              onNewBranch: () {
+                                context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.createNewBranchAndCheckout));
+                              },
+                            ),
+                          );
                         },
                       ),
                     );
