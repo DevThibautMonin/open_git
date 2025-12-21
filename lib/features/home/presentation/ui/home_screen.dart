@@ -37,6 +37,18 @@ class HomeScreen extends StatelessWidget {
           BlocListener<BranchesBloc, BranchesState>(
             listener: (context, state) async {
               switch (state.status) {
+                case BranchesBlocStatus.error:
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(
+                        content: Text(state.errorMessage),
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                        backgroundColor: Colors.red.shade400,
+                      ),
+                    );
+                  context.read<BranchesBloc>().add(UpdateStatus(status: BranchesBlocStatus.initial));
                 case BranchesBlocStatus.branchCreated:
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()

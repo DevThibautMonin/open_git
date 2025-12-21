@@ -6,4 +6,5 @@ class GitCommands {
   ];
   static const List<String> switchToBranch = ["switch"];
   static const List<String> checkoutBranch = ["checkout", "-b"];
+  static const List<String> deleteBranch = ["branch", "-D"];
 }

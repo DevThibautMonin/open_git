@@ -5,10 +5,12 @@ import 'package:open_git/shared/presentation/widgets/gaps.dart';
 class BranchItem extends StatefulWidget {
   final BranchEntity branch;
   final VoidCallback? onDoubleTap;
+  final VoidCallback? onDeleteBranch;
 
   const BranchItem({
     super.key,
     required this.branch,
+    required this.onDeleteBranch,
     this.onDoubleTap,
   });
 
@@ -29,6 +31,23 @@ class _BranchItemState extends State<BranchItem> {
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
+        onSecondaryTapDown: (details) async {
+          await showMenu(
+            context: context,
+            position: RelativeRect.fromLTRB(
+              details.globalPosition.dx,
+              details.globalPosition.dy,
+              details.globalPosition.dx,
+              details.globalPosition.dy,
+            ),
+            items: [
+              PopupMenuItem(
+                onTap: widget.onDeleteBranch,
+                child: const Text('Delete branch'),
+              ),
+            ],
+          );
+        },
         onDoubleTap: widget.onDoubleTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),

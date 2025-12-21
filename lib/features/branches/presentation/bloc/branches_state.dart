@@ -13,9 +13,11 @@ enum BranchesBlocStatus {
 class BranchesState with BranchesStateMappable {
   final BranchesBlocStatus status;
   final List<BranchEntity> branches;
+  final String errorMessage;
 
   const BranchesState({
     this.status = BranchesBlocStatus.initial,
     this.branches = const [],
+    this.errorMessage = "",
   });
 }

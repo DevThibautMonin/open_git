@@ -10,6 +10,14 @@ class SwitchToBranch extends BranchesEvent {
   });
 }
 
+class DeleteBranch extends BranchesEvent {
+  final BranchEntity branch;
+
+  DeleteBranch({
+    required this.branch,
+  });
+}
+
 class UpdateStatus extends BranchesEvent {
   final BranchesBlocStatus status;
 

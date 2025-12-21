@@ -70,6 +70,9 @@ class BranchesSidebar extends StatelessWidget {
                   onDoubleTap: () {
                     context.read<BranchesBloc>().add(SwitchToBranch(branch: branch));
                   },
+                  onDeleteBranch: () {
+                    context.read<BranchesBloc>().add(DeleteBranch(branch: branch));
+                  },
                 );
               },
             ),

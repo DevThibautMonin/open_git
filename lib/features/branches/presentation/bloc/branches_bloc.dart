@@ -24,6 +24,24 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
       emit(state.copyWith(status: event.status));
     });
 
+    on<DeleteBranch>((event, emit) async {
+      final repoPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? '';
+      if (repoPath.isEmpty) return;
+
+      if (event.branch.isCurrent) {
+        return emit(
+          state.copyWith(
+            status: BranchesBlocStatus.error,
+            errorMessage: "You can't delete current branch !",
+          ),
+        );
+      }
+
+      await gitService.runGit([...GitCommands.deleteBranch, event.branch.name], repoPath);
+
+      add(GetRepositoryBranches());
+    });
+
     on<SwitchToBranch>((event, emit) async {
       final repositoryPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
 
