@@ -5,4 +5,5 @@ class GitCommands {
     "--format=%(refname:short)|%(HEAD)",
   ];
   static const List<String> switchToBranch = ["switch"];
+  static const List<String> checkoutBranch = ["checkout", "-b"];
 }

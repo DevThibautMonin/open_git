@@ -5,6 +5,8 @@ enum BranchesBlocStatus {
   loading,
   loaded,
   error,
+  createNewBranchAndCheckout,
+  branchCreated,
 }
 
 @MappableClass()

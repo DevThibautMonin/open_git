@@ -20,6 +20,10 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
     required this.gitService,
     required this.sharedPreferencesService,
   }) : super(BranchesState()) {
+    on<UpdateStatus>((event, emit) {
+      emit(state.copyWith(status: event.status));
+    });
+
     on<SwitchToBranch>((event, emit) async {
       final repositoryPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
 
@@ -61,6 +65,19 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
         emit(
           state.copyWith(
             branches: branches,
+          ),
+        );
+      }
+    });
+
+    on<CreateNewBranchAndCheckout>((event, emit) async {
+      final repositoryPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
+      if (repositoryPath.isNotEmpty) {
+        await gitService.runGit([...GitCommands.checkoutBranch, event.branchName], repositoryPath);
+        add(GetRepositoryBranches());
+        emit(
+          state.copyWith(
+            status: BranchesBlocStatus.branchCreated,
           ),
         );
       }

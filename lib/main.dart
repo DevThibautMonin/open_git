@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:open_git/features/home/presentation/ui/home_screen.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
+import 'package:open_git/shared/presentation/themes/dark_theme.dart';
+import 'package:open_git/shared/presentation/themes/light_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,9 +18,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'OpenGit',
-      theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.orange),
-      ),
+      theme: lightTheme,
+      darkTheme: darkTheme,
       home: const HomeScreen(),
     );
   }

@@ -10,6 +10,22 @@ class SwitchToBranch extends BranchesEvent {
   });
 }
 
+class UpdateStatus extends BranchesEvent {
+  final BranchesBlocStatus status;
+
+  UpdateStatus({
+    required this.status,
+  });
+}
+
 class GetRepositoryBranches extends BranchesEvent {
   GetRepositoryBranches();
+}
+
+class CreateNewBranchAndCheckout extends BranchesEvent {
+  final String branchName;
+
+  CreateNewBranchAndCheckout({
+    required this.branchName,
+  });
 }
