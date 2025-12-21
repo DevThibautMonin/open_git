@@ -1,14 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/new_branch_dialog.dart';
 import 'package:open_git/features/home/presentation/bloc/home_bloc.dart';
+import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
-import 'package:open_git/features/branches/presentation/ui/branches_sidebar.dart';
-import 'package:open_git/shared/presentation/widgets/current_repository_name.dart';
+import 'package:open_git/shared/presentation/widgets/repository_header.dart';
+import 'package:open_git/shared/presentation/widgets/repository_sidebar.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final WorkingDirectoryBloc _workingDirectoryBloc = getIt();
+  late AppLifecycleState? state;
+  late final AppLifecycleListener listener;
+
+  @override
+  void initState() {
+    super.initState();
+    state = SchedulerBinding.instance.lifecycleState;
+    listener = AppLifecycleListener(
+      onResume: () => _workingDirectoryBloc.add(GetRepositoryStatus()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +40,9 @@ class HomeScreen extends StatelessWidget {
         BlocProvider(
           create: (context) => getIt<BranchesBloc>(),
         ),
+        BlocProvider(
+          create: (context) => _workingDirectoryBloc..add(GetRepositoryStatus()),
+        ),
       ],
       child: MultiBlocListener(
         listeners: [
@@ -29,6 +52,7 @@ class HomeScreen extends StatelessWidget {
               switch (state.status) {
                 case HomeBlocStatus.repositorySelected:
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
+                  _workingDirectoryBloc.add(GetRepositoryStatus());
                   break;
                 default:
               }
@@ -94,44 +118,54 @@ class HomeScreen extends StatelessWidget {
           body: SafeArea(
             child: Column(
               children: [
-                Builder(
-                  builder: (context) {
-                    return OutlinedButton(
-                      onPressed: () async {
+                BlocBuilder<HomeBloc, HomeState>(
+                  builder: (context, state) {
+                    return RepositoryHeader(
+                      repositoryName: state.currentRepositoryName,
+                      onSelectRepository: () {
                         context.read<HomeBloc>().add(SelectRepository());
                       },
-                      child: Text("Open repository"),
                     );
                   },
                 ),
-                BlocBuilder<HomeBloc, HomeState>(
-                  buildWhen: (previous, current) => previous.currentRepositoryName != current.currentRepositoryName,
-                  builder: (context, state) {
-                    return CurrentRepositoryName(
-                      repositoryName: state.currentRepositoryName,
-                    );
-                  },
-                ),
-                Divider(),
-                BlocBuilder<HomeBloc, HomeState>(
-                  builder: (context, state) {
-                    return Visibility(
-                      visible: state.repositoryPath.isNotEmpty,
-                      child: BlocBuilder<BranchesBloc, BranchesState>(
-                        buildWhen: (previous, current) => previous.branches != current.branches,
-                        builder: (context, state) {
-                          return Expanded(
-                            child: BranchesSidebar(
-                              branches: state.branches,
-                              onNewBranch: () {
-                                context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.createNewBranchAndCheckout));
-                              },
-                            ),
+                Expanded(
+                  child: BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
+                    builder: (context, workingDirectoryState) {
+                      return BlocBuilder<BranchesBloc, BranchesState>(
+                        builder: (context, branchState) {
+                          return Row(
+                            children: [
+                              RepositorySidebar(
+                                branches: branchState.branches,
+                                files: workingDirectoryState.files,
+                                onNewBranch: () {
+                                  context.read<BranchesBloc>().add(
+                                    UpdateBranchesStatus(
+                                      status: BranchesBlocStatus.createNewBranchAndCheckout,
+                                    ),
+                                  );
+                                },
+                                onCheckboxToggled: (file) {
+                                  // TODO : Add file staging
+                                },
+                                onFileSelected: (file) {
+                                  print(file.path);
+                                },
+                              ),
+                              Expanded(
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    "Diff / Commit view",
+                                  ),
+                                ),
+                              ),
+                            ],
                           );
                         },
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),

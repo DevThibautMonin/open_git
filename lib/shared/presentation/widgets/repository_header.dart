@@ -1,0 +1,55 @@
+import 'package:flutter/material.dart';
+import 'package:open_git/shared/presentation/widgets/gaps.dart';
+
+class RepositoryHeader extends StatelessWidget {
+  final String repositoryName;
+  final VoidCallback onSelectRepository;
+
+  const RepositoryHeader({
+    super.key,
+    required this.repositoryName,
+    required this.onSelectRepository,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          ElevatedButton.icon(
+            onPressed: onSelectRepository,
+            icon: const Icon(Icons.folder_open, size: 18),
+            label: const Text("Select Repository"),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              textStyle: const TextStyle(fontSize: 14),
+            ),
+          ),
+          Gaps.w16,
+          Expanded(
+            child: Text(
+              repositoryName.isEmpty ? "No repository selected" : repositoryName,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

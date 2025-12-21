@@ -65,21 +65,11 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
       );
     });
 
-    List<BranchEntity> parseBranches(String stdout) {
-      return stdout.trim().split('\n').where((line) => line.isNotEmpty).map((line) {
-        final parts = line.split('|');
-        return BranchEntity(
-          name: parts[0],
-          isCurrent: parts.length > 1 && parts[1] == '*',
-        );
-      }).toList();
-    }
-
     on<GetRepositoryBranches>((event, emit) async {
       final repositoryPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
       if (repositoryPath.isNotEmpty) {
         final commandResult = await gitService.runGit(GitCommands.listBranches, repositoryPath);
-        final branches = parseBranches(commandResult);
+        final branches = gitService.parseBranches(commandResult);
         emit(
           state.copyWith(
             branches: branches,
