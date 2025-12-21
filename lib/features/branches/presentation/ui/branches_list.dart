@@ -28,7 +28,7 @@ class BranchesList extends StatelessWidget {
                 final branch = branches[index];
 
                 return BranchItem(
-                  onTap: () {
+                  onDoubleTap: () {
                     context.read<BranchesBloc>().add(SwitchToBranch(branch: branch));
                   },
                   branch: branch,

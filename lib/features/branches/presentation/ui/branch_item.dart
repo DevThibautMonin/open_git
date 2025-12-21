@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:open_git/shared/domain/entities/branch_entity.dart';
 
 class BranchItem extends StatelessWidget {
-  final VoidCallback? onTap;
+  final VoidCallback? onDoubleTap;
   final BranchEntity branch;
 
   const BranchItem({
     super.key,
-    this.onTap,
+    this.onDoubleTap,
     required this.branch,
   });
 
@@ -16,7 +16,7 @@ class BranchItem extends StatelessWidget {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: onTap,
+        onDoubleTap: onDoubleTap,
         child: Row(
           children: [
             Icon(
