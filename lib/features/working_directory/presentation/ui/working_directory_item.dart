@@ -23,8 +23,10 @@ class WorkingDirectoryItem extends StatelessWidget {
       child: Row(
         children: [
           Checkbox(
-            value: file.selected,
-            onChanged: onCheckboxToggled,
+            value: file.staged,
+            onChanged: (value) {
+              onCheckboxToggled(value ?? false);
+            },
           ),
           Icon(
             file.status.icon,

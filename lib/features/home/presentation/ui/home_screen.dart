@@ -46,6 +46,27 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
       child: MultiBlocListener(
         listeners: [
+          BlocListener<WorkingDirectoryBloc, WorkingDirectoryState>(
+            listenWhen: (previous, current) => previous.status != current.status,
+            listener: (context, state) {
+              switch (state.status) {
+                case WorkingDirectoryBlocStatus.error:
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(
+                        content: Text(state.errorMessage),
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                        backgroundColor: Colors.red.shade400,
+                      ),
+                    );
+                  _workingDirectoryBloc.add(UpdateWorkingDirectoryStatus(status: WorkingDirectoryBlocStatus.initial));
+                  break;
+                default:
+              }
+            },
+          ),
           BlocListener<HomeBloc, HomeState>(
             listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) {
@@ -120,10 +141,18 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 BlocBuilder<HomeBloc, HomeState>(
                   builder: (context, state) {
-                    return RepositoryHeader(
-                      repositoryName: state.currentRepositoryName,
-                      onSelectRepository: () {
-                        context.read<HomeBloc>().add(SelectRepository());
+                    return BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
+                      builder: (context, wdState) {
+                        return RepositoryHeader(
+                          repositoryName: state.currentRepositoryName,
+                          onSelectRepository: () {
+                            context.read<HomeBloc>().add(SelectRepository());
+                          },
+                          commitsToPush: wdState.commitsToPush,
+                          onPush: () {
+                            _workingDirectoryBloc.add(PushCommits());
+                          },
+                        );
                       },
                     );
                   },
@@ -145,11 +174,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   );
                                 },
-                                onCheckboxToggled: (file) {
-                                  // TODO : Add file staging
+                                onCheckboxToggled: ({required file, isChecked}) {
+                                  _workingDirectoryBloc.add(
+                                    ToggleFileStaging(
+                                      file: file,
+                                      stage: isChecked ?? false,
+                                    ),
+                                  );
                                 },
                                 onFileSelected: (file) {
                                   print(file.path);
+                                },
+                                hasStagedFiles: workingDirectoryState.files.any((file) => file.staged),
+                                onCommitPressed: ({required description, required summary}) {
+                                  _workingDirectoryBloc.add(AddCommit(summary: summary, description: description));
                                 },
                               ),
                               Expanded(

@@ -11,5 +11,6 @@
 - [Branches] Create and checkout new branch.
 - [Branches] Delete branch.
 - [Working directory] Show working directory changes.
-- [Working directory] Add files to staging area.
+- [Working directory] Toggle files to staging area.
 - [Working directory] Add commit summary (mandatory) + commit message (optional).
+- [Working directory] Push commits.

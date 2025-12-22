@@ -8,8 +8,14 @@ class RepositorySidebar extends StatelessWidget {
   final List<BranchEntity> branches;
   final List<GitFileEntity> files;
   final VoidCallback onNewBranch;
-  final ValueChanged<GitFileEntity> onCheckboxToggled;
+  final Function({bool? isChecked, required GitFileEntity file}) onCheckboxToggled;
   final Function(GitFileEntity file) onFileSelected;
+  final bool hasStagedFiles;
+  final void Function({
+    required String summary,
+    required String description,
+  })
+  onCommitPressed;
 
   const RepositorySidebar({
     super.key,
@@ -18,6 +24,8 @@ class RepositorySidebar extends StatelessWidget {
     required this.onNewBranch,
     required this.onCheckboxToggled,
     required this.onFileSelected,
+    required this.hasStagedFiles,
+    required this.onCommitPressed,
   });
 
   @override
@@ -54,10 +62,14 @@ class RepositorySidebar extends StatelessWidget {
                   ),
                   WorkingDirectoryFilesList(
                     files: files,
-                    onCheckboxToggled: onCheckboxToggled,
+                    onCheckboxToggled: ({required file, isChecked}) {
+                      onCheckboxToggled(file: file, isChecked: isChecked);
+                    },
                     onFileSelected: (file) {
                       onFileSelected(file);
                     },
+                    hasStagedFiles: hasStagedFiles,
+                    onCommitPressed: onCommitPressed,
                   ),
                 ],
               ),

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:injectable/injectable.dart';
+import 'package:open_git/shared/core/constants/git_commands.dart';
 import 'package:open_git/shared/domain/entities/branch_entity.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 import 'package:open_git/shared/domain/enums/git_file_status.dart';
@@ -27,6 +28,31 @@ class GitService {
     }
 
     return result.stdout;
+  }
+
+  Future<int> getCommitsAheadCount(String repoPath) async {
+    final result = await runGit(
+      GitCommands.commitsAheadCount,
+      repoPath,
+    );
+
+    return int.tryParse(result.trim()) ?? 0;
+  }
+
+  Future<void> convertRemoteToSsh(String repoPath) async {
+    final remoteUrl = await runGit(
+      ['remote', 'get-url', 'origin'],
+      repoPath,
+    );
+
+    if (remoteUrl.startsWith('https://github.com/')) {
+      final sshUrl = remoteUrl.replaceFirst('https://github.com/', 'git@github.com:').replaceAll('\n', '');
+
+      await runGit(
+        ['remote', 'set-url', 'origin', sshUrl],
+        repoPath,
+      );
+    }
   }
 
   GitFileStatus mapGitFileStatus(String x, String y) {
