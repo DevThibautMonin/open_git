@@ -11,4 +11,6 @@ class GitCommands {
   static const List<String> gitAdd = ["add"];
   static const List<String> gitCommit = ["commit"];
   static const List<String> gitRestoreStaged = ["restore", "--staged"];
+  static const List<String> commitsAheadCount = ["rev-list", "--count", "@{u}..HEAD"];
+  static const List<String> gitPush = ["push"];
 }
