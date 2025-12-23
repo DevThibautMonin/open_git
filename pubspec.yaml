@@ -17,6 +17,8 @@ dependencies:
   injectable_generator: ^2.11.1
   get_it: ^9.2.0
   shared_preferences: ^2.5.4
+  either_dart: ^1.0.0
+  logger: ^2.6.2
 
 dev_dependencies:
   flutter_test:
