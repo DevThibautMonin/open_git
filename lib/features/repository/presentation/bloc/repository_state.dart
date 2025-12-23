@@ -1,6 +1,6 @@
-part of 'home_bloc.dart';
+part of 'repository_bloc.dart';
 
-enum HomeBlocStatus {
+enum RepositoryBlocStatus {
   initial,
   loading,
   loaded,
@@ -13,8 +13,8 @@ enum HomeBlocStatus {
 }
 
 @MappableClass()
-class HomeState with HomeStateMappable {
-  final HomeBlocStatus status;
+class RepositoryState with RepositoryStateMappable {
+  final RepositoryBlocStatus status;
   final String currentRepositoryName;
   final String repositoryPath;
   final String errorMessage;
@@ -22,8 +22,8 @@ class HomeState with HomeStateMappable {
   final String cloneRepositoryUrl;
   final double cloneProgress;
 
-  const HomeState({
-    this.status = HomeBlocStatus.initial,
+  const RepositoryState({
+    this.status = RepositoryBlocStatus.initial,
     this.currentRepositoryName = "",
     this.repositoryPath = "",
     this.errorMessage = "",

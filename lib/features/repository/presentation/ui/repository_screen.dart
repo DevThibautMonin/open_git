@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/new_branch_dialog.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
-import 'package:open_git/features/home/presentation/bloc/home_bloc.dart';
+import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/clone_repository_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/git_https_remote_dialog.dart';
@@ -17,16 +17,16 @@ import 'package:open_git/shared/presentation/widgets/repository_sidebar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/error_snackbar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/success_snackbar.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class RepositoryScreen extends StatefulWidget {
+  const RepositoryScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<RepositoryScreen> createState() => _RepositoryScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _RepositoryScreenState extends State<RepositoryScreen> {
   final WorkingDirectoryBloc _workingDirectoryBloc = getIt();
-  final HomeBloc _homeBloc = getIt();
+  final RepositoryBloc _repositoryBloc = getIt();
   late AppLifecycleState? state;
   late final AppLifecycleListener listener;
 
@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => _homeBloc..add(InitLastRepository()),
+          create: (context) => _repositoryBloc..add(InitLastRepository()),
         ),
         BlocProvider(
           create: (context) => getIt<BranchesBloc>(),
@@ -130,11 +130,11 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             },
           ),
-          BlocListener<HomeBloc, HomeState>(
+          BlocListener<RepositoryBloc, RepositoryState>(
             listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
-                case HomeBlocStatus.error:
+                case RepositoryBlocStatus.error:
                   ErrorSnackBar.show(
                     context,
                     message: state.errorMessage,
@@ -142,31 +142,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                   break;
 
-                case HomeBlocStatus.cloneSuccess:
+                case RepositoryBlocStatus.cloneSuccess:
                   Navigator.pop(context);
                   SuccessSnackBar.show(
                     context,
                     message: 'Repository cloned successfully',
                   );
-                  _homeBloc.add(UpdateHomeStatus(status: HomeBlocStatus.initial));
+                  _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.initial));
                   break;
 
-                case HomeBlocStatus.askForCloningRepository:
-                  final homeBloc = context.read<HomeBloc>();
+                case RepositoryBlocStatus.askForCloningRepository:
+                  final repositoryBloc = context.read<RepositoryBloc>();
 
                   await showDialog(
                     context: context,
                     barrierDismissible: false,
                     builder: (_) {
                       return BlocProvider.value(
-                        value: homeBloc,
+                        value: repositoryBloc,
                         child: CloneRepositoryDialog(),
                       );
                     },
                   );
                   break;
 
-                case HomeBlocStatus.repositorySelected:
+                case RepositoryBlocStatus.repositorySelected:
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
                   _workingDirectoryBloc.add(GetRepositoryStatus());
                   context.read<CommitHistoryBloc>().add(LoadCommitHistory());
@@ -180,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
             listener: (context, state) async {
               switch (state.status) {
                 case BranchesBlocStatus.branchesRetrieved:
-                  _homeBloc.add(UpdateHomeStatus(status: HomeBlocStatus.initial));
+                  _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.initial));
                   context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
                 case BranchesBlocStatus.error:
                   ScaffoldMessenger.of(context)
@@ -235,17 +235,17 @@ class _HomeScreenState extends State<HomeScreen> {
           body: SafeArea(
             child: Column(
               children: [
-                BlocBuilder<HomeBloc, HomeState>(
+                BlocBuilder<RepositoryBloc, RepositoryState>(
                   builder: (context, state) {
                     return BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
                       builder: (context, wdState) {
                         return RepositoryHeader(
                           repositoryName: state.currentRepositoryName,
                           onSelectRepository: () {
-                            _homeBloc.add(SelectRepository());
+                            _repositoryBloc.add(SelectRepository());
                           },
                           onCloneRepository: () {
-                            _homeBloc.add(UpdateHomeStatus(status: HomeBlocStatus.askForCloningRepository));
+                            _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.askForCloningRepository));
                           },
                           commitsToPush: wdState.commitsToPush,
                           onPush: () {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_git/features/home/presentation/bloc/home_bloc.dart';
+import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
 class CloneRepositoryDialog extends StatefulWidget {
@@ -21,9 +21,9 @@ class _CloneRepositoryDialogState extends State<CloneRepositoryDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomeBloc, HomeState>(
+    return BlocBuilder<RepositoryBloc, RepositoryState>(
       builder: (context, state) {
-        final isCloning = state.status == HomeBlocStatus.cloning || state.status == HomeBlocStatus.cloneProgress;
+        final isCloning = state.status == RepositoryBlocStatus.cloning || state.status == RepositoryBlocStatus.cloneProgress;
 
         final canSubmit = _urlController.text.trim().isNotEmpty && state.cloneDestinationPath.isNotEmpty && !isCloning;
 
@@ -73,7 +73,7 @@ class _CloneRepositoryDialogState extends State<CloneRepositoryDialog> {
                   onPressed: isCloning
                       ? null
                       : () {
-                          context.read<HomeBloc>().add(ChooseCloneDirectory());
+                          context.read<RepositoryBloc>().add(ChooseCloneDirectory());
                         },
                   icon: const Icon(Icons.folder_open),
                   label: const Text('Choose folder'),
@@ -98,7 +98,7 @@ class _CloneRepositoryDialogState extends State<CloneRepositoryDialog> {
             ElevatedButton(
               onPressed: canSubmit
                   ? () {
-                      context.read<HomeBloc>().add(
+                      context.read<RepositoryBloc>().add(
                         CloneRepositoryConfirmed(
                           sshUrl: _urlController.text.trim(),
                           destinationPath: state.cloneDestinationPath,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:open_git/features/home/presentation/ui/home_screen.dart';
+import 'package:open_git/features/repository/presentation/ui/repository_screen.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
 import 'package:open_git/shared/presentation/themes/dark_theme.dart';
 import 'package:open_git/shared/presentation/themes/light_theme.dart';
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       title: 'OpenGit',
       theme: lightTheme,
       darkTheme: darkTheme,
-      home: const HomeScreen(),
+      home: const RepositoryScreen(),
     );
   }
 }

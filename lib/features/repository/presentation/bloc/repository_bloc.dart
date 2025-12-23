@@ -8,22 +8,22 @@ import 'package:open_git/shared/core/services/git_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
 import 'package:path/path.dart' as p;
 
-part 'home_event.dart';
-part 'home_state.dart';
-part 'home_bloc.mapper.dart';
+part 'repository_event.dart';
+part 'repository_state.dart';
+part 'repository_bloc.mapper.dart';
 
 @LazySingleton()
-class HomeBloc extends Bloc<HomeEvent, HomeState> {
+class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
   final GitService gitService;
   final SharedPreferencesService sharedPreferencesService;
 
-  HomeBloc({
+  RepositoryBloc({
     required this.gitService,
     required this.sharedPreferencesService,
-  }) : super(HomeState()) {
+  }) : super(RepositoryState()) {
     String repoNameFromPath(String path) => p.basename(path);
 
-    on<UpdateHomeStatus>((event, emit) {
+    on<UpdateRepositoryStatus>((event, emit) {
       emit(state.copyWith(status: event.status));
     });
 
@@ -37,7 +37,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         state.copyWith(
           repositoryPath: repositoryPath,
           currentRepositoryName: repoNameFromPath(repositoryPath),
-          status: HomeBlocStatus.repositorySelected,
+          status: RepositoryBlocStatus.repositorySelected,
         ),
       );
     });
@@ -50,7 +50,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           state.copyWith(
             repositoryPath: lastPath,
             currentRepositoryName: repoNameFromPath(lastPath),
-            status: HomeBlocStatus.repositorySelected,
+            status: RepositoryBlocStatus.repositorySelected,
           ),
         );
       }
@@ -75,7 +75,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<CloneRepositoryConfirmed>((event, emit) async {
       emit(
         state.copyWith(
-          status: HomeBlocStatus.cloning,
+          status: RepositoryBlocStatus.cloning,
           cloneProgress: 0,
         ),
       );
@@ -87,7 +87,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           onProgress: (progress) {
             emit(
               state.copyWith(
-                status: HomeBlocStatus.cloneProgress,
+                status: RepositoryBlocStatus.cloneProgress,
                 cloneProgress: progress,
               ),
             );
@@ -96,28 +96,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
         emit(
           state.copyWith(
-            status: HomeBlocStatus.cloneSuccess,
+            status: RepositoryBlocStatus.cloneSuccess,
             cloneProgress: 1.0,
           ),
         );
       } on GitSshHostVerificationFailed {
         emit(
           state.copyWith(
-            status: HomeBlocStatus.error,
+            status: RepositoryBlocStatus.error,
             errorMessage: 'SSH host not trusted. Run ssh -T git@host first.',
           ),
         );
       } on GitSshPermissionDenied {
         emit(
           state.copyWith(
-            status: HomeBlocStatus.error,
+            status: RepositoryBlocStatus.error,
             errorMessage: 'SSH permission denied. Add your key to the provider.',
           ),
         );
       } catch (e) {
         emit(
           state.copyWith(
-            status: HomeBlocStatus.error,
+            status: RepositoryBlocStatus.error,
             errorMessage: e.toString(),
           ),
         );
