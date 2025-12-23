@@ -6,6 +6,7 @@ import 'package:open_git/shared/core/constants/git_commands.dart';
 import 'package:open_git/shared/core/exceptions/git_exceptions.dart';
 import 'package:open_git/shared/core/logger/log_service.dart';
 import 'package:open_git/shared/domain/entities/branch_entity.dart';
+import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 import 'package:open_git/shared/domain/enums/git_file_status.dart';
 
@@ -66,6 +67,34 @@ class GitService {
     );
 
     return int.tryParse(result.trim()) ?? 0;
+  }
+
+  Future<List<GitCommitEntity>> getCommitHistory(
+    String repoPath, {
+    int limit = 100,
+  }) async {
+    final output = await runGit(
+      [
+        'log',
+        '--pretty=format:%H|%an|%ad|%s',
+        '--date=iso',
+        '--max-count=$limit',
+      ],
+      repoPath,
+    );
+
+    final lines = output.split('\n');
+
+    return lines.map((line) {
+      final parts = line.split('|');
+
+      return GitCommitEntity(
+        sha: parts[0],
+        author: parts[1],
+        date: DateTime.parse(parts[2]),
+        message: parts[3],
+      );
+    }).toList();
   }
 
   Future<String?> getRepositorySlug(String repoPath) async {
