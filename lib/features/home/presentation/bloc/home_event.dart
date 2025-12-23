@@ -17,3 +17,21 @@ class UpdateHomeStatus extends HomeEvent {
     required this.status,
   });
 }
+
+class ChooseCloneDirectory extends HomeEvent {}
+
+class CloneRepositoryConfirmed extends HomeEvent {
+  final String sshUrl;
+  final String destinationPath;
+
+  CloneRepositoryConfirmed({
+    required this.sshUrl,
+    required this.destinationPath,
+  });
+}
+
+class CloneRepositoryUrlChanged extends HomeEvent {
+  final String url;
+
+  CloneRepositoryUrlChanged(this.url);
+}

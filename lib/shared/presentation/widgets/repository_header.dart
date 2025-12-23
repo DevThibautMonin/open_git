@@ -5,6 +5,7 @@ import 'package:open_git/shared/presentation/widgets/push_commits_button.dart';
 class RepositoryHeader extends StatelessWidget {
   final String repositoryName;
   final VoidCallback onSelectRepository;
+  final VoidCallback onCloneRepository;
   final int commitsToPush;
   final Function() onPush;
   final bool isLoading;
@@ -16,6 +17,7 @@ class RepositoryHeader extends StatelessWidget {
     required this.commitsToPush,
     required this.onPush,
     required this.isLoading,
+    required this.onCloneRepository,
   });
 
   @override
@@ -36,6 +38,16 @@ class RepositoryHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
+          ElevatedButton.icon(
+            onPressed: onCloneRepository,
+            icon: const Icon(Icons.download, size: 18),
+            label: const Text("Clone Repository"),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              textStyle: const TextStyle(fontSize: 14),
+            ),
+          ),
+          Gaps.w16,
           ElevatedButton.icon(
             onPressed: onSelectRepository,
             icon: const Icon(Icons.folder_open, size: 18),

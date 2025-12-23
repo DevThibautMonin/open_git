@@ -6,6 +6,7 @@ import 'package:open_git/features/branches/presentation/ui/new_branch_dialog.dar
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
 import 'package:open_git/features/home/presentation/bloc/home_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
+import 'package:open_git/shared/presentation/widgets/dialogs/clone_repository_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/git_https_remote_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/ssh_host_verification_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/ssh_permission_denied_dialog.dart';
@@ -13,6 +14,8 @@ import 'package:open_git/shared/core/constants/constants.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
 import 'package:open_git/shared/presentation/widgets/repository_header.dart';
 import 'package:open_git/shared/presentation/widgets/repository_sidebar.dart';
+import 'package:open_git/shared/presentation/widgets/snackbars/error_snackbar.dart';
+import 'package:open_git/shared/presentation/widgets/snackbars/success_snackbar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,6 +26,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final WorkingDirectoryBloc _workingDirectoryBloc = getIt();
+  final HomeBloc _homeBloc = getIt();
   late AppLifecycleState? state;
   late final AppLifecycleListener listener;
 
@@ -40,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => getIt<HomeBloc>()..add(InitLastRepository()),
+          create: (context) => _homeBloc..add(InitLastRepository()),
         ),
         BlocProvider(
           create: (context) => getIt<BranchesBloc>(),
@@ -115,16 +119,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                   break;
                 case WorkingDirectoryBlocStatus.error:
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      SnackBar(
-                        content: Text(state.errorMessage),
-                        behavior: SnackBarBehavior.floating,
-                        duration: Constants.snackbarErrorDuration,
-                        backgroundColor: Colors.red.shade400,
-                      ),
-                    );
+                  ErrorSnackBar.show(
+                    context,
+                    message: state.errorMessage,
+                    duration: Constants.snackbarErrorDuration,
+                  );
                   _workingDirectoryBloc.add(UpdateWorkingDirectoryStatus(status: WorkingDirectoryBlocStatus.initial));
                   break;
                 default:
@@ -133,8 +132,40 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           BlocListener<HomeBloc, HomeState>(
             listenWhen: (previous, current) => previous.status != current.status,
-            listener: (context, state) {
+            listener: (context, state) async {
               switch (state.status) {
+                case HomeBlocStatus.error:
+                  ErrorSnackBar.show(
+                    context,
+                    message: state.errorMessage,
+                    duration: Constants.snackbarErrorDuration,
+                  );
+                  break;
+
+                case HomeBlocStatus.cloneSuccess:
+                  Navigator.pop(context);
+                  SuccessSnackBar.show(
+                    context,
+                    message: 'Repository cloned successfully',
+                  );
+                  _homeBloc.add(UpdateHomeStatus(status: HomeBlocStatus.initial));
+                  break;
+
+                case HomeBlocStatus.askForCloningRepository:
+                  final homeBloc = context.read<HomeBloc>();
+
+                  await showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) {
+                      return BlocProvider.value(
+                        value: homeBloc,
+                        child: CloneRepositoryDialog(),
+                      );
+                    },
+                  );
+                  break;
+
                 case HomeBlocStatus.repositorySelected:
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
                   _workingDirectoryBloc.add(GetRepositoryStatus());
@@ -149,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
             listener: (context, state) async {
               switch (state.status) {
                 case BranchesBlocStatus.branchesRetrieved:
-                  context.read<HomeBloc>().add(UpdateHomeStatus(status: HomeBlocStatus.initial));
+                  _homeBloc.add(UpdateHomeStatus(status: HomeBlocStatus.initial));
                   context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
                 case BranchesBlocStatus.error:
                   ScaffoldMessenger.of(context)
@@ -211,7 +242,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         return RepositoryHeader(
                           repositoryName: state.currentRepositoryName,
                           onSelectRepository: () {
-                            context.read<HomeBloc>().add(SelectRepository());
+                            _homeBloc.add(SelectRepository());
+                          },
+                          onCloneRepository: () {
+                            _homeBloc.add(UpdateHomeStatus(status: HomeBlocStatus.askForCloningRepository));
                           },
                           commitsToPush: wdState.commitsToPush,
                           onPush: () {

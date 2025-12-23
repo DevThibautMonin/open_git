@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -97,6 +98,49 @@ class GitService {
     }).toList();
   }
 
+  Future<void> cloneRepositoryWithProgress({
+    required String sshUrl,
+    required String targetPath,
+    required void Function(double progress) onProgress,
+  }) async {
+    final process = await Process.start(
+      'git',
+      ['clone', '--progress', sshUrl, targetPath],
+    );
+
+    final stderrBuffer = StringBuffer();
+    final progressRegex = RegExp(r'Receiving objects:\s+(\d+)%');
+
+    process.stderr.transform(utf8.decoder).listen((line) {
+      stderrBuffer.write(line);
+
+      final match = progressRegex.firstMatch(line);
+      if (match != null) {
+        final percent = double.parse(match.group(1)!);
+        onProgress(percent / 100);
+      }
+    });
+
+    final exitCode = await process.exitCode;
+
+    if (exitCode != 0) {
+      final stderr = stderrBuffer.toString().toLowerCase();
+
+      if (stderr.contains('host key verification failed')) {
+        throw GitSshHostVerificationFailed();
+      }
+
+      if (stderr.contains('permission denied (publickey)')) {
+        throw GitSshPermissionDenied();
+      }
+
+      throw GitCommandFailed(
+        command: 'git clone',
+        stderr: stderrBuffer.toString(),
+      );
+    }
+  }
+
   Future<String?> getRepositorySlug(String repoPath) async {
     final output = await runGit(['remote', '-v'], repoPath);
 
@@ -130,22 +174,6 @@ class GitService {
     }
 
     return null;
-  }
-
-  Future<void> convertRemoteToSsh(String repoPath) async {
-    final remoteUrl = await runGit(
-      ['remote', 'get-url', 'origin'],
-      repoPath,
-    );
-
-    if (remoteUrl.startsWith('https://github.com/')) {
-      final sshUrl = remoteUrl.replaceFirst('https://github.com/', 'git@github.com:').replaceAll('\n', '');
-
-      await runGit(
-        ['remote', 'set-url', 'origin', sshUrl],
-        repoPath,
-      );
-    }
   }
 
   Future<bool> isRemoteHttps(String repoPath) async {

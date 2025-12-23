@@ -5,6 +5,7 @@
 ### Added
 - [Repository] Open repository directory.
 - [Repository] Open last repository at launch.
+- [Repository] Clone a remote repository with SSH.
 - [Branches] List branches.
 - [Branches] Show current branch.
 - [Branches] Switch branch.
