@@ -2,7 +2,7 @@
 
 ## Version (1.0.0) (22/12/2025)
 
-### New
+### Added
 - [Repository] Open repository directory.
 - [Repository] Open last repository at launch.
 - [Branches] List branches.
@@ -14,3 +14,4 @@
 - [Working directory] Toggle files to staging area.
 - [Working directory] Add commit summary (mandatory) + commit message (optional).
 - [Working directory] Push commits.
+- [SSH] Allow user to setup SSH correctly with friendly UI.
