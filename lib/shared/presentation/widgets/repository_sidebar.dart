@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/branches_sidebar.dart';
+import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
 import 'package:open_git/shared/domain/entities/branch_entity.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 import 'package:open_git/features/working_directory/presentation/ui/working_directory_files_list.dart';
+import 'package:open_git/features/commit_history/presentation/ui/commit_history_list.dart';
 
 class RepositorySidebar extends StatelessWidget {
   final List<BranchEntity> branches;
@@ -31,7 +34,7 @@ class RepositorySidebar extends StatelessWidget {
     final theme = Theme.of(context);
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Container(
         width: 350,
         decoration: BoxDecoration(
@@ -45,9 +48,12 @@ class RepositorySidebar extends StatelessWidget {
         child: Column(
           children: [
             TabBar(
+              isScrollable: true,
+              labelPadding: const EdgeInsets.symmetric(horizontal: 12),
               tabs: [
                 Tab(text: "Branches"),
                 Tab(text: "Changes (${files.length})"),
+                Tab(text: "History"),
               ],
             ),
             const Divider(height: 1),
@@ -65,6 +71,12 @@ class RepositorySidebar extends StatelessWidget {
                     },
                     hasStagedFiles: hasStagedFiles,
                     onCommitPressed: onCommitPressed,
+                  ),
+                  BlocBuilder<CommitHistoryBloc, CommitHistoryState>(
+                    bloc: context.read<CommitHistoryBloc>(),
+                    builder: (context, state) {
+                      return CommitHistoryList(commits: state.commits);
+                    },
                   ),
                 ],
               ),

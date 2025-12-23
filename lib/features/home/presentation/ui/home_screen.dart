@@ -3,6 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/new_branch_dialog.dart';
+import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
 import 'package:open_git/features/home/presentation/bloc/home_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/git_https_remote_dialog.dart';
@@ -47,6 +48,9 @@ class _HomeScreenState extends State<HomeScreen> {
         BlocProvider(
           create: (context) => _workingDirectoryBloc..add(GetRepositoryStatus()),
         ),
+        BlocProvider(
+          create: (context) => getIt<CommitHistoryBloc>(),
+        ),
       ],
       child: MultiBlocListener(
         listeners: [
@@ -54,6 +58,14 @@ class _HomeScreenState extends State<HomeScreen> {
             listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
+                case WorkingDirectoryBlocStatus.commitsPushed:
+                  context.read<CommitHistoryBloc>().add(LoadCommitHistory());
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
                 case WorkingDirectoryBlocStatus.gitRemoteIsHttps:
                   final sshCommand = state.gitRemoteCommand;
 
@@ -126,6 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 case HomeBlocStatus.repositorySelected:
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
                   _workingDirectoryBloc.add(GetRepositoryStatus());
+                  context.read<CommitHistoryBloc>().add(LoadCommitHistory());
                   break;
                 default:
               }

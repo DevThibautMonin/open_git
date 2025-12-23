@@ -68,7 +68,7 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
         await gitService.runGit(GitCommands.gitPush, repositoryPath);
 
         add(GetRepositoryStatus());
-        emit(state.copyWith(status: WorkingDirectoryBlocStatus.loaded));
+        emit(state.copyWith(status: WorkingDirectoryBlocStatus.commitsPushed));
       } on GitSshHostVerificationFailed {
         emit(
           state.copyWith(
