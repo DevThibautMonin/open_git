@@ -5,6 +5,9 @@ enum WorkingDirectoryBlocStatus {
   loading,
   loaded,
   error,
+  gitSshHostVerificationFailed,
+  gitSshPermissionDenied,
+  gitRemoteIsHttps,
 }
 
 @MappableClass()
@@ -13,11 +16,13 @@ class WorkingDirectoryState with WorkingDirectoryStateMappable {
   final List<GitFileEntity> files;
   final String errorMessage;
   final int commitsToPush;
+  final String gitRemoteCommand;
 
   const WorkingDirectoryState({
     this.status = WorkingDirectoryBlocStatus.initial,
     this.files = const [],
     this.errorMessage = "",
     this.commitsToPush = 0,
+    this.gitRemoteCommand = "",
   });
 }

@@ -5,6 +5,10 @@ import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart'
 import 'package:open_git/features/branches/presentation/ui/new_branch_dialog.dart';
 import 'package:open_git/features/home/presentation/bloc/home_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
+import 'package:open_git/shared/presentation/widgets/dialogs/git_https_remote_dialog.dart';
+import 'package:open_git/shared/presentation/widgets/dialogs/ssh_host_verification_dialog.dart';
+import 'package:open_git/shared/presentation/widgets/dialogs/ssh_permission_denied_dialog.dart';
+import 'package:open_git/shared/core/constants/constants.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
 import 'package:open_git/shared/presentation/widgets/repository_header.dart';
 import 'package:open_git/shared/presentation/widgets/repository_sidebar.dart';
@@ -48,8 +52,56 @@ class _HomeScreenState extends State<HomeScreen> {
         listeners: [
           BlocListener<WorkingDirectoryBloc, WorkingDirectoryState>(
             listenWhen: (previous, current) => previous.status != current.status,
-            listener: (context, state) {
+            listener: (context, state) async {
               switch (state.status) {
+                case WorkingDirectoryBlocStatus.gitRemoteIsHttps:
+                  final sshCommand = state.gitRemoteCommand;
+
+                  await showDialog(
+                    context: context,
+                    builder: (_) {
+                      return GitHttpsRemoteDialog(
+                        sshCommand: sshCommand,
+                      );
+                    },
+                  );
+
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
+                case WorkingDirectoryBlocStatus.gitSshPermissionDenied:
+                  await showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) {
+                      return const SshPermissionDeniedDialog();
+                    },
+                  );
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
+
+                case WorkingDirectoryBlocStatus.gitSshHostVerificationFailed:
+                  await showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) {
+                      return const SshHostVerificationDialog();
+                    },
+                  );
+
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
                 case WorkingDirectoryBlocStatus.error:
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
@@ -57,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       SnackBar(
                         content: Text(state.errorMessage),
                         behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 2),
+                        duration: Constants.snackbarErrorDuration,
                         backgroundColor: Colors.red.shade400,
                       ),
                     );
@@ -93,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       SnackBar(
                         content: Text(state.errorMessage),
                         behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 2),
+                        duration: Constants.snackbarErrorDuration,
                         backgroundColor: Colors.red.shade400,
                       ),
                     );
@@ -152,6 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           onPush: () {
                             _workingDirectoryBloc.add(PushCommits());
                           },
+                          isLoading: wdState.status == WorkingDirectoryBlocStatus.loading,
                         );
                       },
                     );
@@ -171,14 +224,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   context.read<BranchesBloc>().add(
                                     UpdateBranchesStatus(
                                       status: BranchesBlocStatus.createNewBranchAndCheckout,
-                                    ),
-                                  );
-                                },
-                                onCheckboxToggled: ({required file, isChecked}) {
-                                  _workingDirectoryBloc.add(
-                                    ToggleFileStaging(
-                                      file: file,
-                                      stage: isChecked ?? false,
                                     ),
                                   );
                                 },

@@ -15,3 +15,4 @@
 - [Working directory] Add commit summary (mandatory) + commit message (optional).
 - [Working directory] Push commits.
 - [SSH] Allow user to setup SSH correctly with friendly UI.
+- [SSH] Help user to convert HTTPS remote into SSH remote.

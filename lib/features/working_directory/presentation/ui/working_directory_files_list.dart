@@ -5,7 +5,6 @@ import 'package:open_git/shared/presentation/widgets/commit_message_textfield.da
 
 class WorkingDirectoryFilesList extends StatelessWidget {
   final List<GitFileEntity> files;
-  final Function({bool? isChecked, required GitFileEntity file}) onCheckboxToggled;
   final Function(GitFileEntity file) onFileSelected;
   final bool hasStagedFiles;
   final void Function({
@@ -17,7 +16,6 @@ class WorkingDirectoryFilesList extends StatelessWidget {
   const WorkingDirectoryFilesList({
     super.key,
     required this.files,
-    required this.onCheckboxToggled,
     required this.onFileSelected,
     required this.hasStagedFiles,
     required this.onCommitPressed,
@@ -41,9 +39,6 @@ class WorkingDirectoryFilesList extends StatelessWidget {
               final file = files[index];
               return WorkingDirectoryItem(
                 file: file,
-                onCheckboxToggled: (isChecked) {
-                  onCheckboxToggled(isChecked: isChecked, file: file);
-                },
                 onSelected: (file) {
                   onFileSelected(file);
                 },

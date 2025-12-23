@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:open_git/shared/core/constants/git_commands.dart';
 import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
+import 'package:open_git/shared/core/exceptions/git_exceptions.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
@@ -44,19 +45,44 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
       if (repositoryPath.isEmpty) return;
 
       try {
-        emit(
-          state.copyWith(
-            status: WorkingDirectoryBlocStatus.loading,
-          ),
-        );
+        emit(state.copyWith(status: WorkingDirectoryBlocStatus.loading));
 
-        await gitService.convertRemoteToSsh(repositoryPath);
-        await gitService.runGit(
-          GitCommands.gitPush,
-          repositoryPath,
-        );
+        final isHttps = await gitService.isRemoteHttps(repositoryPath);
+        if (isHttps) {
+          final slug = await gitService.getRepositorySlug(repositoryPath);
+
+          final gitRemoteCommand = slug != null
+              ? 'git remote set-url origin git@github.com:$slug.git'
+              : 'git remote set-url origin git@github.com:OWNER/REPOSITORY.git';
+
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.gitRemoteIsHttps,
+              gitRemoteCommand: gitRemoteCommand,
+              errorMessage: "This repository uses HTTPS. OpenGit only supports SSH for push operations.",
+            ),
+          );
+          return;
+        }
+
+        await gitService.runGit(GitCommands.gitPush, repositoryPath);
 
         add(GetRepositoryStatus());
+        emit(state.copyWith(status: WorkingDirectoryBlocStatus.loaded));
+      } on GitSshHostVerificationFailed {
+        emit(
+          state.copyWith(
+            status: WorkingDirectoryBlocStatus.gitSshHostVerificationFailed,
+            errorMessage: "SSH host not trusted. Verify the connection to the remote.",
+          ),
+        );
+      } on GitSshPermissionDenied {
+        emit(
+          state.copyWith(
+            status: WorkingDirectoryBlocStatus.gitSshPermissionDenied,
+            errorMessage: "SSH authentication failed. Make sure your key is added.",
+          ),
+        );
       } catch (e) {
         emit(
           state.copyWith(
@@ -93,21 +119,16 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
     });
 
     on<ToggleFileStaging>((event, emit) async {
-      final repositoryPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
-
-      if (repositoryPath.isEmpty) return;
+      final repoPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
+      if (repoPath.isEmpty) return;
 
       try {
         if (event.stage) {
-          await gitService.runGit(
-            [...GitCommands.gitAdd, event.file.path],
-            repositoryPath,
-          );
+          // toujours git add
+          await gitService.runGit([...GitCommands.gitAdd, event.file.path], repoPath);
         } else {
-          await gitService.runGit(
-            [...GitCommands.gitRestoreStaged, event.file.path],
-            repositoryPath,
-          );
+          // git restore --staged même pour les untracked qui ont été ajoutés
+          await gitService.runGit([...GitCommands.gitRestoreStaged, event.file.path], repoPath);
         }
 
         add(GetRepositoryStatus());

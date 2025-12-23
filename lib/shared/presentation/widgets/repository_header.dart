@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
-import 'package:open_git/shared/presentation/widgets/push__commits_button.dart';
+import 'package:open_git/shared/presentation/widgets/push_commits_button.dart';
 
 class RepositoryHeader extends StatelessWidget {
   final String repositoryName;
   final VoidCallback onSelectRepository;
   final int commitsToPush;
   final Function() onPush;
+  final bool isLoading;
 
   const RepositoryHeader({
     super.key,
@@ -14,6 +15,7 @@ class RepositoryHeader extends StatelessWidget {
     required this.onSelectRepository,
     required this.commitsToPush,
     required this.onPush,
+    required this.isLoading,
   });
 
   @override
@@ -56,6 +58,7 @@ class RepositoryHeader extends StatelessWidget {
           PushCommitsButton(
             commitsToPush: commitsToPush,
             onPush: onPush,
+            isLoading: isLoading,
           ),
         ],
       ),

@@ -3,13 +3,42 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:injectable/injectable.dart';
 import 'package:open_git/shared/core/constants/git_commands.dart';
+import 'package:open_git/shared/core/exceptions/git_exceptions.dart';
+import 'package:open_git/shared/core/logger/log_service.dart';
 import 'package:open_git/shared/domain/entities/branch_entity.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 import 'package:open_git/shared/domain/enums/git_file_status.dart';
 
 @LazySingleton()
 class GitService {
-  GitService();
+  final LogService logService;
+
+  GitService({
+    required this.logService,
+  });
+
+  GitException _mapGitError(String stderr, List<String> args) {
+    final error = stderr.toLowerCase();
+
+    logService.error(error);
+
+    if (error.contains('host key verification failed')) {
+      return GitSshHostVerificationFailed();
+    }
+
+    if (error.contains('permission denied (publickey)')) {
+      return GitSshPermissionDenied();
+    }
+
+    if (error.contains('could not read username')) {
+      return GitHttpsAuthRequired();
+    }
+
+    return GitCommandFailed(
+      command: 'git ${args.join(' ')}',
+      stderr: stderr,
+    );
+  }
 
   Future<String?> selectRepoDirectory() async {
     final selectedPath = await FilePicker.platform.getDirectoryPath();
@@ -24,10 +53,10 @@ class GitService {
     );
 
     if (result.exitCode != 0) {
-      throw Exception(result.stderr);
+      throw _mapGitError(result.stderr.toString(), args);
     }
 
-    return result.stdout;
+    return result.stdout.toString();
   }
 
   Future<int> getCommitsAheadCount(String repoPath) async {
@@ -37,6 +66,41 @@ class GitService {
     );
 
     return int.tryParse(result.trim()) ?? 0;
+  }
+
+  Future<String?> getRepositorySlug(String repoPath) async {
+    final output = await runGit(['remote', '-v'], repoPath);
+
+    final lines = output.split('\n');
+
+    for (final line in lines) {
+      if (!line.contains('(fetch)')) continue;
+
+      final parts = line.split(RegExp(r'\s+'));
+      if (parts.length < 2) continue;
+
+      final url = parts[1];
+
+      // HTTPS (support / et :)
+      final httpsMatch = RegExp(
+        r'https://[^/:]+[:/]+([^/]+/[^/]+?)(\.git)?$',
+      ).firstMatch(url);
+
+      if (httpsMatch != null) {
+        return httpsMatch.group(1);
+      }
+
+      // SSH
+      final sshMatch = RegExp(
+        r'git@[^:]+:([^/]+/[^/]+?)(\.git)?$',
+      ).firstMatch(url);
+
+      if (sshMatch != null) {
+        return sshMatch.group(1);
+      }
+    }
+
+    return null;
   }
 
   Future<void> convertRemoteToSsh(String repoPath) async {
@@ -53,6 +117,15 @@ class GitService {
         repoPath,
       );
     }
+  }
+
+  Future<bool> isRemoteHttps(String repoPath) async {
+    final remoteUrl = await runGit(
+      ['remote', 'get-url', 'origin'],
+      repoPath,
+    );
+
+    return remoteUrl.startsWith('https://');
   }
 
   GitFileStatus mapGitFileStatus(String x, String y) {
@@ -109,12 +182,13 @@ class GitService {
 
       final GitFileStatus status = mapGitFileStatus(x, y);
 
+      bool staged = status == GitFileStatus.untracked ? false : x != ' ';
+
       files.add(
         GitFileEntity(
           path: fileInfo,
           status: status,
-          staged: x != ' ',
-          selected: x != ' ',
+          staged: staged,
         ),
       );
     }
