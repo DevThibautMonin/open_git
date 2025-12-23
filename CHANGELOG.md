@@ -1,6 +1,6 @@
 # Changelog
 
-## Version (1.0.0) (22/12/2025)
+## Version (1.0.0) (23/12/2025)
 
 ### Added
 - [Repository] Open repository directory.
@@ -16,3 +16,4 @@
 - [Working directory] Push commits.
 - [SSH] Allow user to setup SSH correctly with friendly UI.
 - [SSH] Help user to convert HTTPS remote into SSH remote.
+- [Commit history] Add commits history list.
