@@ -182,29 +182,20 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                 case BranchesBlocStatus.branchesRetrieved:
                   _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.initial));
                   context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
+                  break;
                 case BranchesBlocStatus.error:
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      SnackBar(
-                        content: Text(state.errorMessage),
-                        behavior: SnackBarBehavior.floating,
-                        duration: Constants.snackbarErrorDuration,
-                        backgroundColor: Colors.red.shade400,
-                      ),
-                    );
+                  ErrorSnackBar.show(
+                    context,
+                    message: state.errorMessage,
+                    duration: Constants.snackbarErrorDuration,
+                  );
                   context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
+                  break;
                 case BranchesBlocStatus.branchCreated:
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      SnackBar(
-                        content: Text("Branch created successfully !"),
-                        behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 2),
-                        backgroundColor: Theme.of(context).primaryColor,
-                      ),
-                    );
+                  SuccessSnackBar.show(
+                    context,
+                    message: 'Branch created successfully !',
+                  );
                   context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
                   break;
                 case BranchesBlocStatus.createNewBranchAndCheckout:
@@ -255,39 +246,27 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                 Expanded(
                   child: BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
                     builder: (context, workingDirectoryState) {
-                      return BlocBuilder<BranchesBloc, BranchesState>(
-                        builder: (context, branchState) {
-                          return Row(
-                            children: [
-                              RepositorySidebar(
-                                branches: branchState.branches,
-                                files: workingDirectoryState.files,
-                                onNewBranch: () {
-                                  context.read<BranchesBloc>().add(
-                                    UpdateBranchesStatus(
-                                      status: BranchesBlocStatus.createNewBranchAndCheckout,
-                                    ),
-                                  );
-                                },
-                                onFileSelected: (file) {
-                                  print(file.path);
-                                },
-                                hasStagedFiles: workingDirectoryState.files.any((file) => file.staged),
-                                onCommitPressed: ({required description, required summary}) {
-                                  _workingDirectoryBloc.add(AddCommit(summary: summary, description: description));
-                                },
+                      return Row(
+                        children: [
+                          RepositorySidebar(
+                            files: workingDirectoryState.files,
+                            onFileSelected: (file) {
+                              print(file.path);
+                            },
+                            hasStagedFiles: workingDirectoryState.files.any((file) => file.staged),
+                            onCommitPressed: ({required description, required summary}) {
+                              _workingDirectoryBloc.add(AddCommit(summary: summary, description: description));
+                            },
+                          ),
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: const Text(
+                                "Diff / Commit view",
                               ),
-                              Expanded(
-                                child: Container(
-                                  alignment: Alignment.center,
-                                  child: const Text(
-                                    "Diff / Commit view",
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
+                            ),
+                          ),
+                        ],
                       );
                     },
                   ),
