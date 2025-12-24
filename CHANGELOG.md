@@ -6,6 +6,7 @@
 - [Repository] Open repository directory.
 - [Repository] Open last repository at launch.
 - [Repository] Clone a remote repository with SSH.
+- [Files differences] Add files differences feature.
 - [Branches] List branches.
 - [Branches] Show current branch.
 - [Branches] Switch branch.
