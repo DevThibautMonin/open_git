@@ -38,24 +38,26 @@ class RepositoryHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          ElevatedButton.icon(
-            onPressed: onCloneRepository,
-            icon: const Icon(Icons.download, size: 18),
-            label: const Text("Clone Repository"),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              textStyle: const TextStyle(fontSize: 14),
-            ),
-          ),
-          Gaps.w16,
-          ElevatedButton.icon(
-            onPressed: onSelectRepository,
-            icon: const Icon(Icons.folder_open, size: 18),
-            label: const Text("Select Repository"),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              textStyle: const TextStyle(fontSize: 14),
-            ),
+          Wrap(
+            spacing: 8,
+            children: [
+              ActionChip(
+                avatar: const Icon(
+                  Icons.download,
+                  size: 18,
+                ),
+                label: const Text('Clone'),
+                onPressed: onCloneRepository,
+              ),
+              ActionChip(
+                avatar: const Icon(
+                  Icons.folder_open,
+                  size: 18,
+                ),
+                label: const Text('Open'),
+                onPressed: onSelectRepository,
+              ),
+            ],
           ),
           Gaps.w16,
           Expanded(

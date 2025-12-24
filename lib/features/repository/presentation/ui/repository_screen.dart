@@ -164,6 +164,8 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                       );
                     },
                   );
+
+                  _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.initial));
                   break;
 
                 case RepositoryBlocStatus.repositorySelected:
