@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/new_branch_dialog.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
+import 'package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart';
 import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/clone_repository_dialog.dart';
@@ -12,6 +13,7 @@ import 'package:open_git/shared/presentation/widgets/dialogs/ssh_host_verificati
 import 'package:open_git/shared/presentation/widgets/dialogs/ssh_permission_denied_dialog.dart';
 import 'package:open_git/shared/core/constants/constants.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
+import 'package:open_git/features/files_differences/presentation/ui/diff_viewer.dart';
 import 'package:open_git/shared/presentation/widgets/repository_header.dart';
 import 'package:open_git/shared/presentation/widgets/repository_sidebar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/error_snackbar.dart';
@@ -26,6 +28,7 @@ class RepositoryScreen extends StatefulWidget {
 
 class _RepositoryScreenState extends State<RepositoryScreen> {
   final WorkingDirectoryBloc _workingDirectoryBloc = getIt();
+  final FilesDifferencesBloc _filesDifferencesBloc = getIt();
   final RepositoryBloc _repositoryBloc = getIt();
   late AppLifecycleState? state;
   late final AppLifecycleListener listener;
@@ -54,6 +57,9 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
         ),
         BlocProvider(
           create: (context) => getIt<CommitHistoryBloc>(),
+        ),
+        BlocProvider(
+          create: (context) => _filesDifferencesBloc,
         ),
       ],
       child: MultiBlocListener(
@@ -253,20 +259,21 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                           RepositorySidebar(
                             files: workingDirectoryState.files,
                             onFileSelected: (file) {
-                              print(file.path);
+                              _filesDifferencesBloc.add(LoadFileDiff(file: file));
                             },
                             hasStagedFiles: workingDirectoryState.files.any((file) => file.staged),
                             onCommitPressed: ({required description, required summary}) {
                               _workingDirectoryBloc.add(AddCommit(summary: summary, description: description));
                             },
                           ),
-                          Expanded(
-                            child: Container(
-                              alignment: Alignment.center,
-                              child: const Text(
-                                "Diff / Commit view",
-                              ),
-                            ),
+                          BlocBuilder<FilesDifferencesBloc, FilesDifferencesState>(
+                            builder: (context, state) {
+                              if (state.status == FilesDifferencesStatus.loading) {
+                                return const Center(child: CircularProgressIndicator());
+                              }
+
+                              return Expanded(child: DiffViewer(hunks: state.diff));
+                            },
                           ),
                         ],
                       );

@@ -1,5 +1,4 @@
 class GitCommands {
-  static const List<String> currentBranch = ["rev-parse", "--abbrev-ref HEAD"];
   static const List<String> listBranches = [
     "branch",
     "--format=%(refname:short)|%(HEAD)",
@@ -13,4 +12,6 @@ class GitCommands {
   static const List<String> gitRestoreStaged = ["restore", "--staged"];
   static const List<String> commitsAheadCount = ["rev-list", "--count", "@{u}..HEAD"];
   static const List<String> gitPush = ["push"];
+  static const List<String> remoteVerbose = ["remote", "-v"];
+  static const List<String> remoteGetOrigin = ["remote", "get-url", "origin"];
 }
