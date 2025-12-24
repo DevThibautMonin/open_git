@@ -31,7 +31,7 @@ class RepositorySidebar extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Container(
-        width: 350,
+        width: 400,
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           border: Border(

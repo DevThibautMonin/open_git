@@ -31,7 +31,6 @@ class WorkingDirectoryFilesList extends StatelessWidget {
 
     return Column(
       children: [
-        Text("Working directory"),
         Expanded(
           child: ListView.builder(
             itemCount: files.length,

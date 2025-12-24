@@ -28,30 +28,20 @@ class BranchesSidebar extends StatelessWidget {
           Row(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                child: Text(
-                  'BRANCHES',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    letterSpacing: 1.2,
-                    fontWeight: FontWeight.w800,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                padding: const EdgeInsets.all(10),
+                child: ActionChip(
+                  avatar: const Icon(
+                    Icons.add_circle_outline_sharp,
+                    size: 18,
                   ),
-                ),
-              ),
-              MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  onTap: () {
+                  label: const Text("New"),
+                  onPressed: () {
                     context.read<BranchesBloc>().add(
                       UpdateBranchesStatus(
                         status: BranchesBlocStatus.createNewBranchAndCheckout,
                       ),
                     );
                   },
-                  child: Icon(
-                    Icons.add_circle_outline_sharp,
-                    size: 16,
-                  ),
                 ),
               ),
             ],
