@@ -1,15 +1,16 @@
-import 'dart:convert';
-import 'dart:io';
+import "dart:convert";
+import "dart:io";
 
-import 'package:file_picker/file_picker.dart';
-import 'package:injectable/injectable.dart';
-import 'package:open_git/shared/core/constants/git_commands.dart';
-import 'package:open_git/shared/core/exceptions/git_exceptions.dart';
-import 'package:open_git/shared/core/logger/log_service.dart';
-import 'package:open_git/shared/domain/entities/branch_entity.dart';
-import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
-import 'package:open_git/shared/domain/entities/git_file_entity.dart';
-import 'package:open_git/shared/domain/enums/git_file_status.dart';
+import "package:file_picker/file_picker.dart";
+import "package:injectable/injectable.dart";
+import "package:open_git/shared/core/constants/git_commands.dart";
+import "package:open_git/shared/core/constants/git_regex.dart";
+import "package:open_git/shared/core/exceptions/git_exceptions.dart";
+import "package:open_git/shared/core/logger/log_service.dart";
+import "package:open_git/shared/domain/entities/branch_entity.dart";
+import "package:open_git/shared/domain/entities/git_commit_entity.dart";
+import "package:open_git/shared/domain/entities/git_file_entity.dart";
+import "package:open_git/shared/domain/enums/git_file_status.dart";
 
 @LazySingleton()
 class GitService {
@@ -24,20 +25,20 @@ class GitService {
 
     logService.error(error);
 
-    if (error.contains('host key verification failed')) {
+    if (error.contains("host key verification failed")) {
       return GitSshHostVerificationFailed();
     }
 
-    if (error.contains('permission denied (publickey)')) {
+    if (error.contains("permission denied (publickey)")) {
       return GitSshPermissionDenied();
     }
 
-    if (error.contains('could not read username')) {
+    if (error.contains("could not read username")) {
       return GitHttpsAuthRequired();
     }
 
     return GitCommandFailed(
-      command: 'git ${args.join(' ')}',
+      command: "git ${args.join(" ")}",
       stderr: stderr,
     );
   }
@@ -47,14 +48,22 @@ class GitService {
     return selectedPath;
   }
 
-  Future<String> runGit(List<String> args, String repoPath) async {
+  Future<String> runGit(
+    List<String> args,
+    String repoPath, {
+    Set<int> allowedExitCodes = const {0},
+  }) async {
     final result = await Process.run(
       'git',
       args,
       workingDirectory: repoPath,
     );
 
-    if (result.exitCode != 0) {
+    if (!allowedExitCodes.contains(result.exitCode)) {
+      logService.error("❌ GIT ERROR");
+      logService.error("command: git ${args.join(" ")}");
+      logService.error("stdout: ${result.stdout}");
+      logService.error("stderr: ${result.stderr}");
       throw _mapGitError(result.stderr.toString(), args);
     }
 
@@ -76,18 +85,18 @@ class GitService {
   }) async {
     final output = await runGit(
       [
-        'log',
-        '--pretty=format:%H|%an|%ad|%s',
-        '--date=iso',
-        '--max-count=$limit',
+        "log",
+        "--pretty=format:%H|%an|%ad|%s",
+        "--date=iso",
+        "--max-count=$limit",
       ],
       repoPath,
     );
 
-    final lines = output.split('\n');
+    final lines = output.split("\n");
 
     return lines.map((line) {
-      final parts = line.split('|');
+      final parts = line.split("|");
 
       return GitCommitEntity(
         sha: parts[0],
@@ -104,12 +113,12 @@ class GitService {
     required void Function(double progress) onProgress,
   }) async {
     final process = await Process.start(
-      'git',
-      ['clone', '--progress', sshUrl, targetPath],
+      "git",
+      ["clone", "--progress", sshUrl, targetPath],
     );
 
     final stderrBuffer = StringBuffer();
-    final progressRegex = RegExp(r'Receiving objects:\s+(\d+)%');
+    final progressRegex = GitRegex.cloneRepositoryProgress;
 
     process.stderr.transform(utf8.decoder).listen((line) {
       stderrBuffer.write(line);
@@ -126,47 +135,42 @@ class GitService {
     if (exitCode != 0) {
       final stderr = stderrBuffer.toString().toLowerCase();
 
-      if (stderr.contains('host key verification failed')) {
+      if (stderr.contains("host key verification failed")) {
         throw GitSshHostVerificationFailed();
       }
 
-      if (stderr.contains('permission denied (publickey)')) {
+      if (stderr.contains("permission denied (publickey)")) {
         throw GitSshPermissionDenied();
       }
 
       throw GitCommandFailed(
-        command: 'git clone',
+        command: "git clone",
         stderr: stderrBuffer.toString(),
       );
     }
   }
 
   Future<String?> getRepositorySlug(String repoPath) async {
-    final output = await runGit(['remote', '-v'], repoPath);
+    final output = await runGit(
+      GitCommands.remoteVerbose,
+      repoPath,
+    );
 
-    final lines = output.split('\n');
+    for (final line in output.split("\n")) {
+      if (!line.contains("(fetch)")) continue;
 
-    for (final line in lines) {
-      if (!line.contains('(fetch)')) continue;
-
-      final parts = line.split(RegExp(r'\s+'));
+      final parts = line.split(GitRegex.line);
       if (parts.length < 2) continue;
 
       final url = parts[1];
 
-      // HTTPS (support / et :)
-      final httpsMatch = RegExp(
-        r'https://[^/:]+[:/]+([^/]+/[^/]+?)(\.git)?$',
-      ).firstMatch(url);
+      final httpsMatch = GitRegex.httpsMatch.firstMatch(url);
 
       if (httpsMatch != null) {
         return httpsMatch.group(1);
       }
 
-      // SSH
-      final sshMatch = RegExp(
-        r'git@[^:]+:([^/]+/[^/]+?)(\.git)?$',
-      ).firstMatch(url);
+      final sshMatch = GitRegex.sshMatch.firstMatch(url);
 
       if (sshMatch != null) {
         return sshMatch.group(1);
@@ -178,31 +182,31 @@ class GitService {
 
   Future<bool> isRemoteHttps(String repoPath) async {
     final remoteUrl = await runGit(
-      ['remote', 'get-url', 'origin'],
+      GitCommands.remoteGetOrigin,
       repoPath,
     );
 
-    return remoteUrl.startsWith('https://');
+    return remoteUrl.startsWith("https://");
   }
 
   GitFileStatus mapGitFileStatus(String x, String y) {
     // Untracked
-    if (x == '?' && y == '?') {
+    if (x == "?" && y == "?") {
       return GitFileStatus.untracked;
     }
 
     // Added
-    if (x == 'A' || y == 'A') {
+    if (x == "A" || y == "A") {
       return GitFileStatus.added;
     }
 
     // Deleted
-    if (x == 'D' || y == 'D') {
+    if (x == "D" || y == "D") {
       return GitFileStatus.deleted;
     }
 
     // Renamed
-    if (x == 'R' || y == 'R') {
+    if (x == "R" || y == "R") {
       return GitFileStatus.renamed;
     }
 
@@ -213,7 +217,7 @@ class GitService {
   List<GitFileEntity> parseGitStatusPorcelain(String output) {
     final List<GitFileEntity> files = [];
 
-    final lines = output.split('\n');
+    final lines = output.split("\n");
 
     for (final line in lines) {
       if (line.trim().isEmpty) continue;
@@ -224,14 +228,14 @@ class GitService {
       final String fileInfo = line.substring(3).trim();
 
       // Renommage : R  old.dart -> new.dart
-      if (fileInfo.contains('->')) {
-        final parts = fileInfo.split('->').map((e) => e.trim()).toList();
+      if (fileInfo.contains("->")) {
+        final parts = fileInfo.split("->").map((e) => e.trim()).toList();
 
         files.add(
           GitFileEntity(
             path: parts[1],
             status: GitFileStatus.renamed,
-            staged: x != ' ',
+            staged: x != " ",
           ),
         );
         continue;
@@ -239,7 +243,7 @@ class GitService {
 
       final GitFileStatus status = mapGitFileStatus(x, y);
 
-      bool staged = status == GitFileStatus.untracked ? false : x != ' ';
+      bool staged = status == GitFileStatus.untracked ? false : x != " ";
 
       files.add(
         GitFileEntity(
@@ -253,12 +257,71 @@ class GitService {
     return files;
   }
 
+  Future<String> getFileDiff({
+    required String repositoryPath,
+    required String filePath,
+    required GitFileStatus status,
+    required bool staged,
+  }) async {
+    late final List<String> args;
+
+    switch (status) {
+      case GitFileStatus.untracked:
+        args = [
+          'diff',
+          '--no-index',
+          '/dev/null',
+          filePath,
+        ];
+        break;
+
+      case GitFileStatus.added:
+        args = [
+          'diff',
+          '--cached',
+          '--unified=3',
+          '--',
+          filePath,
+        ];
+        break;
+
+      case GitFileStatus.deleted:
+        args = [
+          'diff',
+          'HEAD',
+          '--unified=3',
+          '--',
+          filePath,
+        ];
+        break;
+
+      case GitFileStatus.modified:
+      case GitFileStatus.renamed:
+        args = [
+          'diff',
+          if (staged) '--cached',
+          '--unified=3',
+          '--',
+          filePath,
+        ];
+        break;
+    }
+
+    final result = await runGit(
+      args,
+      repositoryPath,
+      allowedExitCodes: const {0, 1},
+    );
+
+    return result;
+  }
+
   List<BranchEntity> parseBranches(String stdout) {
-    return stdout.trim().split('\n').where((line) => line.isNotEmpty).map((line) {
-      final parts = line.split('|');
+    return stdout.trim().split("\n").where((line) => line.isNotEmpty).map((line) {
+      final parts = line.split("|");
       return BranchEntity(
         name: parts[0],
-        isCurrent: parts.length > 1 && parts[1] == '*',
+        isCurrent: parts.length > 1 && parts[1] == "*",
       );
     }).toList();
   }
