@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 import 'package:open_git/shared/presentation/widgets/push_commits_button.dart';
 
 class RepositoryHeader extends StatelessWidget {
-  final String repositoryName;
   final VoidCallback onSelectRepository;
   final VoidCallback onCloneRepository;
   final int commitsToPush;
@@ -12,7 +13,6 @@ class RepositoryHeader extends StatelessWidget {
 
   const RepositoryHeader({
     super.key,
-    required this.repositoryName,
     required this.onSelectRepository,
     required this.commitsToPush,
     required this.onPush,
@@ -59,12 +59,16 @@ class RepositoryHeader extends StatelessWidget {
           ),
           Gaps.w16,
           Expanded(
-            child: Text(
-              repositoryName.isEmpty ? "No repository selected" : repositoryName,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+            child: BlocBuilder<RepositoryBloc, RepositoryState>(
+              builder: (context, state) {
+                return Text(
+                  state.currentRepositoryName.isEmpty ? "No repository selected" : state.currentRepositoryName,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                );
+              },
             ),
           ),
           PushCommitsButton(

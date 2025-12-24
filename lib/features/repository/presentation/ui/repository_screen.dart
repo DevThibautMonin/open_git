@@ -235,25 +235,20 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
           body: SafeArea(
             child: Column(
               children: [
-                BlocBuilder<RepositoryBloc, RepositoryState>(
-                  builder: (context, state) {
-                    return BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
-                      builder: (context, wdState) {
-                        return RepositoryHeader(
-                          repositoryName: state.currentRepositoryName,
-                          onSelectRepository: () {
-                            _repositoryBloc.add(SelectRepository());
-                          },
-                          onCloneRepository: () {
-                            _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.askForCloningRepository));
-                          },
-                          commitsToPush: wdState.commitsToPush,
-                          onPush: () {
-                            _workingDirectoryBloc.add(PushCommits());
-                          },
-                          isLoading: wdState.status == WorkingDirectoryBlocStatus.loading,
-                        );
+                BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
+                  builder: (context, wdState) {
+                    return RepositoryHeader(
+                      onSelectRepository: () {
+                        _repositoryBloc.add(SelectRepository());
                       },
+                      onCloneRepository: () {
+                        _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.askForCloningRepository));
+                      },
+                      commitsToPush: wdState.commitsToPush,
+                      onPush: () {
+                        _workingDirectoryBloc.add(PushCommits());
+                      },
+                      isLoading: wdState.status == WorkingDirectoryBlocStatus.loading,
                     );
                   },
                 ),
