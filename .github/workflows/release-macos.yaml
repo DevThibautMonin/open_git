@@ -10,6 +10,8 @@ permissions:
   contents: write
 
 env:
+  APPLE_CERT_P12: ${{ secrets.APPLE_CERT_P12 }}
+  APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   APPLE_ID: ${{ secrets.APPLE_ID }}
   APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
@@ -43,11 +45,30 @@ jobs:
           dart run build_runner build -d
           flutter build macos --release
 
+      - name: Import Apple Developer ID certificate
+        run: |
+          echo "$APPLE_CERT_P12" | base64 --decode > cert.p12
+
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+
+          security import cert.p12 \
+            -k build.keychain \
+            -P "$APPLE_CERT_PASSWORD" \
+            -T /usr/bin/codesign
+
+          security set-key-partition-list \
+            -S apple-tool:,apple: \
+            -s \
+            -k "" build.keychain
+
       - name: Code sign macOS app
         run: |
           codesign --deep --force --options runtime \
             --sign "Developer ID Application: Thibaut Monin ($APPLE_TEAM_ID)" \
             build/macos/Build/Products/Release/open_git.app
+          codesign -dv build/macos/Build/Products/Release/open_git.app
 
       - name: Zip app for notarization
         run: |
