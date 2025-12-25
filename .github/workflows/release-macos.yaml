@@ -68,12 +68,22 @@ jobs:
           codesign --deep --force --options runtime \
             --sign "Developer ID Application: Thibaut Monin ($APPLE_TEAM_ID)" \
             build/macos/Build/Products/Release/open_git.app
-          codesign -dv build/macos/Build/Products/Release/open_git.app
 
-      - name: Zip app for notarization
+      - name: Create DMG
         run: |
           cd build/macos/Build/Products/Release
-          ditto -c -k --keepParent open_git.app open_git.zip
+          hdiutil create \
+            -volname "OpenGit" \
+            -srcfolder open_git.app \
+            -ov \
+            -format UDZO \
+            OpenGit.dmg
+
+      - name: Code sign DMG
+        run: |
+          codesign --force \
+            --sign "Developer ID Application: Thibaut Monin ($APPLE_TEAM_ID)" \
+            build/macos/Build/Products/Release/OpenGit.dmg
 
       - name: Store notarization credentials
         run: |
@@ -82,24 +92,24 @@ jobs:
             --team-id "$APPLE_TEAM_ID" \
             --password "$APPLE_APP_PASSWORD"
 
-      - name: Notarize app
+      - name: Notarize DMG
         run: |
-          xcrun notarytool submit build/macos/Build/Products/Release/open_git.zip \
+          xcrun notarytool submit build/macos/Build/Products/Release/OpenGit.dmg \
             --keychain-profile "notary-profile" \
             --wait
 
       - name: Staple notarization
         run: |
-          xcrun stapler staple build/macos/Build/Products/Release/open_git.app
+          xcrun stapler staple build/macos/Build/Products/Release/OpenGit.dmg
 
-      - name: Zip final macOS app
+      - name: Rename DMG
         run: |
-          cd build/macos/Build/Products/Release
-          zip -r OpenGit-${{ steps.version.outputs.version }}-macos.zip open_git.app
+          mv build/macos/Build/Products/Release/OpenGit.dmg \
+             build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: Release ${{ steps.version.outputs.version }}
-          files: build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}-macos.zip
+          files: build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg
