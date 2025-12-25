@@ -53,6 +53,10 @@ jobs:
       - name: Build macOS (Release)
         run: flutter build macos --release
 
+      - name: Sign macOS app (ad-hoc)
+        run: |
+          codesign --deep --force --sign - build/macos/Build/Products/Release/open_git.app
+
       - name: Zip macOS app
         run: |
           cd build/macos/Build/Products/Release
