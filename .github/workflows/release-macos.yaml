@@ -26,17 +26,17 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=v$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Check if tag already exists
-        run: |
-          if git rev-parse "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
-            echo "❌ Tag already exists"
-            exit 1
-          fi
+      # - name: Check if tag already exists
+      #   run: |
+      #     if git rev-parse "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+      #       echo "❌ Tag already exists"
+      #       exit 1
+      #     fi
 
-      - name: Create git tag
-        run: |
-          git tag ${{ steps.version.outputs.tag }}
-          git push origin ${{ steps.version.outputs.tag }}
+      # - name: Create git tag
+      #   run: |
+      #     git tag ${{ steps.version.outputs.tag }}
+      #     git push origin ${{ steps.version.outputs.tag }}
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
