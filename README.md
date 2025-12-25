@@ -1,73 +1,73 @@
-# OpenGit
+# 🚀 OpenGit
 
-### An open source Git client
+OpenGit is a modern desktop Git client designed to provide a clear, visual Git experience, while remaining powerful enough for everyday development workflows.
 
-```bash
-fvm flutter clean
-fvm flutter pub get
-fvm dart run build_runner build -d
-```
+The goal is simple :
 
-# 🔐 Allow Push (SSH setup)
+Make Git easier to understand, safer to use, and more enjoyable, without hiding how it actually works.
 
-To push commits to a remote Git repository (e.g. GitHub), OpenGit uses SSH authentication.
-This requires a one-time setup on the user’s machine.
+---
 
-# ✅ Prerequisites
+# ✨ Features
 
-To allow git push, all of the following conditions must be met:
+### Repository
+- Open a local Git repository.
+- Automatically reopen the last repository on launch.
+- Clone a remote repository using SSH.
+- Display the repository name.
 
-- The user has an SSH key pair on their computer
+### Branches
+- List local branches.
+- Highlight the current branch.
+- Switch between branches.
+- Create and checkout a new branch.
+- Delete branches.
 
-- The public SSH key is added to the remote repository provider (GitHub, GitLab, etc.)
+### Working Directory
+- Display modified, added, deleted, and untracked files.
+- File-type icons based on extensions.
+- Stage / unstage files.
+- Create commits
+  - mandatory commit summary
+  - optional commit description
+- Push commits to the remote repository.
+- Display the number of commits waiting to be pushed.
 
-- The remote host is trusted on the local machine
+### Files Differences
+- File-by-file diff visualization.
+- Clear distinction between
+  - added lines
+  - removed lines
+  - unchanged lines
+- Line numbers support.
+- Support for newly created files.
 
-# 🧩 Step-by-step setup
+### Commit History
+- List commit history.
+- Display author, date, and message.
+- Clean and readable chronological view.
 
-### 1️⃣ Generate an SSH key (if not already done)
+### SSH & Authentication
+- Automatic detection of SSH issues.
+- Friendly UI to
+  - guide SSH setup
+  - handle unknown host verification
+  - manage SSH permission errors
+- Help converting HTTPS remotes to SSH.
 
-```bash
-ssh-keygen -t ed25519 -C "your@email.com"
-```
+---
 
-Press Enter to accept the default location
+# 📦 Roadmap
 
-This creates :
+### Git & Collaboration
+- Commit diff view from history.
+- Fetch / Pull with behind/ahead indicators.
+- Discard changes (file-level / global).
 
-- Private key: ~/.ssh/id_ed25519
-- Public key: ~/.ssh/id_ed25519.pub
+### Branch Management
+- Rename branches.
+- Conflict resolution UI.
 
-### 2️⃣ Add the public key to GitHub
-
-Copy the public key:
-
-```bash
-cat ~/.ssh/id_ed25519.pub
-```
-
-Then add it to:
-
-👉 GitHub → Settings → SSH and GPG keys → New SSH key
-
-### 3️⃣ Verify the SSH connection
-
-Run the following command once:
-
-```bash
-ssh -T git@github.com
-```
-
-Expected output:
-
-Hi <username>! You've successfully authenticated,
-but GitHub does not provide shell access.
-
-
-✔ This confirms:
-
-The private key matches the public key on GitHub
-
-GitHub is trusted on this machine
-
-You can now use the push feature on OpenGit.
+### UX & Product
+- Unified Diff / Commit / History view.
+- Keyboard shortcuts.
