@@ -44,11 +44,11 @@ jobs:
           flutter-version: "3.38.0"
           channel: "stable"
 
-      - name: Enable macOS desktop
-        run: flutter config --enable-macos-desktop
-
-      - name: Install dependencies
-        run: flutter pub get
+      - name: Clean / Install dependencies / Generate code
+        run: |
+          flutter clean
+          flutter pub get
+          dart run build_runner build -d
 
       - name: Build macOS (Release)
         run: flutter build macos --release
