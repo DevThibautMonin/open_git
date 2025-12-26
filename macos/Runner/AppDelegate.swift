@@ -10,8 +10,8 @@ class AppDelegate: FlutterAppDelegate {
       return true
     }
 
-  override func applicationDidFinishLaunching(_ notification: Notification) {
-    super.applicationDidFinishLaunching(notification)
+    override func applicationDidFinishLaunching(_ aNotification: Notification) {
+        super.applicationDidFinishLaunching(aNotification)
 
     guard let controller =
       mainFlutterWindow?.contentViewController as? FlutterViewController
