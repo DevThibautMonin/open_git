@@ -1,7 +1,5 @@
 import "dart:convert";
 import "dart:io";
-import "dart:typed_data";
-
 import "package:file_picker/file_picker.dart";
 import "package:injectable/injectable.dart";
 import "package:open_git/shared/core/constants/git_commands.dart";
@@ -9,7 +7,6 @@ import "package:open_git/shared/core/constants/git_regex.dart";
 import "package:open_git/shared/core/constants/shared_preferences_keys.dart";
 import "package:open_git/shared/core/exceptions/git_exceptions.dart";
 import "package:open_git/shared/core/logger/log_service.dart";
-import "package:open_git/shared/core/services/macos_security_scoped_service.dart";
 import "package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart";
 import "package:open_git/shared/domain/entities/branch_entity.dart";
 import "package:open_git/shared/domain/entities/git_commit_entity.dart";
@@ -19,63 +16,39 @@ import "package:open_git/shared/domain/enums/git_file_status.dart";
 @LazySingleton()
 class GitService {
   final LogService logService;
-  final MacOSSecurityScopedService macOSSecurityScopedService;
   final SharedPreferencesService sharedPreferencesService;
 
   GitService({
     required this.logService,
-    required this.macOSSecurityScopedService,
     required this.sharedPreferencesService,
   });
 
-  /// Temporarily grants sandboxed access to the repository using a security-scoped bookmark,
-  /// executes the given action with the resolved path, then always releases the access.
-  Future<T> withRepoAccess<T>(Future<T> Function(String path) fn) async {
-    final bookmark = _loadBookmark();
-    final path = await macOSSecurityScopedService.resolveBookmark(bookmark);
-
-    try {
-      return await fn(path);
-    } finally {
-      await macOSSecurityScopedService.stopAccess(path);
+  /// Récupère le chemin du repository actuellement stocké.
+  String _getRepoPath() {
+    final path = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath);
+    if (path == null || path.isEmpty) {
+      throw Exception("Aucun repository n'est sélectionné.");
     }
-  }
-
-  Uint8List _loadBookmark() {
-    final data = sharedPreferencesService.getBytes(
-      SharedPreferencesKeys.repositoryBookmark,
-    );
-    if (data == null) {
-      throw Exception("No repository bookmark found");
-    }
-    return Uint8List.fromList(data);
+    return path;
   }
 
   Future<String?> selectRepository() async {
     final path = await FilePicker.platform.getDirectoryPath();
     if (path == null) return null;
 
-    final bookmark = await macOSSecurityScopedService.createBookmark(path);
-
-    await sharedPreferencesService.setBytes(
-      SharedPreferencesKeys.repositoryBookmark,
-      bookmark,
-    );
-    await sharedPreferencesService.setString(
-      SharedPreferencesKeys.repositoryPath,
-      path,
-    );
+    await sharedPreferencesService.setString(SharedPreferencesKeys.repositoryPath, path);
 
     return path;
   }
 
   Future<String> _runGit(
-    List<String> args,
-    String repoPath, {
+    List<String> args, {
     Set<int> allowedExitCodes = const {0},
   }) async {
+    final repoPath = _getRepoPath();
+
     final result = await Process.run(
-      "/usr/bin/git",
+      "git",
       args,
       workingDirectory: repoPath,
     );
@@ -138,98 +111,78 @@ class GitService {
     }
   }
 
-  Future<List<BranchEntity>> getBranches() {
-    return withRepoAccess((path) async {
-      final output = await _runGit(GitCommands.listBranches, path);
-      return parseBranches(output);
-    });
+  Future<List<BranchEntity>> getBranches() async {
+    final output = await _runGit(GitCommands.listBranches);
+    return parseBranches(output);
   }
 
-  Future<void> switchBranch(String name) {
-    return withRepoAccess((path) async {
-      await _runGit([...GitCommands.switchToBranch, name], path);
-    });
+  Future<void> switchBranch(String name) async {
+    await _runGit([...GitCommands.switchToBranch, name]);
   }
 
-  Future<void> deleteBranch(String name) {
-    return withRepoAccess((path) async {
-      await _runGit([...GitCommands.deleteBranch, name], path);
-    });
+  Future<void> deleteBranch(String name) async {
+    await _runGit([...GitCommands.deleteBranch, name]);
   }
 
-  Future<List<GitCommitEntity>> getCommitHistory({int limit = 100}) {
-    return withRepoAccess((path) async {
-      final output = await _runGit(
-        [
-          "log",
-          "--pretty=format:%H|%an|%ad|%s",
-          "--date=iso",
-          "--max-count=$limit",
-        ],
-        path,
+  Future<List<GitCommitEntity>> getCommitHistory({int limit = 100}) async {
+    final output = await _runGit(
+      [
+        "log",
+        "--pretty=format:%H|%an|%ad|%s",
+        "--date=iso",
+        "--max-count=$limit",
+      ],
+    );
+
+    return output.split("\n").where((l) => l.isNotEmpty).map((line) {
+      final p = line.split("|");
+      return GitCommitEntity(
+        sha: p[0],
+        author: p[1],
+        date: DateTime.parse(p[2]),
+        message: p[3],
       );
-
-      return output.split("\n").where((l) => l.isNotEmpty).map((line) {
-        final p = line.split("|");
-        return GitCommitEntity(
-          sha: p[0],
-          author: p[1],
-          date: DateTime.parse(p[2]),
-          message: p[3],
-        );
-      }).toList();
-    });
+    }).toList();
   }
 
-  Future<List<GitFileEntity>> getWorkingDirectoryStatus() {
-    return withRepoAccess((path) async {
-      final output = await _runGit(
-        GitCommands.statusPorcelain,
-        path,
-        allowedExitCodes: const {0, 1},
-      );
-      return parseGitStatusPorcelain(output);
-    });
+  Future<List<GitFileEntity>> getWorkingDirectoryStatus() async {
+    final output = await _runGit(
+      GitCommands.statusPorcelain,
+      allowedExitCodes: const {0, 1},
+    );
+    return parseGitStatusPorcelain(output);
   }
 
-  Future<int> getCommitsAheadCount() {
-    return withRepoAccess((path) async {
-      final result = await _runGit(GitCommands.commitsAheadCount, path);
-      return int.tryParse(result.trim()) ?? 0;
-    });
+  Future<int> getCommitsAheadCount() async {
+    final result = await _runGit(GitCommands.commitsAheadCount);
+    return int.tryParse(result.trim()) ?? 0;
   }
 
-  Future<void> push() {
-    return withRepoAccess((path) async {
-      await _runGit(GitCommands.gitPush, path);
-    });
+  Future<void> push() async {
+    await _runGit(GitCommands.gitPush);
   }
 
-  Future<bool> isRemoteHttps() {
-    return withRepoAccess((path) async {
-      final url = await _runGit(GitCommands.remoteGetOrigin, path);
-      return url.startsWith("https://");
-    });
+  Future<bool> isRemoteHttps() async {
+    final url = await _runGit(GitCommands.remoteGetOrigin);
+    return url.startsWith("https://");
   }
 
-  Future<String?> getRepositorySlug() {
-    return withRepoAccess((path) async {
-      final output = await _runGit(GitCommands.remoteVerbose, path);
+  Future<String?> getRepositorySlug() async {
+    final output = await _runGit(GitCommands.remoteVerbose);
 
-      for (final line in output.split("\n")) {
-        if (!line.contains("(fetch)")) continue;
-        final parts = line.split(GitRegex.line);
-        if (parts.length < 2) continue;
+    for (final line in output.split("\n")) {
+      if (!line.contains("(fetch)")) continue;
+      final parts = line.split(GitRegex.line);
+      if (parts.length < 2) continue;
 
-        final url = parts[1];
-        final https = GitRegex.httpsMatch.firstMatch(url);
-        if (https != null) return https.group(1);
+      final url = parts[1];
+      final https = GitRegex.httpsMatch.firstMatch(url);
+      if (https != null) return https.group(1);
 
-        final ssh = GitRegex.sshMatch.firstMatch(url);
-        if (ssh != null) return ssh.group(1);
-      }
-      return null;
-    });
+      final ssh = GitRegex.sshMatch.firstMatch(url);
+      if (ssh != null) return ssh.group(1);
+    }
+    return null;
   }
 
   List<GitFileEntity> parseGitStatusPorcelain(String output) {
@@ -260,91 +213,82 @@ class GitService {
   Future<void> createCommit({
     required String summary,
     String? description,
-  }) {
-    return withRepoAccess((path) async {
-      final args = [
-        ...GitCommands.gitCommit,
-        "-m",
-        summary,
-      ];
+  }) async {
+    final args = [
+      ...GitCommands.gitCommit,
+      "-m",
+      summary,
+    ];
 
-      final desc = description?.trim();
-      if (desc != null && desc.isNotEmpty) {
-        args.addAll(["-m", desc]);
-      }
+    final desc = description?.trim();
+    if (desc != null && desc.isNotEmpty) {
+      args.addAll(["-m", desc]);
+    }
 
-      await _runGit(args, path);
-    });
+    await _runGit(args);
   }
 
-  Future<void> stageFile(String filePath) {
-    return withRepoAccess((path) async {
-      await _runGit([...GitCommands.gitAdd, filePath], path);
-    });
+  Future<void> stageFile(String filePath) async {
+    await _runGit([...GitCommands.gitAdd, filePath]);
   }
 
-  Future<void> unstageFile(String filePath) {
-    return withRepoAccess((path) async {
-      await _runGit([...GitCommands.gitRestoreStaged, filePath], path);
-    });
+  Future<void> unstageFile(String filePath) async {
+    await _runGit([...GitCommands.gitRestoreStaged, filePath]);
   }
 
   Future<String> getFileDiff({
     required String filePath,
     required GitFileStatus status,
     required bool staged,
-  }) {
-    return withRepoAccess((repoPath) async {
-      late final List<String> args;
+  }) async {
+    late final List<String> args;
 
-      switch (status) {
-        case GitFileStatus.untracked:
-          args = [
-            "diff",
-            "--no-index",
-            "/dev/null",
-            filePath,
-          ];
-          break;
+    switch (status) {
+      case GitFileStatus.untracked:
+        args = [
+          "diff",
+          "--no-index",
+          "/dev/null",
+          filePath,
+        ];
+        break;
 
-        case GitFileStatus.added:
-          args = [
-            "diff",
-            "--cached",
-            "--unified=3",
-            "--",
-            filePath,
-          ];
-          break;
+      case GitFileStatus.added:
+        args = [
+          "diff",
+          "--cached",
+          "--unified=3",
+          "--",
+          filePath,
+        ];
+        break;
 
-        case GitFileStatus.deleted:
-          args = [
-            "diff",
-            "HEAD",
-            "--unified=3",
-            "--",
-            filePath,
-          ];
-          break;
+      case GitFileStatus.deleted:
+        args = [
+          "diff",
+          "HEAD",
+          "--unified=3",
+          "--",
+          filePath,
+        ];
+        break;
 
-        case GitFileStatus.modified:
-        case GitFileStatus.renamed:
-          args = [
-            "diff",
-            if (staged) "--cached",
-            "--unified=3",
-            "--",
-            filePath,
-          ];
-          break;
-      }
+      case GitFileStatus.modified:
+      case GitFileStatus.renamed:
+        args = [
+          "diff",
+          if (staged) "--cached",
+          "--unified=3",
+          "--",
+          filePath,
+        ];
+        break;
+    }
 
-      return _runGit(
-        args,
-        repoPath,
-        allowedExitCodes: const {0, 1},
-      );
-    });
+    return await _runGit(
+      args,
+      allowedExitCodes: const {0, 1},
+    );
   }
 
   GitFileStatus mapGitFileStatus(String x, String y) {
