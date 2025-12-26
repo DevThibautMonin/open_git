@@ -48,16 +48,13 @@ jobs:
       - name: Import Apple Developer ID certificate
         run: |
           echo "$APPLE_CERT_P12" | base64 --decode > cert.p12
-
           security create-keychain -p "" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "" build.keychain
-
           security import cert.p12 \
             -k build.keychain \
             -P "$APPLE_CERT_PASSWORD" \
             -T /usr/bin/codesign
-
           security set-key-partition-list \
             -S apple-tool:,apple: \
             -s \
@@ -71,21 +68,32 @@ jobs:
             --sign "Developer ID Application: Thibaut Monin ($APPLE_TEAM_ID)" \
             build/macos/Build/Products/Release/OpenGit.app
 
-      - name: Create DMG
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Create Fancy DMG (No background)
         run: |
-          cd build/macos/Build/Products/Release
-          hdiutil create \
-            -volname "OpenGit" \
-            -srcfolder OpenGit.app \
-            -ov \
-            -format UDZO \
-            OpenGit.dmg
+          # Création d'un dossier source propre pour le DMG
+          mkdir -p build/dmg_source
+          cp -R build/macos/Build/Products/Release/OpenGit.app build/dmg_source/
+          
+          # Génération du DMG avec lien Applications et icônes placées
+          create-dmg \
+            --volname "OpenGit" \
+            --window-pos 200 120 \
+            --window-size 500 300 \
+            --icon-size 100 \
+            --icon "OpenGit.app" 125 150 \
+            --app-drop-link 375 150 \
+            --hide-extension "OpenGit.app" \
+            "build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg" \
+            "build/dmg_source/"
 
       - name: Code sign DMG
         run: |
           codesign --force \
             --sign "Developer ID Application: Thibaut Monin ($APPLE_TEAM_ID)" \
-            build/macos/Build/Products/Release/OpenGit.dmg
+            build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg
 
       - name: Store notarization credentials
         run: |
@@ -96,18 +104,13 @@ jobs:
 
       - name: Notarize DMG
         run: |
-          xcrun notarytool submit build/macos/Build/Products/Release/OpenGit.dmg \
+          xcrun notarytool submit build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg \
             --keychain-profile "notary-profile" \
             --wait
 
       - name: Staple notarization
         run: |
-          xcrun stapler staple build/macos/Build/Products/Release/OpenGit.dmg
-
-      - name: Rename DMG
-        run: |
-          mv build/macos/Build/Products/Release/OpenGit.dmg \
-             build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg
+          xcrun stapler staple build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
