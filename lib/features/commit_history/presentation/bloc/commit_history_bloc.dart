@@ -1,7 +1,6 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
-import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
 import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
@@ -20,18 +19,9 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
     required this.gitService,
   }) : super(CommitHistoryState()) {
     on<LoadCommitHistory>((event, emit) async {
-      final repoPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
-
-      if (repoPath.isEmpty) return;
-
       try {
         emit(state.copyWith(status: CommitHistoryBlocStatus.loading));
-
-        final commits = await gitService.getCommitHistory(
-          repoPath,
-          limit: event.limit,
-        );
-
+        final commits = await gitService.getCommitHistory(limit: event.limit);
         emit(
           state.copyWith(
             commits: commits,

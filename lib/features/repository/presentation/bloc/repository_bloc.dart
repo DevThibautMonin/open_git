@@ -28,32 +28,37 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
     });
 
     on<SelectRepository>((event, emit) async {
-      final repositoryPath = await gitService.selectRepoDirectory();
-      if (repositoryPath == null || repositoryPath.isEmpty) return;
+      await gitService.selectRepository();
 
-      await sharedPreferencesService.setString(SharedPreferencesKeys.repositoryPath, repositoryPath);
+      final path = sharedPreferencesService.getString(
+        SharedPreferencesKeys.repositoryPath,
+      );
+
+      if (path == null || path.isEmpty) return;
 
       emit(
         state.copyWith(
-          repositoryPath: repositoryPath,
-          currentRepositoryName: repoNameFromPath(repositoryPath),
+          repositoryPath: path,
+          currentRepositoryName: repoNameFromPath(path),
           status: RepositoryBlocStatus.repositorySelected,
         ),
       );
     });
 
     on<InitLastRepository>((event, emit) async {
-      final lastPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath);
+      final path = sharedPreferencesService.getString(
+        SharedPreferencesKeys.repositoryPath,
+      );
 
-      if (lastPath != null && lastPath.isNotEmpty) {
-        emit(
-          state.copyWith(
-            repositoryPath: lastPath,
-            currentRepositoryName: repoNameFromPath(lastPath),
-            status: RepositoryBlocStatus.repositorySelected,
-          ),
-        );
-      }
+      if (path == null || path.isEmpty) return;
+
+      emit(
+        state.copyWith(
+          repositoryPath: path,
+          currentRepositoryName: repoNameFromPath(path),
+          status: RepositoryBlocStatus.repositorySelected,
+        ),
+      );
     });
 
     on<ChooseCloneDirectory>((event, emit) async {
