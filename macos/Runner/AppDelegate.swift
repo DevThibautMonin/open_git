@@ -11,7 +11,13 @@ class AppDelegate: FlutterAppDelegate {
     }
 
   override func applicationDidFinishLaunching(_ notification: Notification) {
-    let controller = mainFlutterWindow!.contentViewController as! FlutterViewController
+    super.applicationDidFinishLaunching(notification)
+
+    guard let controller =
+      mainFlutterWindow?.contentViewController as? FlutterViewController
+    else {
+      return
+    }
 
     let channel = FlutterMethodChannel(
       name: "opengit.security_scoped",
@@ -73,7 +79,5 @@ class AppDelegate: FlutterAppDelegate {
         result(FlutterMethodNotImplemented)
       }
     }
-
-    super.applicationDidFinishLaunching(notification)
   }
 }
