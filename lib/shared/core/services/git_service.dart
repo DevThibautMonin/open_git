@@ -75,7 +75,7 @@ class GitService {
     Set<int> allowedExitCodes = const {0},
   }) async {
     final result = await Process.run(
-      "git",
+      "/usr/bin/git",
       args,
       workingDirectory: repoPath,
     );
