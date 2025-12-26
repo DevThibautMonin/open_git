@@ -66,6 +66,7 @@ jobs:
       - name: Code sign macOS app
         run: |
           codesign --deep --force --options runtime \
+  --entitlements macos/Runner/Release.entitlements \
             --sign "Developer ID Application: Thibaut Monin ($APPLE_TEAM_ID)" \
             build/macos/Build/Products/Release/open_git.app
 
