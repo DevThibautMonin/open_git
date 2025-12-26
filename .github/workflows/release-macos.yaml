@@ -69,14 +69,14 @@ jobs:
             --options runtime \
             --entitlements macos/Runner/Release.entitlements \
             --sign "Developer ID Application: Thibaut Monin ($APPLE_TEAM_ID)" \
-            build/macos/Build/Products/Release/open_git.app
+            build/macos/Build/Products/Release/OpenGit.app
 
       - name: Create DMG
         run: |
           cd build/macos/Build/Products/Release
           hdiutil create \
             -volname "OpenGit" \
-            -srcfolder open_git.app \
+            -srcfolder OpenGit.app \
             -ov \
             -format UDZO \
             OpenGit.dmg
