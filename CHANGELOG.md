@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.0.2) (28/12/2025)
+
+### Added
+
+- [Homebrew] Add homebrew custom tap support.
+
 ## Version (1.0.1) (28/12/2025)
 
 ### Fix
