@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/branches_sidebar.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
+import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 import 'package:open_git/features/working_directory/presentation/ui/working_directory_files_list.dart';
 import 'package:open_git/features/commit_history/presentation/ui/commit_history_list.dart';
@@ -72,6 +73,15 @@ class RepositorySidebar extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+            BlocBuilder<RepositoryBloc, RepositoryState>(
+              buildWhen: (previous, current) => previous.version != current.version,
+              builder: (context, state) {
+                return Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text("Version : ${state.version}"),
+                );
+              },
             ),
           ],
         ),

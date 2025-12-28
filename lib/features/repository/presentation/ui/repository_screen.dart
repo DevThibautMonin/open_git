@@ -14,8 +14,8 @@ import 'package:open_git/shared/presentation/widgets/dialogs/ssh_permission_deni
 import 'package:open_git/shared/core/constants/constants.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
 import 'package:open_git/features/files_differences/presentation/ui/diff_viewer.dart';
-import 'package:open_git/shared/presentation/widgets/repository_header.dart';
-import 'package:open_git/shared/presentation/widgets/repository_sidebar.dart';
+import 'package:open_git/features/repository/presentation/ui/repository_header.dart';
+import 'package:open_git/features/repository/presentation/ui/repository_sidebar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/error_snackbar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/success_snackbar.dart';
 
@@ -47,7 +47,9 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => _repositoryBloc..add(InitLastRepository()),
+          create: (context) => _repositoryBloc
+            ..add(InitLastRepository())
+            ..add(RetrieveAppVersion()),
         ),
         BlocProvider(
           create: (context) => getIt<BranchesBloc>(),

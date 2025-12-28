@@ -15,6 +15,8 @@ extension FileTypeEnumResolver on String {
         return FileTypeEnum.dart;
       case 'swift':
         return FileTypeEnum.swift;
+      case 'kt':
+        return FileTypeEnum.kotlin;
       case 'js':
         return FileTypeEnum.javascript;
       case 'ts':

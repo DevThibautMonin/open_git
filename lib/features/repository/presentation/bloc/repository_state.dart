@@ -21,6 +21,7 @@ class RepositoryState with RepositoryStateMappable {
   final String cloneDestinationPath;
   final String cloneRepositoryUrl;
   final double cloneProgress;
+  final String version;
 
   const RepositoryState({
     this.status = RepositoryBlocStatus.initial,
@@ -30,5 +31,6 @@ class RepositoryState with RepositoryStateMappable {
     this.cloneDestinationPath = "",
     this.cloneRepositoryUrl = "",
     this.cloneProgress = 0.0,
+    this.version = "",
   });
 }

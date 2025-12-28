@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.0.3) (28/12/2025)
+
+### Updates
+
+- [Working directory] Update working directory files icons.
+
 ## Version (1.0.2) (28/12/2025)
 
 ### Added

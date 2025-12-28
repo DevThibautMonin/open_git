@@ -35,3 +35,7 @@ class CloneRepositoryUrlChanged extends RepositoryEvent {
 
   CloneRepositoryUrlChanged(this.url);
 }
+
+class RetrieveAppVersion extends RepositoryEvent {
+  RetrieveAppVersion();
+}

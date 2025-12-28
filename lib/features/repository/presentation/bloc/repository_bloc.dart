@@ -6,6 +6,7 @@ import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
 import 'package:open_git/shared/core/exceptions/git_exceptions.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 
 part 'repository_event.dart';
@@ -22,6 +23,11 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
     required this.sharedPreferencesService,
   }) : super(RepositoryState()) {
     String repoNameFromPath(String path) => p.basename(path);
+
+    on<RetrieveAppVersion>((event, emit) async {
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      emit(state.copyWith(version: packageInfo.version));
+    });
 
     on<UpdateRepositoryStatus>((event, emit) {
       emit(state.copyWith(status: event.status));

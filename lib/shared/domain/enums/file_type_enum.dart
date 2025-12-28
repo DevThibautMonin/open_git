@@ -7,6 +7,7 @@ enum FileTypeEnum {
   json(assetPath: "assets/file_type_icons/json.svg"),
   yaml(assetPath: "assets/file_type_icons/yaml.svg"),
   swift(assetPath: "assets/file_type_icons/swift.svg"),
+  kotlin(assetPath: "assets/file_type_icons/kotlin.svg"),
 
   image(assetPath: "assets/file_type_icons/default_image.svg"),
   folder(assetPath: "assets/file_type_icons/default_file.svg"),
