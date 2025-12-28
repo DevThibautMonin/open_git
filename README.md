@@ -12,6 +12,22 @@ Make Git easier to understand, safer to use, and more enjoyable, without hiding 
 
 ---
 
+# ⚙️ Installation
+
+### macOS (Homebrew)
+
+```bash
+brew tap DevThibautMonin/tap
+brew install --cask opengit
+```
+
+### To update later 
+
+```bash
+brew update
+brew upgrade --cask opengit
+```
+
 # ✨ Features
 
 ### Repository
