@@ -137,9 +137,14 @@ jobs:
           VERSION=${{ steps.version.outputs.version }}
           SHA=${{ steps.sha.outputs.sha }}
 
-          sed -i '' "s/^  version \".*\"/  version \"${VERSION}\"/" "$CASK_FILE"
-          sed -i '' "s/^  sha256 \".*\"/  sha256 \"${SHA}\"/" "$CASK_FILE"
-          
+          sed -i '' -E "s/^(\s*)version \".*\"/\1version \"${VERSION}\"/" "$CASK_FILE"
+          sed -i '' -E "s/^(\s*)sha256 \".*\"/\1sha256 \"${SHA}\"/" "$CASK_FILE"
+
+      - name: Show Homebrew cask diff
+        run: |
+          cd homebrew-tap
+          git diff || true
+        
       - name: Commit and push cask update
         run: |
           cd homebrew-tap
