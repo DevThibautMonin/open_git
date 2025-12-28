@@ -120,6 +120,10 @@ class GitService {
     await _runGit([...GitCommands.switchToBranch, name]);
   }
 
+  Future<void> createBranchAndCheckout(String name) async {
+    await _runGit([...GitCommands.checkoutBranch, name]);
+  }
+
   Future<void> deleteBranch(String name) async {
     await _runGit([...GitCommands.deleteBranch, name]);
   }
