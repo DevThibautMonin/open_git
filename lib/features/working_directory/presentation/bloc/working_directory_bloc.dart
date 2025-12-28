@@ -1,7 +1,6 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
-import 'package:open_git/shared/core/constants/git_commands.dart';
 import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
 import 'package:open_git/shared/core/exceptions/git_exceptions.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
@@ -22,19 +21,13 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
     required this.gitService,
   }) : super(WorkingDirectoryState()) {
     on<GetRepositoryStatus>((event, emit) async {
-      final repositoryPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
-
-      if (repositoryPath.isEmpty) return;
-
-      final commandResult = await gitService.runGit(GitCommands.statusPorcelain, repositoryPath);
-
-      final files = gitService.parseGitStatusPorcelain(commandResult);
-      final commitsToPush = await gitService.getCommitsAheadCount(repositoryPath);
+      final files = await gitService.getWorkingDirectoryStatus();
+      final commitsToPush = await gitService.getCommitsAheadCount();
 
       emit(
         state.copyWith(
-          commitsToPush: commitsToPush,
           files: files,
+          commitsToPush: commitsToPush,
         ),
       );
     });
@@ -47,26 +40,19 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
       try {
         emit(state.copyWith(status: WorkingDirectoryBlocStatus.loading));
 
-        final isHttps = await gitService.isRemoteHttps(repositoryPath);
+        final isHttps = await gitService.isRemoteHttps();
         if (isHttps) {
-          final slug = await gitService.getRepositorySlug(repositoryPath);
-
-          final gitRemoteCommand = slug != null
-              ? 'git remote set-url origin git@github.com:$slug.git'
-              : 'git remote set-url origin git@github.com:OWNER/REPOSITORY.git';
-
+          final slug = await gitService.getRepositorySlug();
           emit(
             state.copyWith(
               status: WorkingDirectoryBlocStatus.gitRemoteIsHttps,
-              gitRemoteCommand: gitRemoteCommand,
-              errorMessage: "This repository uses HTTPS. OpenGit only supports SSH for push operations.",
+              gitRemoteCommand: slug != null ? 'git remote set-url origin git@github.com:$slug.git' : null,
             ),
           );
           return;
         }
 
-        await gitService.runGit(GitCommands.gitPush, repositoryPath);
-
+        await gitService.push();
         add(GetRepositoryStatus());
         emit(state.copyWith(status: WorkingDirectoryBlocStatus.commitsPushed));
       } on GitSshHostVerificationFailed {
@@ -98,37 +84,20 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
     });
 
     on<AddCommit>((event, emit) async {
-      final repositoryPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
-
-      if (repositoryPath.isEmpty) return;
-
-      final List<String> args = [
-        ...GitCommands.gitCommit,
-        '-m',
-        event.summary,
-      ];
-
-      final description = event.description?.trim();
-      if (description != null && description.isNotEmpty) {
-        args.addAll(['-m', description]);
-      }
-
-      await gitService.runGit(args, repositoryPath);
+      await gitService.createCommit(
+        summary: event.summary,
+        description: event.description,
+      );
 
       add(GetRepositoryStatus());
     });
 
     on<ToggleFileStaging>((event, emit) async {
-      final repoPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
-      if (repoPath.isEmpty) return;
-
       try {
         if (event.stage) {
-          // toujours git add
-          await gitService.runGit([...GitCommands.gitAdd, event.file.path], repoPath);
+          await gitService.stageFile(event.file.path);
         } else {
-          // git restore --staged même pour les untracked qui ont été ajoutés
-          await gitService.runGit([...GitCommands.gitRestoreStaged, event.file.path], repoPath);
+          await gitService.unstageFile(event.file.path);
         }
 
         add(GetRepositoryStatus());

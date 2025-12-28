@@ -1,5 +1,9 @@
 # 🚀 OpenGit
 
+<p align="center">
+  <img src="./assets/app_icons/icon.svg" alt="isolated" width="200"/>
+</p>
+
 OpenGit is a modern desktop Git client designed to provide a clear, visual Git experience, while remaining powerful enough for everyday development workflows.
 
 The goal is simple :

@@ -1,8 +1,6 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
-import 'package:open_git/shared/core/constants/git_commands.dart';
-import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
 import 'package:open_git/shared/domain/entities/branch_entity.dart';
@@ -25,71 +23,39 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
     });
 
     on<DeleteBranch>((event, emit) async {
-      final repoPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? '';
-      if (repoPath.isEmpty) return;
-
       if (event.branch.isCurrent) {
-        return emit(
+        emit(
           state.copyWith(
             status: BranchesBlocStatus.error,
-            errorMessage: "You can't delete current branch !",
+            errorMessage: "You can't delete current branch",
           ),
         );
+        return;
       }
 
-      await gitService.runGit([...GitCommands.deleteBranch, event.branch.name], repoPath);
-
+      await gitService.deleteBranch(event.branch.name);
       add(GetRepositoryBranches());
     });
 
     on<SwitchToBranch>((event, emit) async {
-      final repositoryPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
+      await gitService.switchBranch(event.branch.name);
+      add(GetRepositoryBranches());
+    });
 
-      await gitService.runGit(
-        [...GitCommands.switchToBranch, event.branch.name],
-        repositoryPath,
-      );
-
-      final updatedBranches = state.branches
-          .map(
-            (branch) => branch.copyWith(
-              isCurrent: branch.name == event.branch.name,
-            ),
-          )
-          .toList();
-
+    on<GetRepositoryBranches>((event, emit) async {
+      final branches = await gitService.getBranches();
       emit(
         state.copyWith(
-          branches: updatedBranches,
+          branches: branches,
+          status: BranchesBlocStatus.branchesRetrieved,
         ),
       );
     });
 
-    on<GetRepositoryBranches>((event, emit) async {
-      final repositoryPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
-      if (repositoryPath.isNotEmpty) {
-        final commandResult = await gitService.runGit(GitCommands.listBranches, repositoryPath);
-        final branches = gitService.parseBranches(commandResult);
-        emit(
-          state.copyWith(
-            branches: branches,
-            status: BranchesBlocStatus.branchesRetrieved,
-          ),
-        );
-      }
-    });
-
     on<CreateNewBranchAndCheckout>((event, emit) async {
-      final repositoryPath = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath) ?? "";
-      if (repositoryPath.isNotEmpty) {
-        await gitService.runGit([...GitCommands.checkoutBranch, event.branchName], repositoryPath);
-        add(GetRepositoryBranches());
-        emit(
-          state.copyWith(
-            status: BranchesBlocStatus.branchCreated,
-          ),
-        );
-      }
+      await gitService.switchBranch(event.branchName);
+      add(GetRepositoryBranches());
+      emit(state.copyWith(status: BranchesBlocStatus.branchCreated));
     });
   }
 }

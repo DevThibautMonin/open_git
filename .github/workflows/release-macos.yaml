@@ -1,0 +1,119 @@
+name: Build & Release macOS
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+env:
+  APPLE_CERT_P12: ${{ secrets.APPLE_CERT_P12 }}
+  APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  APPLE_ID: ${{ secrets.APPLE_ID }}
+  APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+jobs:
+  release:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read version from pubspec.yaml
+        id: version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.38.0"
+          channel: "stable"
+
+      - name: Install dependencies & build
+        run: |
+          flutter clean
+          flutter pub get
+          dart run build_runner build -d
+          flutter build macos --release
+
+      - name: Import Apple Developer ID certificate
+        run: |
+          echo "$APPLE_CERT_P12" | base64 --decode > cert.p12
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security import cert.p12 \
+            -k build.keychain \
+            -P "$APPLE_CERT_PASSWORD" \
+            -T /usr/bin/codesign
+          security set-key-partition-list \
+            -S apple-tool:,apple: \
+            -s \
+            -k "" build.keychain
+
+      - name: Code sign macOS app
+        run: |
+          codesign --deep --force \
+            --options runtime \
+            --entitlements macos/Runner/Release.entitlements \
+            --sign "Developer ID Application: Thibaut Monin ($APPLE_TEAM_ID)" \
+            build/macos/Build/Products/Release/OpenGit.app
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Create Fancy DMG (No background)
+        run: |
+          # Création d'un dossier source propre pour le DMG
+          mkdir -p build/dmg_source
+          cp -R build/macos/Build/Products/Release/OpenGit.app build/dmg_source/
+          
+          # Génération du DMG avec lien Applications et icônes placées
+          create-dmg \
+            --volname "OpenGit" \
+            --window-pos 200 120 \
+            --window-size 500 300 \
+            --icon-size 100 \
+            --icon "OpenGit.app" 125 150 \
+            --app-drop-link 375 150 \
+            --hide-extension "OpenGit.app" \
+            "build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg" \
+            "build/dmg_source/"
+
+      - name: Code sign DMG
+        run: |
+          codesign --force \
+            --sign "Developer ID Application: Thibaut Monin ($APPLE_TEAM_ID)" \
+            build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg
+
+      - name: Store notarization credentials
+        run: |
+          xcrun notarytool store-credentials "notary-profile" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD"
+
+      - name: Notarize DMG
+        run: |
+          xcrun notarytool submit build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg \
+            --keychain-profile "notary-profile" \
+            --wait
+
+      - name: Staple notarization
+        run: |
+          xcrun stapler staple build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Release ${{ steps.version.outputs.version }}
+          files: build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg

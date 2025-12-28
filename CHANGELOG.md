@@ -1,6 +1,6 @@
 # Changelog
 
-## Version (1.0.0) (23/12/2025)
+## Version (1.0.0) (28/12/2025)
 
 ### Added
 - [Repository] Open repository directory.

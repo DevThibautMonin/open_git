@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:injectable/injectable.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,4 +19,17 @@ class SharedPreferencesServiceImpl implements SharedPreferencesService {
 
   @override
   String? getString(String key) => prefs.getString(key);
+
+  @override
+  Future<void> setBytes(String key, List<int> value) async {
+    final encoded = base64Encode(value);
+    await prefs.setString(key, encoded);
+  }
+
+  @override
+  List<int>? getBytes(String key) {
+    final encoded = prefs.getString(key);
+    if (encoded == null) return null;
+    return base64Decode(encoded);
+  }
 }

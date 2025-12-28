@@ -13,6 +13,8 @@ extension FileTypeEnumResolver on String {
     switch (ext) {
       case 'dart':
         return FileTypeEnum.dart;
+      case 'swift':
+        return FileTypeEnum.swift;
       case 'js':
         return FileTypeEnum.javascript;
       case 'ts':
