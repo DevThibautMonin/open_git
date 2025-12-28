@@ -86,6 +86,7 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
       );
 
       try {
+        await gitService.ensureDirectoryIsEmpty(event.destinationPath);
         await gitService.cloneRepositoryWithProgress(
           sshUrl: event.sshUrl,
           targetPath: event.destinationPath,
@@ -117,6 +118,13 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
           state.copyWith(
             status: RepositoryBlocStatus.error,
             errorMessage: 'SSH permission denied. Add your key to the provider.',
+          ),
+        );
+      } on DirectoryNotEmptyFailure {
+        emit(
+          state.copyWith(
+            status: RepositoryBlocStatus.error,
+            errorMessage: "The target directory must be empty.",
           ),
         );
       } catch (e) {
