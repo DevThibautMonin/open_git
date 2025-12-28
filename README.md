@@ -14,7 +14,7 @@ Make Git easier to understand, safer to use, and more enjoyable, without hiding 
 
 # ⚙️ Installation
 
-### macOS (Homebrew)
+## macOS (Homebrew) - *Recommended*
 
 ```bash
 brew tap DevThibautMonin/tap
@@ -27,6 +27,14 @@ brew install --cask opengit
 brew update
 brew upgrade --cask opengit
 ```
+
+## macOS (Manual)
+- Go to the Releases page.
+- Download the latest `.dmg` file (e.g., OpenGit-1.0.2.dmg).
+- Open the downloaded `.dmg` file.
+- Drag and drop the OpenGit icon into your Applications folder.
+
+---
 
 # ✨ Features
 
