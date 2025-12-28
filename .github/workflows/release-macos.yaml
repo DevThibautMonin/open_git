@@ -137,8 +137,8 @@ jobs:
           VERSION=${{ steps.version.outputs.version }}
           SHA=${{ steps.sha.outputs.sha }}
 
-          sed -i '' -E "s/^(\s*)version \".*\"/\1version \"${VERSION}\"/" "$CASK_FILE"
-          sed -i '' -E "s/^(\s*)sha256 \".*\"/\1sha256 \"${SHA}\"/" "$CASK_FILE"
+          sed -i '' "s/version \".*\"/version \"$VERSION\"/" "$CASK_FILE"
+          sed -i '' "s/sha256 \".*\"/sha256 \"$SHA\"/" "$CASK_FILE"
 
       - name: Show Homebrew cask diff
         run: |
@@ -153,5 +153,11 @@ jobs:
 
           git add Casks/opengit.rb
           git diff --cached --quiet && exit 0
+
+          if git diff --quiet --cached; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
           git commit -m "chore(cask): update opengit to v${{ steps.version.outputs.version }}"
           git push
