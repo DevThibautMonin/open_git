@@ -53,7 +53,7 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
     });
 
     on<CreateNewBranchAndCheckout>((event, emit) async {
-      await gitService.switchBranch(event.branchName);
+      await gitService.createBranchAndCheckout(event.branchName);
       add(GetRepositoryBranches());
       emit(state.copyWith(status: BranchesBlocStatus.branchCreated));
     });

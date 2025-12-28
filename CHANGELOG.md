@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.0.1) (28/12/2025)
+
+### Fix
+
+- [Branches] Fix git branch checkout.
+
 ## Version (1.0.0) (28/12/2025)
 
 ### Added
