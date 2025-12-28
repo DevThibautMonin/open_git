@@ -87,27 +87,49 @@ class GitService {
     required void Function(double progress) onProgress,
   }) async {
     final process = await Process.start(
-      "git",
-      ["clone", "--progress", sshUrl, targetPath],
+      'git',
+      ['clone', '--progress', sshUrl, targetPath],
     );
 
-    final buffer = StringBuffer();
-    final regex = GitRegex.cloneRepositoryProgress;
+    final stderrBuffer = StringBuffer();
+    final stdoutBuffer = StringBuffer();
 
-    process.stderr.transform(utf8.decoder).listen((line) {
-      buffer.write(line);
-      final match = regex.firstMatch(line);
+    final progressRegex = GitRegex.cloneRepositoryProgress;
+
+    process.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
+      stderrBuffer.writeln(line);
+
+      final match = progressRegex.firstMatch(line);
       if (match != null) {
         onProgress(double.parse(match.group(1)!) / 100);
       }
     });
 
+    process.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
+      stdoutBuffer.writeln(line);
+    });
+
     final exitCode = await process.exitCode;
+
     if (exitCode != 0) {
+      final errorMessage = stderrBuffer.toString().trim();
       throw GitCommandFailed(
-        command: "git clone",
-        stderr: buffer.toString(),
+        command: 'git clone',
+        stderr: errorMessage.isEmpty ? 'Erreur inconnue lors du clone.' : errorMessage,
       );
+    }
+  }
+
+  Future<void> ensureDirectoryIsEmpty(String path) async {
+    final dir = Directory(path);
+
+    if (await dir.exists()) {
+      final isEmpty = await dir.list().isEmpty;
+      if (!isEmpty) {
+        throw DirectoryNotEmptyFailure(
+          message: 'Le dossier cible n’est pas vide.',
+        );
+      }
     }
   }
 

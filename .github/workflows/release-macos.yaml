@@ -117,3 +117,36 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           name: Release ${{ steps.version.outputs.version }}
           files: build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg
+
+      - name: Compute SHA256 (Homebrew step)
+        id: sha
+        run: |
+          SHA=$(shasum -a 256 build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg | awk '{print $1}')
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+
+      - name: Checkout homebrew-tap
+        uses: actions/checkout@v4
+        with:
+          repository: DevThibautMonin/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update Homebrew cask
+        run: |
+          CASK_FILE=homebrew-tap/Casks/opengit.rb
+          VERSION=${{ steps.version.outputs.version }}
+          SHA=${{ steps.sha.outputs.sha }}
+
+          sed -i '' "s/^  version \".*\"/  version \"${VERSION}\"/" "$CASK_FILE"
+          sed -i '' "s/^  sha256 \".*\"/  sha256 \"${SHA}\"/" "$CASK_FILE"
+          
+      - name: Commit and push cask update
+        run: |
+          cd homebrew-tap
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add Casks/opengit.rb
+          git diff --quiet && exit 0
+          git commit -m "chore(cask): update opengit to v${{ steps.version.outputs.version }}"
+          git push

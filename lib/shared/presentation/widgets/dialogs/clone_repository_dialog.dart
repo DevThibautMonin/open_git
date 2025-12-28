@@ -79,6 +79,12 @@ class _CloneRepositoryDialogState extends State<CloneRepositoryDialog> {
                   label: const Text('Choose folder'),
                 ),
 
+                if (state.errorMessage.isNotEmpty)
+                  Text(
+                    state.errorMessage,
+                    style: TextStyle(color: Colors.red),
+                  ),
+
                 if (isCloning) ...[
                   Gaps.h20,
                   LinearProgressIndicator(value: state.cloneProgress),

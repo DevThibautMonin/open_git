@@ -19,6 +19,14 @@ class GitSshPermissionDenied extends GitException {}
 
 class GitHttpsAuthRequired extends GitException {}
 
+class DirectoryNotEmptyFailure extends GitException {
+  final String message;
+
+  const DirectoryNotEmptyFailure({
+    required this.message,
+  });
+}
+
 /// Fallback
 class GitUnknownException extends GitException {
   final String message;
