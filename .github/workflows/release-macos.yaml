@@ -124,18 +124,24 @@ jobs:
 
       - name: Generate Sparkle Signature & Appcast
         env:
-          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
           DMG_PATH="build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg"
           
-          # L'outil sign_update détecte automatiquement SPARKLE_ED_PRIVATE_KEY.
-          SIGNATURE=$(./sparkle_dist/bin/sign_update "$DMG_PATH")
-          
-          if [ -z "$SIGNATURE" ]; then
-            echo "Erreur : La signature n'a pas pu être générée."
+          if [ ! -f "$DMG_PATH" ]; then
+            echo "Erreur : Le fichier DMG est introuvable à l'endroit : $DMG_PATH"
             exit 1
           fi
-          
+
+          echo "Tentative de signature du DMG..."
+          SIGNATURE=$(echo "$PRIVATE_KEY" | ./sparkle_dist/bin/sign_update "$DMG_PATH" 2>&1)
+          EXIT_CODE=$?
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "Erreur Sparkle (Code $EXIT_CODE) : $SIGNATURE"
+            exit 1
+          fi
+
           echo "Signature générée avec succès."
 
           FILE_SIZE=$(stat -f%z "$DMG_PATH")
