@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.0.5) (29/12/2025)
+
+### Added
+
+- [App] Add auto updater. At launch, the app with check if a new version is available.
+
 ## Version (1.0.4) (29/12/2025)
 
 ### Added
