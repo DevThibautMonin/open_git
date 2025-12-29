@@ -9,7 +9,6 @@ import 'package:open_git/features/commit_history/presentation/ui/commit_history_
 
 class RepositorySidebar extends StatelessWidget {
   final List<GitFileEntity> files;
-  final Function(GitFileEntity file) onFileSelected;
   final bool hasStagedFiles;
   final void Function({
     required String summary,
@@ -20,7 +19,6 @@ class RepositorySidebar extends StatelessWidget {
   const RepositorySidebar({
     super.key,
     required this.files,
-    required this.onFileSelected,
     required this.hasStagedFiles,
     required this.onCommitPressed,
   });
@@ -59,9 +57,6 @@ class RepositorySidebar extends StatelessWidget {
                   BranchesSidebar(),
                   WorkingDirectoryFilesList(
                     files: files,
-                    onFileSelected: (file) {
-                      onFileSelected(file);
-                    },
                     hasStagedFiles: hasStagedFiles,
                     onCommitPressed: onCommitPressed,
                   ),

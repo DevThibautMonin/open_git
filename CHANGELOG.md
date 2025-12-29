@@ -1,5 +1,15 @@
 # Changelog
 
+## Version (1.0.4) (29/12/2025)
+
+### Added
+
+- [Working directory] Discard all changes.
+
+### Fix
+
+- [Branches] Fix branches remote error while creating local branch.
+
 ## Version (1.0.3) (28/12/2025)
 
 ### Updates

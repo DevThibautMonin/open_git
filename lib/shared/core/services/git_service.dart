@@ -62,6 +62,11 @@ class GitService {
     return result.stdout.toString();
   }
 
+  Future<void> discardAllChanges() async {
+    await _runGit(GitCommands.restoreTrackedFiles);
+    await _runGit(GitCommands.removeUntrackedFiles);
+  }
+
   GitException _mapGitError(String stderr, List<String> args) {
     final error = stderr.toLowerCase();
 
@@ -117,6 +122,26 @@ class GitService {
         command: 'git clone',
         stderr: errorMessage.isEmpty ? 'Erreur inconnue lors du clone.' : errorMessage,
       );
+    }
+  }
+
+  Future<bool> hasUpstream() async {
+    final result = await Process.run(
+      "git",
+      GitCommands.getUpstreamState,
+      workingDirectory: _getRepoPath(),
+    );
+
+    return result.exitCode == 0;
+  }
+
+  Future<void> pushOrPublish() async {
+    final hasUpstreamBranch = await hasUpstream();
+
+    if (!hasUpstreamBranch) {
+      await _runGit(GitCommands.publishBranch);
+    } else {
+      await push();
     }
   }
 

@@ -37,3 +37,14 @@ class UpdateWorkingDirectoryStatus extends WorkingDirectoryEvent {
     required this.status,
   });
 }
+
+class SelectFile extends WorkingDirectoryEvent {
+  final GitFileEntity file;
+  SelectFile({
+    required this.file,
+  });
+}
+
+class DiscardAllChanges extends WorkingDirectoryEvent {
+  DiscardAllChanges();
+}

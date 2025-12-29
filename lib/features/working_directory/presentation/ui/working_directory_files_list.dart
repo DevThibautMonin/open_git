@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 import 'package:open_git/features/working_directory/presentation/ui/working_directory_item.dart';
 import 'package:open_git/shared/presentation/widgets/commit_message_textfield.dart';
 
 class WorkingDirectoryFilesList extends StatelessWidget {
   final List<GitFileEntity> files;
-  final Function(GitFileEntity file) onFileSelected;
   final bool hasStagedFiles;
   final void Function({
     required String summary,
@@ -16,7 +17,6 @@ class WorkingDirectoryFilesList extends StatelessWidget {
   const WorkingDirectoryFilesList({
     super.key,
     required this.files,
-    required this.onFileSelected,
     required this.hasStagedFiles,
     required this.onCommitPressed,
   });
@@ -31,6 +31,23 @@ class WorkingDirectoryFilesList extends StatelessWidget {
 
     return Column(
       children: [
+        Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: ActionChip(
+                avatar: const Icon(
+                  Icons.remove,
+                  size: 18,
+                ),
+                label: const Text("Discard all changes"),
+                onPressed: () async {
+                  context.read<WorkingDirectoryBloc>().add(UpdateWorkingDirectoryStatus(status: WorkingDirectoryBlocStatus.askForDiscardChanges));
+                },
+              ),
+            ),
+          ],
+        ),
         Expanded(
           child: ListView.builder(
             itemCount: files.length,
@@ -38,9 +55,6 @@ class WorkingDirectoryFilesList extends StatelessWidget {
               final file = files[index];
               return WorkingDirectoryItem(
                 file: file,
-                onSelected: (file) {
-                  onFileSelected(file);
-                },
               );
             },
           ),
