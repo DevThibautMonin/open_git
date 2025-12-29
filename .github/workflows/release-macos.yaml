@@ -124,19 +124,20 @@ jobs:
 
       - name: Generate Sparkle Signature & Appcast
         env:
-          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
-          SIGN_TOOL="./sparkle_dist/bin/sign_update"
-          
           DMG_PATH="build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg"
           
-          SIGNATURE=$($SIGN_TOOL -s "$SPARKLE_PRIVATE_KEY" "$DMG_PATH")
+          # L'outil sign_update détecte automatiquement SPARKLE_ED_PRIVATE_KEY.
+          SIGNATURE=$(./sparkle_dist/bin/sign_update "$DMG_PATH")
           
           if [ -z "$SIGNATURE" ]; then
-            echo "Erreur : La signature n'a pas pu être générée. Vérifie ta clé privée dans les secrets."
+            echo "Erreur : La signature n'a pas pu être générée."
             exit 1
           fi
           
+          echo "Signature générée avec succès."
+
           FILE_SIZE=$(stat -f%z "$DMG_PATH")
           PUB_DATE=$(date -R)
           DOWNLOAD_URL="https://github.com/DevThibautMonin/open_git/releases/download/${{ steps.version.outputs.tag }}/OpenGit-${{ steps.version.outputs.version }}.dmg"
