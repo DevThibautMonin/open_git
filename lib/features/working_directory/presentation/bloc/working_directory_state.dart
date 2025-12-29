@@ -9,6 +9,7 @@ enum WorkingDirectoryBlocStatus {
   gitSshPermissionDenied,
   gitRemoteIsHttps,
   commitsPushed,
+  askForDiscardChanges,
 }
 
 @MappableClass()

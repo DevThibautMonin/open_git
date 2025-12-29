@@ -16,4 +16,6 @@ class GitCommands {
   static const List<String> remoteGetOrigin = ["remote", "get-url", "origin"];
   static const List<String> getUpstreamState = ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"];
   static const List<String> publishBranch = ["push", "-u", "origin", "HEAD"];
+  static const List<String> restoreTrackedFiles = ["restore", "."];
+  static const List<String> removeUntrackedFiles = ["clean", "-fd"];
 }

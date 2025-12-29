@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 import 'package:open_git/features/working_directory/presentation/ui/working_directory_item.dart';
 import 'package:open_git/shared/presentation/widgets/commit_message_textfield.dart';
@@ -39,7 +41,9 @@ class WorkingDirectoryFilesList extends StatelessWidget {
                   size: 18,
                 ),
                 label: const Text("Discard all changes"),
-                onPressed: () {},
+                onPressed: () async {
+                  context.read<WorkingDirectoryBloc>().add(UpdateWorkingDirectoryStatus(status: WorkingDirectoryBlocStatus.askForDiscardChanges));
+                },
               ),
             ),
           ],

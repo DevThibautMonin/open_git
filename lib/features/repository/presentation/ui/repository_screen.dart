@@ -70,6 +70,39 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
+                case WorkingDirectoryBlocStatus.askForDiscardChanges:
+                  await showDialog<bool>(
+                    context: context,
+                    builder: (_) {
+                      // TODO : Create DiscardAllChangesDialog
+                      return AlertDialog(
+                        title: const Text("Discard all changes"),
+                        content: const Text(
+                          "This will permanently discard all local changes. This action cannot be undone.",
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              _workingDirectoryBloc.add(
+                                UpdateWorkingDirectoryStatus(
+                                  status: WorkingDirectoryBlocStatus.initial,
+                                ),
+                              );
+                              Navigator.pop(context);
+                            },
+                            child: const Text("Cancel"),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              _workingDirectoryBloc.add(DiscardAllChanges());
+                            },
+                            child: const Text("Discard"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 case WorkingDirectoryBlocStatus.commitsPushed:
                   context.read<CommitHistoryBloc>().add(LoadCommitHistory());
                   _workingDirectoryBloc.add(

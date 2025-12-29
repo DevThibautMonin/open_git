@@ -62,6 +62,11 @@ class GitService {
     return result.stdout.toString();
   }
 
+  Future<void> discardAllChanges() async {
+    await _runGit(GitCommands.restoreTrackedFiles);
+    await _runGit(GitCommands.removeUntrackedFiles);
+  }
+
   GitException _mapGitError(String stderr, List<String> args) {
     final error = stderr.toLowerCase();
 

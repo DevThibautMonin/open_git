@@ -44,3 +44,7 @@ class SelectFile extends WorkingDirectoryEvent {
     required this.file,
   });
 }
+
+class DiscardAllChanges extends WorkingDirectoryEvent {
+  DiscardAllChanges();
+}

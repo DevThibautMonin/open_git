@@ -38,6 +38,25 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
       );
     });
 
+    on<DiscardAllChanges>((event, emit) async {
+      try {
+        emit(state.copyWith(status: WorkingDirectoryBlocStatus.loading));
+
+        await gitService.discardAllChanges();
+
+        add(GetRepositoryStatus());
+
+        emit(state.copyWith(status: WorkingDirectoryBlocStatus.initial));
+      } catch (e) {
+        emit(
+          state.copyWith(
+            status: WorkingDirectoryBlocStatus.error,
+            errorMessage: e.toString(),
+          ),
+        );
+      }
+    });
+
     on<SelectFile>((event, emit) {
       emit(state.copyWith(selectedFilePath: event.file.path));
     });
