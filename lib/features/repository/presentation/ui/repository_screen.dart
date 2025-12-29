@@ -72,6 +72,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
               switch (state.status) {
                 case WorkingDirectoryBlocStatus.askForDiscardChanges:
                   await showDialog<bool>(
+                    barrierDismissible: false,
                     context: context,
                     builder: (_) {
                       // TODO : Create DiscardAllChangesDialog
