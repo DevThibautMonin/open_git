@@ -13,7 +13,6 @@ class BranchesSidebar extends StatelessWidget {
 
     return Container(
       width: 260,
-      padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
