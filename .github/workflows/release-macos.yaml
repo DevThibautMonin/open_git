@@ -111,30 +111,36 @@ jobs:
         run: |
           xcrun stapler staple build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg
 
-      - name: Install Sparkle tools (Reliable Method)
+      - name: Install Sparkle tools
         run: |
-          # On télécharge une version précise des outils Sparkle pour la stabilité
-          curl -L -o sparkle-tools.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.6.4/Sparkle-Tools-2.6.4.tar.xz
-          tar -xf sparkle-tools.tar.xz
-          # Le binaire sign_update est maintenant à la racine du dossier
-          chmod +x ./sign_update
+          curl -L -o sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.6.4/Sparkle-2.6.4.tar.xz
+          
+          mkdir sparkle_dist
+          tar -xf sparkle.tar.xz -C sparkle_dist
+          
+          chmod +x ./sparkle_dist/bin/sign_update
+          
+          echo "Sign tool path: $(pwd)/sparkle_dist/bin/sign_update"
 
       - name: Generate Sparkle Signature & Appcast
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
-          # 1. On signe le DMG avec la clé privée EdDSA
+          SIGN_TOOL="./sparkle_dist/bin/sign_update"
+          
           DMG_PATH="build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg"
           
-          # On récupère la signature (on utilise ./sign_update qu'on vient de télécharger)
-          SIGNATURE=$(./sign_update -s "$SPARKLE_PRIVATE_KEY" "$DMG_PATH")
+          SIGNATURE=$($SIGN_TOOL -s "$SPARKLE_PRIVATE_KEY" "$DMG_PATH")
           
-          # 2. Préparation des métadonnées
+          if [ -z "$SIGNATURE" ]; then
+            echo "Erreur : La signature n'a pas pu être générée. Vérifie ta clé privée dans les secrets."
+            exit 1
+          fi
+          
           FILE_SIZE=$(stat -f%z "$DMG_PATH")
           PUB_DATE=$(date -R)
           DOWNLOAD_URL="https://github.com/DevThibautMonin/open_git/releases/download/${{ steps.version.outputs.tag }}/OpenGit-${{ steps.version.outputs.version }}.dmg"
 
-          # 3. Génération du fichier appcast.xml
           cat <<EOF > appcast.xml
           <?xml version="1.0" encoding="utf-8"?>
           <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
