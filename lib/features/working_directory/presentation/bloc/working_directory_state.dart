@@ -18,6 +18,8 @@ class WorkingDirectoryState with WorkingDirectoryStateMappable {
   final String errorMessage;
   final int commitsToPush;
   final String gitRemoteCommand;
+  final bool hasUpstream;
+  final String selectedFilePath;
 
   const WorkingDirectoryState({
     this.status = WorkingDirectoryBlocStatus.initial,
@@ -25,5 +27,7 @@ class WorkingDirectoryState with WorkingDirectoryStateMappable {
     this.errorMessage = "",
     this.commitsToPush = 0,
     this.gitRemoteCommand = "",
+    this.hasUpstream = false,
+    this.selectedFilePath = "",
   });
 }

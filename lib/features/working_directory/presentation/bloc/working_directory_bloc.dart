@@ -22,14 +22,24 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
   }) : super(WorkingDirectoryState()) {
     on<GetRepositoryStatus>((event, emit) async {
       final files = await gitService.getWorkingDirectoryStatus();
-      final commitsToPush = await gitService.getCommitsAheadCount();
+      final hasUpstream = await gitService.hasUpstream();
+
+      int commitsToPush = 0;
+      if (hasUpstream) {
+        commitsToPush = await gitService.getCommitsAheadCount();
+      }
 
       emit(
         state.copyWith(
           files: files,
+          hasUpstream: hasUpstream,
           commitsToPush: commitsToPush,
         ),
       );
+    });
+
+    on<SelectFile>((event, emit) {
+      emit(state.copyWith(selectedFilePath: event.file.path));
     });
 
     on<PushCommits>((event, emit) async {
@@ -52,7 +62,7 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
           return;
         }
 
-        await gitService.push();
+        await gitService.pushOrPublish();
         add(GetRepositoryStatus());
         emit(state.copyWith(status: WorkingDirectoryBlocStatus.commitsPushed));
       } on GitSshHostVerificationFailed {

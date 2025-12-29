@@ -120,6 +120,26 @@ class GitService {
     }
   }
 
+  Future<bool> hasUpstream() async {
+    final result = await Process.run(
+      "git",
+      GitCommands.getUpstreamState,
+      workingDirectory: _getRepoPath(),
+    );
+
+    return result.exitCode == 0;
+  }
+
+  Future<void> pushOrPublish() async {
+    final hasUpstreamBranch = await hasUpstream();
+
+    if (!hasUpstreamBranch) {
+      await _runGit(GitCommands.publishBranch);
+    } else {
+      await push();
+    }
+  }
+
   Future<void> ensureDirectoryIsEmpty(String path) async {
     final dir = Directory(path);
 

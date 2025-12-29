@@ -250,6 +250,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                         _workingDirectoryBloc.add(PushCommits());
                       },
                       isLoading: wdState.status == WorkingDirectoryBlocStatus.loading,
+                      hasUpstream: wdState.hasUpstream,
                     );
                   },
                 ),
@@ -260,9 +261,6 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                         children: [
                           RepositorySidebar(
                             files: workingDirectoryState.files,
-                            onFileSelected: (file) {
-                              _filesDifferencesBloc.add(LoadFileDiff(file: file));
-                            },
                             hasStagedFiles: workingDirectoryState.files.any((file) => file.staged),
                             onCommitPressed: ({required description, required summary}) {
                               _workingDirectoryBloc.add(AddCommit(summary: summary, description: description));

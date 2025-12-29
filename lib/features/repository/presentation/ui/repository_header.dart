@@ -10,6 +10,7 @@ class RepositoryHeader extends StatelessWidget {
   final int commitsToPush;
   final Function() onPush;
   final bool isLoading;
+  final bool hasUpstream;
 
   const RepositoryHeader({
     super.key,
@@ -18,6 +19,7 @@ class RepositoryHeader extends StatelessWidget {
     required this.onPush,
     required this.isLoading,
     required this.onCloneRepository,
+    required this.hasUpstream,
   });
 
   @override
@@ -77,6 +79,7 @@ class RepositoryHeader extends StatelessWidget {
             commitsToPush: commitsToPush,
             onPush: onPush,
             isLoading: isLoading,
+            hasUpstream: hasUpstream,
           ),
         ],
       ),

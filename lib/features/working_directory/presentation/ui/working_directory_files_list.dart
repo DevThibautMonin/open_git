@@ -5,7 +5,6 @@ import 'package:open_git/shared/presentation/widgets/commit_message_textfield.da
 
 class WorkingDirectoryFilesList extends StatelessWidget {
   final List<GitFileEntity> files;
-  final Function(GitFileEntity file) onFileSelected;
   final bool hasStagedFiles;
   final void Function({
     required String summary,
@@ -16,7 +15,6 @@ class WorkingDirectoryFilesList extends StatelessWidget {
   const WorkingDirectoryFilesList({
     super.key,
     required this.files,
-    required this.onFileSelected,
     required this.hasStagedFiles,
     required this.onCommitPressed,
   });
@@ -31,6 +29,21 @@ class WorkingDirectoryFilesList extends StatelessWidget {
 
     return Column(
       children: [
+        Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: ActionChip(
+                avatar: const Icon(
+                  Icons.remove,
+                  size: 18,
+                ),
+                label: const Text("Discard all changes"),
+                onPressed: () {},
+              ),
+            ),
+          ],
+        ),
         Expanded(
           child: ListView.builder(
             itemCount: files.length,
@@ -38,9 +51,6 @@ class WorkingDirectoryFilesList extends StatelessWidget {
               final file = files[index];
               return WorkingDirectoryItem(
                 file: file,
-                onSelected: (file) {
-                  onFileSelected(file);
-                },
               );
             },
           ),
