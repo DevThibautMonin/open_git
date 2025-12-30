@@ -1,5 +1,12 @@
 # Changelog
 
+## Version (1.0.7) (30/12/2025)
+
+### Added
+
+- [Branches] Add confirmation before deleting a branch.
+- [UI] Update UI.
+
 ## Version (1.0.6) (30/12/2025)
 
 ### Added

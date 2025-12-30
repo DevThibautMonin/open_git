@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart';
 import 'package:open_git/shared/domain/entities/branch_entity.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
 class BranchItem extends StatefulWidget {
   final BranchEntity branch;
-  final VoidCallback? onDoubleTap;
-  final VoidCallback? onDeleteBranch;
 
   const BranchItem({
     super.key,
     required this.branch,
-    required this.onDeleteBranch,
-    this.onDoubleTap,
   });
 
   @override
@@ -42,13 +40,19 @@ class _BranchItemState extends State<BranchItem> {
             ),
             items: [
               PopupMenuItem(
-                onTap: widget.onDeleteBranch,
+                onTap: () {
+                  context.read<BranchesBloc>()
+                    ..add(UpdateBranchesStatus(status: BranchesBlocStatus.askForDeletingBranch))
+                    ..add(UpdateSelectedBranch(branch: widget.branch));
+                },
                 child: const Text('Delete branch'),
               ),
             ],
           );
         },
-        onDoubleTap: widget.onDoubleTap,
+        onDoubleTap: () {
+          context.read<BranchesBloc>().add(SwitchToBranch(branch: widget.branch));
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
