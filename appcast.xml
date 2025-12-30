@@ -4,15 +4,15 @@
     <title>OpenGit Updates</title>
     <language>en</language>
     <item>
-      <title>Version 1.0.7</title>
-      <pubDate>Tue, 30 Dec 2025 17:28:55 +0000</pubDate>
-      <sparkle:version>1.0.7</sparkle:version>
-      <sparkle:shortVersionString>1.0.7</sparkle:shortVersionString>
+      <title>Version 1.0.8</title>
+      <pubDate>Tue, 30 Dec 2025 18:06:59 +0000</pubDate>
+      <sparkle:version>9</sparkle:version>
+      <sparkle:shortVersionString>1.0.8</sparkle:shortVersionString>
       <enclosure 
-        url="https://github.com/DevThibautMonin/open_git/releases/download/v1.0.7/OpenGit-1.0.7.dmg" 
-        length="19216861" 
+        url="https://github.com/DevThibautMonin/open_git/releases/download/v1.0.8/OpenGit-1.0.8.dmg" 
+        length="19216001" 
         type="application/octet-stream" 
-        sparkle:edSignature="/4Y9L0SE2QQSR7x4ZR0q5QB7JC+XbCVhW2XU3JlJKQSMZ9nrM4ZJuqbaoO9SZ1h1ljrEqPrkSLvgou1jhAwfDg==" />
+        sparkle:edSignature="dvVNLe3RlWTWnMsvb0W6+HOJDpeVf9YDcHCUIz0VEA/wBvp0nL38luezfzBcG9jXS1egabcRG5RIvhLshjfnCw==" />
     </item>
   </channel>
 </rss>
