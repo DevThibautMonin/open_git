@@ -111,56 +111,55 @@ jobs:
         run: |
           xcrun stapler staple build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg
 
-      - name: Install Sparkle tools
+      - name: Install Sparkle tools (Full Distribution)
         run: |
           curl -L -o sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.6.4/Sparkle-2.6.4.tar.xz
-          
-          mkdir sparkle_dist
+          mkdir -p sparkle_dist
           tar -xf sparkle.tar.xz -C sparkle_dist
           
+          ls -R sparkle_dist/bin
           chmod +x ./sparkle_dist/bin/sign_update
-          
-          echo "Sign tool path: $(pwd)/sparkle_dist/bin/sign_update"
 
       - name: Generate Sparkle Signature & Appcast
         env:
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
+          set +e  # Désactive l'arrêt immédiat pour capturer l'erreur
+          
           DMG_PATH="build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg"
+          SIGN_TOOL="./sparkle_dist/bin/sign_update"
           
-          echo "--- Diagnostic ---"
-          if [ -f "./sparkle_dist/bin/sign_update" ]; then
-             echo "✅ Binaire sign_update trouvé."
-          else
-             echo "❌ Binaire sign_update INTROUVABLE."
-             exit 1
-          fi
-          
-          echo "--- Tentative de signature ---"
-          # On utilise un fichier temporaire pour ne pas perdre l'erreur en cas de crash
-          # Le binaire sign_update de Sparkle 2.x cherche automatiquement SPARKLE_ED_PRIVATE_KEY
-          ./sparkle_dist/bin/sign_update "$DMG_PATH" > signature.txt 2> error.log
-          
-          if [ $? -ne 0 ]; then
-            echo "❌ ERREUR SPARKLE DETECTÉE :"
-            cat error.log
+          echo "--- Vérification Environnement ---"
+          if [ -z "$SPARKLE_ED_PRIVATE_KEY" ]; then
+            echo "❌ ERREUR : La variable SPARKLE_ED_PRIVATE_KEY est vide. Vérifie tes GitHub Secrets."
             exit 1
           fi
-          
-          SIGNATURE=$(cat signature.txt | tr -d '\n' | tr -d ' ')
-          if [ -z "$SIGNATURE" ]; then
-            echo "❌ ERREUR : La signature est vide."
-            exit 1
-          fi
-          
-          echo "✅ Signature générée avec succès : $SIGNATURE"
 
-          # 2. Préparation des variables pour le XML
+          echo "--- Tentative de signature ---"
+          # On lance le binaire et on capture TOUT (stdout et stderr) dans le log
+          # On utilise 'cat' pour s'assurer que le contenu est affiché dans la console Actions
+          $SIGN_TOOL "$DMG_PATH" > signature_output.txt 2> error_output.log
+          RESULT=$?
+          
+          if [ $RESULT -ne 0 ]; then
+            echo "❌ LE BINAIRE A ÉCHOUÉ AVEC LE CODE $RESULT"
+            echo "--- ERREUR (stderr) ---"
+            cat error_output.log
+            echo "--- SORTIE (stdout) ---"
+            cat signature_output.txt
+            exit 1
+          fi
+          
+          SIGNATURE=$(cat signature_output.txt | tr -d '\n' | tr -d ' ')
+          echo "✅ Signature générée : $SIGNATURE"
+          
+          set -e # Réactive l'arrêt immédiat
+          
+          # --- Génération du fichier appcast.xml ---
           FILE_SIZE=$(stat -f%z "$DMG_PATH")
           PUB_DATE=$(date -R)
           DOWNLOAD_URL="https://github.com/DevThibautMonin/open_git/releases/download/${{ steps.version.outputs.tag }}/OpenGit-${{ steps.version.outputs.version }}.dmg"
 
-          # 3. Génération du fichier appcast.xml
           cat <<EOF > appcast.xml
           <?xml version="1.0" encoding="utf-8"?>
           <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
