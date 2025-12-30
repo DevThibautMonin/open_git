@@ -5,14 +5,14 @@
     <language>en</language>
     <item>
       <title>Version 1.0.6</title>
-      <pubDate>Tue, 30 Dec 2025 11:11:29 +0000</pubDate>
+      <pubDate>Tue, 30 Dec 2025 11:34:41 +0000</pubDate>
       <sparkle:version>1.0.6</sparkle:version>
       <sparkle:shortVersionString>1.0.6</sparkle:shortVersionString>
       <enclosure 
         url="https://github.com/DevThibautMonin/open_git/releases/download/v1.0.6/OpenGit-1.0.6.dmg" 
-        length="19211289" 
+        length="19211424" 
         type="application/octet-stream" 
-        sparkle:edSignature="QShq/62l+kWJR3Fy2+6JbdDsipRbNkLVcd4EdQtCyezPgPtaTBHWWngpBS5Y1AwLgXofTFJBV3ffVdXsNQthAg==" />
+        sparkle:edSignature="tbYrfv0/NynIOX2Qc0ceQuoQDo3byrkuIwGPSmBQ025CgNeZwv/MU7qU62r2SROmk5TdbhmaP8zqkwbniAr3CA==" />
     </item>
   </channel>
 </rss>
