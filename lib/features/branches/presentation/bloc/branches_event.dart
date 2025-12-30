@@ -37,3 +37,11 @@ class CreateNewBranchAndCheckout extends BranchesEvent {
     required this.branchName,
   });
 }
+
+class UpdateSelectedBranch extends BranchesEvent {
+  final BranchEntity branch;
+
+  UpdateSelectedBranch({
+    required this.branch,
+  });
+}

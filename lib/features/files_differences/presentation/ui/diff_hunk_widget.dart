@@ -13,7 +13,9 @@ class DiffHunkWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: hunk.lines.map((line) => DiffLineItem(line: line)).toList(),
+      children: [
+        ...hunk.lines.map((line) => DiffLineItem(line: line)),
+      ],
     );
   }
 }

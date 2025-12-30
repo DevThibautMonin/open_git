@@ -22,6 +22,10 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
       emit(state.copyWith(status: event.status));
     });
 
+    on<UpdateSelectedBranch>((event, emit) {
+      emit(state.copyWith(selectedBranch: event.branch));
+    });
+
     on<DeleteBranch>((event, emit) async {
       if (event.branch.isCurrent) {
         emit(

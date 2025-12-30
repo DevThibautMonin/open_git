@@ -7,6 +7,7 @@ import 'package:open_git/features/commit_history/presentation/bloc/commit_histor
 import 'package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart';
 import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
+import 'package:open_git/shared/presentation/widgets/dialogs/branch_delete_confirmation_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/clone_repository_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/discard_all_changes_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/discard_file_changes_dialog.dart';
@@ -234,9 +235,28 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             },
           ),
           BlocListener<BranchesBloc, BranchesState>(
-            listenWhen: (previous, current) => previous.status != current.status,
+            listenWhen: (previous, current) => previous.status != current.status || previous.selectedBranch != current.selectedBranch,
             listener: (context, state) async {
               switch (state.status) {
+                case BranchesBlocStatus.askForDeletingBranch:
+                  if (state.selectedBranch != null) {
+                    await showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (_) {
+                        return BranchDeleteConfirmationDialog(
+                          branchName: state.selectedBranch?.name ?? "No branch selected",
+                          onDelete: () {
+                            context.read<BranchesBloc>().add(DeleteBranch(branch: state.selectedBranch!));
+                          },
+                        );
+                      },
+                    );
+                  }
+                  if (context.mounted) {
+                    context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
+                  }
+
                 case BranchesBlocStatus.branchesRetrieved:
                   _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.initial));
                   context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
@@ -320,7 +340,12 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                                 return const Center(child: CircularProgressIndicator());
                               }
 
-                              return Expanded(child: DiffViewer(hunks: state.diff));
+                              return Expanded(
+                                child: DiffViewer(
+                                  hunks: state.diff,
+                                  file: workingDirectoryState.selectedFile,
+                                ),
+                              );
                             },
                           ),
                         ],

@@ -54,15 +54,7 @@ class BranchesSidebar extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final branch = state.branches[index];
 
-                    return BranchItem(
-                      branch: branch,
-                      onDoubleTap: () {
-                        context.read<BranchesBloc>().add(SwitchToBranch(branch: branch));
-                      },
-                      onDeleteBranch: () {
-                        context.read<BranchesBloc>().add(DeleteBranch(branch: branch));
-                      },
-                    );
+                    return BranchItem(branch: branch);
                   },
                 );
               },
