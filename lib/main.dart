@@ -6,9 +6,12 @@ import 'package:open_git/features/repository/presentation/ui/repository_screen.d
 import 'package:open_git/shared/core/di/injectable.dart';
 import 'package:open_git/shared/presentation/themes/dark_theme.dart';
 import 'package:open_git/shared/presentation/themes/light_theme.dart';
+import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await windowManager.ensureInitialized();
+  await windowManager.maximize();
   if (Platform.isMacOS) {
     final int intervalInSeconds = 3600;
     await autoUpdater.setScheduledCheckInterval(intervalInSeconds);

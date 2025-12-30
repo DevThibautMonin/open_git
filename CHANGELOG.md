@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.0.9) (30/12/2025)
+
+### Added
+
+- [App] App will now launch in full screen windowed.
+
 ## Version (1.0.8) (30/12/2025)
 
 ### Fix
