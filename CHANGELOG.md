@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.0.8) (30/12/2025)
+
+### Fix
+
+- [App] Fix auto updater.
+
 ## Version (1.0.7) (30/12/2025)
 
 ### Added

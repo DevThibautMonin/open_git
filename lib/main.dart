@@ -11,9 +11,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isMacOS) {
     final int intervalInSeconds = 3600;
-    await autoUpdater.setFeedURL('https://raw.githubusercontent.com/DevThibautMonin/open_git/main/appcast.xml');
     await autoUpdater.setScheduledCheckInterval(intervalInSeconds);
-    await autoUpdater.checkForUpdates(inBackground: true);
   }
   await configureDependencies();
   runApp(const MyApp());

@@ -27,8 +27,11 @@ jobs:
       - name: Read version from pubspec.yaml
         id: version
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          FULL_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          VERSION=$(echo $FULL_VERSION | cut -d'+' -f1)
+          BUILD=$(echo $FULL_VERSION | cut -d'+' -f2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build=$BUILD" >> $GITHUB_OUTPUT
           echo "tag=v$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Flutter
@@ -164,7 +167,7 @@ jobs:
               <item>
                 <title>Version ${{ steps.version.outputs.version }}</title>
                 <pubDate>$PUB_DATE</pubDate>
-                <sparkle:version>${{ steps.version.outputs.version }}</sparkle:version>
+                <sparkle:version>${{ steps.version.outputs.build }}</sparkle:version>
                 <sparkle:shortVersionString>${{ steps.version.outputs.version }}</sparkle:shortVersionString>
                 <enclosure 
                   url="$DOWNLOAD_URL" 
