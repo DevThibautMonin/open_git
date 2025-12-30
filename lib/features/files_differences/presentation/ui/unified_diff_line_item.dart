@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:open_git/features/files_differences/domain/entities/diff_line_entity.dart';
 import 'package:open_git/features/files_differences/domain/enums/diff_line_type.dart';
 
-class DiffLineItem extends StatelessWidget {
+class UnifiedDiffLineItem extends StatelessWidget {
   final DiffLineEntity line;
 
-  const DiffLineItem({
+  const UnifiedDiffLineItem({
     super.key,
     required this.line,
   });
