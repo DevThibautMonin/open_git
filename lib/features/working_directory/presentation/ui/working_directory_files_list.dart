@@ -42,7 +42,7 @@ class WorkingDirectoryFilesList extends StatelessWidget {
                 ),
                 label: const Text("Discard all changes"),
                 onPressed: () async {
-                  context.read<WorkingDirectoryBloc>().add(UpdateWorkingDirectoryStatus(status: WorkingDirectoryBlocStatus.askForDiscardChanges));
+                  context.read<WorkingDirectoryBloc>().add(UpdateWorkingDirectoryStatus(status: WorkingDirectoryBlocStatus.askForDiscardAllChanges));
                 },
               ),
             ),

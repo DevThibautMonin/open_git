@@ -8,6 +8,8 @@ import 'package:open_git/features/files_differences/presentation/bloc/files_diff
 import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/clone_repository_dialog.dart';
+import 'package:open_git/shared/presentation/widgets/dialogs/discard_all_changes_dialog.dart';
+import 'package:open_git/shared/presentation/widgets/dialogs/discard_file_changes_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/git_https_remote_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/ssh_host_verification_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/ssh_permission_denied_dialog.dart';
@@ -67,40 +69,51 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
       child: MultiBlocListener(
         listeners: [
           BlocListener<WorkingDirectoryBloc, WorkingDirectoryState>(
-            listenWhen: (previous, current) => previous.status != current.status,
+            listenWhen: (previous, current) => previous.status != current.status || previous.selectedFile != current.selectedFile,
             listener: (context, state) async {
               switch (state.status) {
-                case WorkingDirectoryBlocStatus.askForDiscardChanges:
-                  await showDialog<bool>(
+                case WorkingDirectoryBlocStatus.askForDiscardFileChanges:
+                  if (state.selectedFile != null) {
+                    await showDialog(
+                      barrierDismissible: false,
+                      context: context,
+                      builder: (_) {
+                        return DiscardFileChangesDialog(
+                          file: state.selectedFile,
+                          onCancel: () {
+                            _workingDirectoryBloc.add(
+                              UpdateWorkingDirectoryStatus(
+                                status: WorkingDirectoryBlocStatus.initial,
+                              ),
+                            );
+                            Navigator.pop(context);
+                          },
+                          onDiscard: () {
+                            Navigator.pop(context);
+                            _workingDirectoryBloc.add(DiscardFileChanges(file: state.selectedFile));
+                          },
+                        );
+                      },
+                    );
+                  }
+                case WorkingDirectoryBlocStatus.askForDiscardAllChanges:
+                  await showDialog(
                     barrierDismissible: false,
                     context: context,
                     builder: (_) {
-                      // TODO : Create DiscardAllChangesDialog
-                      return AlertDialog(
-                        title: const Text("Discard all changes"),
-                        content: const Text(
-                          "This will permanently discard all local changes. This action cannot be undone.",
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              _workingDirectoryBloc.add(
-                                UpdateWorkingDirectoryStatus(
-                                  status: WorkingDirectoryBlocStatus.initial,
-                                ),
-                              );
-                              Navigator.pop(context);
-                            },
-                            child: const Text("Cancel"),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _workingDirectoryBloc.add(DiscardAllChanges());
-                            },
-                            child: const Text("Discard"),
-                          ),
-                        ],
+                      return DiscardAllChangesDialog(
+                        onCancel: () {
+                          _workingDirectoryBloc.add(
+                            UpdateWorkingDirectoryStatus(
+                              status: WorkingDirectoryBlocStatus.initial,
+                            ),
+                          );
+                          Navigator.pop(context);
+                        },
+                        onDiscard: () {
+                          Navigator.pop(context);
+                          _workingDirectoryBloc.add(DiscardAllChanges());
+                        },
                       );
                     },
                   );
@@ -116,6 +129,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                   final sshCommand = state.gitRemoteCommand;
 
                   await showDialog(
+                    barrierDismissible: false,
                     context: context,
                     builder: (_) {
                       return GitHttpsRemoteDialog(

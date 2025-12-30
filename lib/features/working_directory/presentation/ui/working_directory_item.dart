@@ -14,57 +14,86 @@ class WorkingDirectoryItem extends StatelessWidget {
     super.key,
     required this.file,
   });
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
       builder: (context, state) {
-        final isSelected = state.selectedFilePath == file.path;
-        return InkWell(
-          onTap: () {
-            context.read<FilesDifferencesBloc>().add(LoadFileDiff(file: file));
+        final isSelected = state.selectedFile?.path == file.path;
 
-            context.read<WorkingDirectoryBloc>().add(SelectFile(file: file));
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            decoration: isSelected
-                ? BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.04),
-                    border: Border(
-                      left: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      ),
-                    ),
-                  )
-                : null,
-            child: Row(
-              children: [
-                Gaps.w8,
-                Icon(
-                  file.status.icon,
-                  size: 16,
-                  color: file.status.color,
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onSecondaryTapDown: (details) async {
+              context.read<FilesDifferencesBloc>().add(LoadFileDiff(file: file));
+              context.read<WorkingDirectoryBloc>().add(SelectFile(file: file));
+              await showMenu(
+                context: context,
+                position: RelativeRect.fromLTRB(
+                  details.globalPosition.dx,
+                  details.globalPosition.dy,
+                  details.globalPosition.dx,
+                  details.globalPosition.dy,
                 ),
-                Checkbox(
-                  value: file.staged,
-                  onChanged: (_) {
-                    context.read<WorkingDirectoryBloc>().add(
-                      ToggleFileStaging(file: file, stage: !file.staged),
-                    );
-                  },
-                ),
-                FileTypeIcon(type: file.path.fileType),
-                Gaps.w8,
-                Expanded(
-                  child: Text(
-                    file.path,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 10),
+                items: [
+                  PopupMenuItem(
+                    onTap: () {
+                      context.read<WorkingDirectoryBloc>().add(
+                        UpdateWorkingDirectoryStatus(status: WorkingDirectoryBlocStatus.askForDiscardFileChanges),
+                      );
+                    },
+                    child: const Text("Discard changes"),
                   ),
-                ),
-              ],
+                ],
+              );
+            },
+            onTap: () {
+              context.read<FilesDifferencesBloc>().add(LoadFileDiff(file: file));
+
+              context.read<WorkingDirectoryBloc>().add(SelectFile(file: file));
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              decoration: isSelected
+                  ? BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.04),
+                      border: Border(
+                        left: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        ),
+                      ),
+                    )
+                  : null,
+              child: Row(
+                children: [
+                  Gaps.w8,
+                  Icon(
+                    file.status.icon,
+                    size: 16,
+                    color: file.status.color,
+                  ),
+                  Checkbox(
+                    value: file.staged,
+                    onChanged: (_) {
+                      context.read<WorkingDirectoryBloc>().add(
+                        ToggleFileStaging(
+                          file: file,
+                          stage: !file.staged,
+                        ),
+                      );
+                    },
+                  ),
+                  FileTypeIcon(type: file.path.fileType),
+                  Gaps.w8,
+                  Expanded(
+                    child: Text(
+                      file.path,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
