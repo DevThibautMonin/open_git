@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.0.6) (30/12/2025)
+
+### Added
+
+- [Working directory] Discard files changes.
+
 ## Version (1.0.5) (29/12/2025)
 
 ### Added

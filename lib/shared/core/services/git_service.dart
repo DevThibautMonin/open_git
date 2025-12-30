@@ -62,6 +62,25 @@ class GitService {
     return result.stdout.toString();
   }
 
+  Future<void> discardFileChanges(GitFileEntity file) async {
+    if (file.status == GitFileStatus.untracked) {
+      await _runGit([
+        ...GitCommands.cleanFile,
+        file.path,
+      ]);
+    } else {
+      // Si le fichier est staged, on le unstaged d'abord
+      if (file.staged) {
+        await _runGit([...GitCommands.gitRestoreStaged, file.path]);
+      }
+
+      await _runGit([
+        ...GitCommands.restoreFile,
+        file.path,
+      ]);
+    }
+  }
+
   Future<void> discardAllChanges() async {
     await _runGit(GitCommands.restoreTrackedFiles);
     await _runGit(GitCommands.removeUntrackedFiles);

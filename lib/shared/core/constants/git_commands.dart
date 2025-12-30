@@ -18,4 +18,6 @@ class GitCommands {
   static const List<String> publishBranch = ["push", "-u", "origin", "HEAD"];
   static const List<String> restoreTrackedFiles = ["restore", "."];
   static const List<String> removeUntrackedFiles = ["clean", "-fd"];
+  static const List<String> restoreFile = ["restore", "--"];
+  static const List<String> cleanFile = ["clean", "-f", "--"];
 }

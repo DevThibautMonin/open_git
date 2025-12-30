@@ -48,3 +48,11 @@ class SelectFile extends WorkingDirectoryEvent {
 class DiscardAllChanges extends WorkingDirectoryEvent {
   DiscardAllChanges();
 }
+
+class DiscardFileChanges extends WorkingDirectoryEvent {
+  final GitFileEntity? file;
+
+  DiscardFileChanges({
+    this.file,
+  });
+}

@@ -60,7 +60,7 @@ brew upgrade --cask opengit
   - optional commit description
 - Push commits to the remote repository.
 - Display the number of commits waiting to be pushed.
-- Discard changes (global).
+- Discard changes (all files / single file).
 
 ### Files Differences
 - File-by-file diff visualization.
@@ -91,7 +91,6 @@ brew upgrade --cask opengit
 ### Git & Collaboration
 - Commit diff view from history.
 - Fetch / Pull with behind/ahead indicators.
-- Discard changes (file-level).
 
 ### Branch Management
 - Rename branches.

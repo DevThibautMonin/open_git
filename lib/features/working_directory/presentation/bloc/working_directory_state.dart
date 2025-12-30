@@ -9,7 +9,8 @@ enum WorkingDirectoryBlocStatus {
   gitSshPermissionDenied,
   gitRemoteIsHttps,
   commitsPushed,
-  askForDiscardChanges,
+  askForDiscardAllChanges,
+  askForDiscardFileChanges,
 }
 
 @MappableClass()
@@ -20,7 +21,7 @@ class WorkingDirectoryState with WorkingDirectoryStateMappable {
   final int commitsToPush;
   final String gitRemoteCommand;
   final bool hasUpstream;
-  final String selectedFilePath;
+  final GitFileEntity? selectedFile;
 
   const WorkingDirectoryState({
     this.status = WorkingDirectoryBlocStatus.initial,
@@ -29,6 +30,6 @@ class WorkingDirectoryState with WorkingDirectoryStateMappable {
     this.commitsToPush = 0,
     this.gitRemoteCommand = "",
     this.hasUpstream = false,
-    this.selectedFilePath = "",
+    this.selectedFile,
   });
 }
