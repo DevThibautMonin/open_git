@@ -1,0 +1,4 @@
+enum DiffModeDisplay {
+  unified,
+  split,
+}

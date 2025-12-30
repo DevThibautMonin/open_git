@@ -4,7 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/new_branch_dialog.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
+import 'package:open_git/features/files_differences/domain/enums/diff_mode_display.dart';
 import 'package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart';
+import 'package:open_git/features/files_differences/presentation/ui/file_differences_header.dart';
+import 'package:open_git/features/files_differences/presentation/ui/split_diff_viewer.dart';
 import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/branch_delete_confirmation_dialog.dart';
@@ -16,7 +19,7 @@ import 'package:open_git/shared/presentation/widgets/dialogs/ssh_host_verificati
 import 'package:open_git/shared/presentation/widgets/dialogs/ssh_permission_denied_dialog.dart';
 import 'package:open_git/shared/core/constants/constants.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
-import 'package:open_git/features/files_differences/presentation/ui/diff_viewer.dart';
+import 'package:open_git/features/files_differences/presentation/ui/unified_diff_viewer.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_header.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_sidebar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/error_snackbar.dart';
@@ -64,7 +67,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
           create: (context) => getIt<CommitHistoryBloc>(),
         ),
         BlocProvider(
-          create: (context) => _filesDifferencesBloc,
+          create: (context) => _filesDifferencesBloc..add(LoadDiffModeDisplay()),
         ),
       ],
       child: MultiBlocListener(
@@ -341,9 +344,19 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                               }
 
                               return Expanded(
-                                child: DiffViewer(
-                                  hunks: state.diff,
-                                  file: workingDirectoryState.selectedFile,
+                                child: Column(
+                                  children: [
+                                    FileDifferencesHeader(
+                                      file: workingDirectoryState.selectedFile,
+                                      mode: state.diffModeDisplay,
+                                    ),
+                                    const Divider(height: 1),
+                                    Expanded(
+                                      child: state.diffModeDisplay == DiffModeDisplay.split
+                                          ? SplitDiffViewer(hunks: state.diff)
+                                          : UnifiedDiffViewer(hunks: state.diff),
+                                    ),
+                                  ],
                                 ),
                               );
                             },

@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.0.11) (30/12/2025)
+
+### Updates
+
+- [Files differences] Add split mode.
+
 ## Version (1.0.10) (30/12/2025)
 
 ### Added

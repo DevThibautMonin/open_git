@@ -13,11 +13,13 @@ class FilesDifferencesState with FilesDifferencesStateMappable {
   final String errorMessage;
   final List<DiffHunkEntity> diff;
   final GitFileEntity? selectedFile;
+  final DiffModeDisplay diffModeDisplay;
 
   const FilesDifferencesState({
     this.status = FilesDifferencesStatus.initial,
     this.errorMessage = "",
     this.diff = const [],
     this.selectedFile,
+    this.diffModeDisplay = DiffModeDisplay.split,
   });
 }

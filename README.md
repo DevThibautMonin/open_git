@@ -70,6 +70,7 @@ brew upgrade --cask opengit
   - unchanged lines
 - Line numbers support.
 - Support for newly created files.
+- Unified / Split view.
 
 ### Commit History
 - List commit history.
@@ -97,5 +98,4 @@ brew upgrade --cask opengit
 - Conflict resolution UI.
 
 ### UX & Product
-- Unified Diff / Commit / History view.
 - Keyboard shortcuts.

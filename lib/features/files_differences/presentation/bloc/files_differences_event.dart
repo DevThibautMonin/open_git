@@ -7,3 +7,13 @@ class LoadFileDiff extends FilesDifferencesEvent {
 
   LoadFileDiff({required this.file});
 }
+
+class SetDiffModeDisplay extends FilesDifferencesEvent {
+  final DiffModeDisplay mode;
+
+  SetDiffModeDisplay(this.mode);
+}
+
+class LoadDiffModeDisplay extends FilesDifferencesEvent {
+  LoadDiffModeDisplay();
+}

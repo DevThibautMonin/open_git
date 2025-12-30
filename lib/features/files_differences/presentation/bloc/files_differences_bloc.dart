@@ -1,6 +1,9 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:open_git/features/files_differences/core/diff_mode_display_extensions.dart';
+import 'package:open_git/features/files_differences/domain/enums/diff_mode_display.dart';
+import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
 import 'package:open_git/shared/core/services/git_diff_parser.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
@@ -20,6 +23,23 @@ class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesS
     required this.sharedPreferencesService,
     required this.gitService,
   }) : super(FilesDifferencesState()) {
+    on<SetDiffModeDisplay>((event, emit) async {
+      await sharedPreferencesService.setString(
+        SharedPreferencesKeys.diffModeDisplay,
+        event.mode.raw,
+      );
+
+      emit(state.copyWith(diffModeDisplay: event.mode));
+    });
+
+    on<LoadDiffModeDisplay>((event, emit) {
+      final raw = sharedPreferencesService.getString(SharedPreferencesKeys.diffModeDisplay);
+
+      final mode = DiffModeDisplayExtensions.fromRaw(raw);
+
+      emit(state.copyWith(diffModeDisplay: mode));
+    });
+
     on<LoadFileDiff>((event, emit) async {
       emit(
         state.copyWith(
