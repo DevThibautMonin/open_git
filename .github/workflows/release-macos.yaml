@@ -122,39 +122,34 @@ jobs:
 
       - name: Generate Sparkle Signature & Appcast
         env:
-          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          SPARKLE_PRIVATE_KEY_CONTENT: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
-          set +e  # Désactive l'arrêt immédiat pour capturer l'erreur
-          
           DMG_PATH="build/macos/Build/Products/Release/OpenGit-${{ steps.version.outputs.version }}.dmg"
           SIGN_TOOL="./sparkle_dist/bin/sign_update"
+
+          echo "--- Préparation de la clé ---"
+          # On crée un fichier temporaire pour la clé (format brut)
+          echo "$SPARKLE_PRIVATE_KEY_CONTENT" > sparkle_key.priv
+
+          echo "--- Tentative de signature ---"
+          # On utilise l'argument suggéré par l'erreur : --ed-key-file
+          # Sparkle 2.x renvoie une ligne du type : sparkle:edSignature="ABC..." length="12345"
+          RAW_OUTPUT=$($SIGN_TOOL --ed-key-file sparkle_key.priv "$DMG_PATH")
           
-          echo "--- Vérification Environnement ---"
-          if [ -z "$SPARKLE_ED_PRIVATE_KEY" ]; then
-            echo "❌ ERREUR : La variable SPARKLE_ED_PRIVATE_KEY est vide. Vérifie tes GitHub Secrets."
+          # On extrait uniquement la signature (ce qui est entre les guillemets après edSignature)
+          SIGNATURE=$(echo "$RAW_OUTPUT" | sed -n 's/.*sparkle:edSignature="\([^"]*\)".*/\1/p')
+
+          # On supprime immédiatement la clé privée pour la sécurité
+          rm sparkle_key.priv
+
+          if [ -z "$SIGNATURE" ]; then
+            echo "❌ ERREUR : Impossible d'extraire la signature du résultat."
+            echo "Sortie brute du binaire : $RAW_OUTPUT"
             exit 1
           fi
 
-          echo "--- Tentative de signature ---"
-          # On lance le binaire et on capture TOUT (stdout et stderr) dans le log
-          # On utilise 'cat' pour s'assurer que le contenu est affiché dans la console Actions
-          $SIGN_TOOL "$DMG_PATH" > signature_output.txt 2> error_output.log
-          RESULT=$?
-          
-          if [ $RESULT -ne 0 ]; then
-            echo "❌ LE BINAIRE A ÉCHOUÉ AVEC LE CODE $RESULT"
-            echo "--- ERREUR (stderr) ---"
-            cat error_output.log
-            echo "--- SORTIE (stdout) ---"
-            cat signature_output.txt
-            exit 1
-          fi
-          
-          SIGNATURE=$(cat signature_output.txt | tr -d '\n' | tr -d ' ')
-          echo "✅ Signature générée : $SIGNATURE"
-          
-          set -e # Réactive l'arrêt immédiat
-          
+          echo "✅ Signature générée avec succès : $SIGNATURE"
+
           # --- Génération du fichier appcast.xml ---
           FILE_SIZE=$(stat -f%z "$DMG_PATH")
           PUB_DATE=$(date -R)
