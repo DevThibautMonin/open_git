@@ -1,3 +1,4 @@
+import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/branches_sidebar.dart';
@@ -74,7 +75,22 @@ class RepositorySidebar extends StatelessWidget {
               builder: (context, state) {
                 return Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Text("Version : ${state.version}"),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text("Version : ${state.version}"),
+                      const SizedBox(width: 8),
+                      InkWell(
+                        onTap: () async {
+                          await autoUpdater.checkForUpdates(inBackground: false);
+                        },
+                        child: const Icon(
+                          Icons.refresh,
+                          size: 16,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),

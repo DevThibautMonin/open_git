@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.0.10) (30/12/2025)
+
+### Added
+
+- [App] Add button to check if current version is the latest.
+
 ## Version (1.0.9) (30/12/2025)
 
 ### Added
