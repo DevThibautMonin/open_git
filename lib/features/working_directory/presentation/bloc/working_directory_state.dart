@@ -9,6 +9,7 @@ enum WorkingDirectoryBlocStatus {
   gitSshPermissionDenied,
   gitRemoteIsHttps,
   commitsPushed,
+  pushingCommits,
   askForDiscardAllChanges,
   askForDiscardFileChanges,
 }

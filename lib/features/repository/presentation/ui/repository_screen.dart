@@ -320,7 +320,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                       onPush: () {
                         _workingDirectoryBloc.add(PushCommits());
                       },
-                      isLoading: wdState.status == WorkingDirectoryBlocStatus.loading,
+                      isLoading: wdState.status == WorkingDirectoryBlocStatus.pushingCommits,
                       hasUpstream: wdState.hasUpstream,
                     );
                   },

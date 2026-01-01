@@ -88,8 +88,6 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
 
     on<ToggleAllFilesStaging>((event, emit) async {
       try {
-        emit(state.copyWith(status: WorkingDirectoryBlocStatus.loading));
-
         final files = state.files;
 
         for (final file in files) {
@@ -121,7 +119,7 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
       if (repositoryPath.isEmpty) return;
 
       try {
-        emit(state.copyWith(status: WorkingDirectoryBlocStatus.loading));
+        emit(state.copyWith(status: WorkingDirectoryBlocStatus.pushingCommits));
 
         final isHttps = await gitService.isRemoteHttps();
         if (isHttps) {
