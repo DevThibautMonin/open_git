@@ -21,6 +21,11 @@ class WorkingDirectoryFilesList extends StatelessWidget {
     required this.onCommitPressed,
   });
 
+  bool _areAllFilesStaged(List<GitFileEntity> files) {
+    if (files.isEmpty) return false;
+    return files.every((f) => f.staged);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (files.isEmpty) {
@@ -33,6 +38,16 @@ class WorkingDirectoryFilesList extends StatelessWidget {
       children: [
         Row(
           children: [
+            Checkbox(
+              value: _areAllFilesStaged(files),
+              onChanged: (checked) {
+                context.read<WorkingDirectoryBloc>().add(
+                  ToggleAllFilesStaging(stage: checked ?? false),
+                );
+              },
+            ),
+            const Text("Changed files"),
+            const Spacer(),
             Padding(
               padding: const EdgeInsets.all(10),
               child: ActionChip(
@@ -41,13 +56,18 @@ class WorkingDirectoryFilesList extends StatelessWidget {
                   size: 18,
                 ),
                 label: const Text("Discard all changes"),
-                onPressed: () async {
-                  context.read<WorkingDirectoryBloc>().add(UpdateWorkingDirectoryStatus(status: WorkingDirectoryBlocStatus.askForDiscardAllChanges));
+                onPressed: () {
+                  context.read<WorkingDirectoryBloc>().add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.askForDiscardAllChanges,
+                    ),
+                  );
                 },
               ),
             ),
           ],
         ),
+
         Expanded(
           child: ListView.builder(
             itemCount: files.length,

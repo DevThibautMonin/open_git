@@ -55,6 +55,7 @@ brew upgrade --cask opengit
 - Display modified, added, deleted, and untracked files.
 - File-type icons based on extensions.
 - Stage / unstage files.
+- Stage / unstage all files.
 - Create commits
   - mandatory commit summary
   - optional commit description

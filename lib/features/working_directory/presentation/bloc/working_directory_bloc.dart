@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
 import 'package:open_git/shared/core/exceptions/git_exceptions.dart';
+import 'package:open_git/shared/core/logger/log_service.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
@@ -15,10 +16,12 @@ part 'working_directory_bloc.mapper.dart';
 class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryState> {
   final SharedPreferencesService sharedPreferencesService;
   final GitService gitService;
+  final LogService logService;
 
   WorkingDirectoryBloc({
     required this.sharedPreferencesService,
     required this.gitService,
+    required this.logService,
   }) : super(WorkingDirectoryState()) {
     on<GetRepositoryStatus>((event, emit) async {
       final files = await gitService.getWorkingDirectoryStatus();
@@ -81,6 +84,35 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
 
     on<SelectFile>((event, emit) {
       emit(state.copyWith(selectedFile: event.file));
+    });
+
+    on<ToggleAllFilesStaging>((event, emit) async {
+      try {
+        emit(state.copyWith(status: WorkingDirectoryBlocStatus.loading));
+
+        final files = state.files;
+
+        for (final file in files) {
+          if (event.stage && !file.staged) {
+            await gitService.stageFile(file.path);
+            logService.debug("Staging : ${file.path}");
+          }
+
+          if (!event.stage && file.staged) {
+            await gitService.unstageFile(file.path);
+            logService.debug("Unstaging : ${file.path}");
+          }
+        }
+
+        add(GetRepositoryStatus());
+      } catch (e) {
+        emit(
+          state.copyWith(
+            status: WorkingDirectoryBlocStatus.error,
+            errorMessage: e.toString(),
+          ),
+        );
+      }
     });
 
     on<PushCommits>((event, emit) async {

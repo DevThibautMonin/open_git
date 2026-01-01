@@ -47,6 +47,8 @@ class GitService {
   }) async {
     final repoPath = _getRepoPath();
 
+    logService.debug("Git command : git $args");
+
     final result = await Process.run(
       "git",
       args,
