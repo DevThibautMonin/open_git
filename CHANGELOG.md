@@ -1,5 +1,12 @@
 # Changelog
 
+## Version (1.0.12) (01/01/2026)
+
+### Added
+
+- [Branches] Rename branches.
+- [Working directory] Stage / unstage all files.
+
 ## Version (1.0.11) (30/12/2025)
 
 ### Updates
