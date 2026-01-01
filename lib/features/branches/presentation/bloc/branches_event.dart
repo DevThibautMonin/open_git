@@ -55,3 +55,11 @@ class RenameBranch extends BranchesEvent {
     required this.newName,
   });
 }
+
+class AskForRenamingBranch extends BranchesEvent {
+  final BranchEntity branch;
+
+  AskForRenamingBranch({
+    required this.branch,
+  });
+}

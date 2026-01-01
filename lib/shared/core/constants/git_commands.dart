@@ -21,4 +21,5 @@ class GitCommands {
   static const List<String> restoreFile = ["restore", "--"];
   static const List<String> cleanFile = ["clean", "-f", "--"];
   static const List<String> renameBranch = ["branch", "-m"];
+  static const List<String> getBranchUpstream = ["rev-parse", "--abbrev-ref", "--symbolic-full-name"];
 }

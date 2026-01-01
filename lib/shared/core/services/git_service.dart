@@ -41,6 +41,21 @@ class GitService {
     return path;
   }
 
+  Future<bool> branchHasUpstream(String branchName) async {
+    try {
+      await _runGit(
+        [
+          ...GitCommands.getBranchUpstream,
+          "$branchName@{u}",
+        ],
+        allowedExitCodes: const {0},
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> renameBranch({
     required String oldName,
     required String newName,

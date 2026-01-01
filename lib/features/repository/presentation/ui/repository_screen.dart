@@ -252,6 +252,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     builder: (_) {
                       return BranchRenameDialog(
                         initialName: branch.name,
+                        hasUpstream: state.selectedBranchHasUpstream,
                         onRename: (newName) {
                           context.read<BranchesBloc>().add(
                             RenameBranch(
@@ -264,10 +265,9 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     },
                   );
 
-                  if (context.mounted) {
-                    context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
-                  }
-
+                  context.read<BranchesBloc>().add(
+                    UpdateBranchesStatus(status: BranchesBlocStatus.initial),
+                  );
                   break;
                 case BranchesBlocStatus.branchRenamed:
                   SuccessSnackBar.show(
