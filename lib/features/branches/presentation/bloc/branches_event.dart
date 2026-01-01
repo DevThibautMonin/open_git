@@ -45,3 +45,13 @@ class UpdateSelectedBranch extends BranchesEvent {
     required this.branch,
   });
 }
+
+class RenameBranch extends BranchesEvent {
+  final BranchEntity branch;
+  final String newName;
+
+  RenameBranch({
+    required this.branch,
+    required this.newName,
+  });
+}

@@ -50,6 +50,7 @@ brew upgrade --cask opengit
 - Switch between branches.
 - Create and checkout a new branch.
 - Delete branches.
+- Rename local branches.
 
 ### Working Directory
 - Display modified, added, deleted, and untracked files.
@@ -95,7 +96,6 @@ brew upgrade --cask opengit
 - Fetch / Pull with behind/ahead indicators.
 
 ### Branch Management
-- Rename branches.
 - Conflict resolution UI.
 
 ### UX & Product

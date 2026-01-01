@@ -11,6 +11,7 @@ import 'package:open_git/features/files_differences/presentation/ui/split_diff_v
 import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/branch_delete_confirmation_dialog.dart';
+import 'package:open_git/shared/presentation/widgets/dialogs/branch_rename_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/clone_repository_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/discard_all_changes_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/discard_file_changes_dialog.dart';
@@ -238,9 +239,46 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             },
           ),
           BlocListener<BranchesBloc, BranchesState>(
-            listenWhen: (previous, current) => previous.status != current.status || previous.selectedBranch != current.selectedBranch,
+            listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
+                case BranchesBlocStatus.askForRenamingBranch:
+                  final branch = state.selectedBranch;
+                  if (branch == null) break;
+
+                  await showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) {
+                      return BranchRenameDialog(
+                        initialName: branch.name,
+                        onRename: (newName) {
+                          context.read<BranchesBloc>().add(
+                            RenameBranch(
+                              branch: branch,
+                              newName: newName,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+
+                  if (context.mounted) {
+                    context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
+                  }
+
+                  break;
+                case BranchesBlocStatus.branchRenamed:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Branch renamed successfully!",
+                  );
+                  context.read<BranchesBloc>().add(
+                    UpdateBranchesStatus(status: BranchesBlocStatus.initial),
+                  );
+                  break;
+
                 case BranchesBlocStatus.askForDeletingBranch:
                   if (state.selectedBranch != null) {
                     await showDialog(

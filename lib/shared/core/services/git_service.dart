@@ -41,6 +41,17 @@ class GitService {
     return path;
   }
 
+  Future<void> renameBranch({
+    required String oldName,
+    required String newName,
+  }) async {
+    await _runGit([
+      ...GitCommands.renameBranch,
+      oldName,
+      newName,
+    ]);
+  }
+
   Future<String> _runGit(
     List<String> args, {
     Set<int> allowedExitCodes = const {0},

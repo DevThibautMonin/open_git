@@ -42,6 +42,14 @@ class _BranchItemState extends State<BranchItem> {
               PopupMenuItem(
                 onTap: () {
                   context.read<BranchesBloc>()
+                    ..add(UpdateSelectedBranch(branch: widget.branch))
+                    ..add(UpdateBranchesStatus(status: BranchesBlocStatus.askForRenamingBranch));
+                },
+                child: const Text('Rename branch'),
+              ),
+              PopupMenuItem(
+                onTap: () {
+                  context.read<BranchesBloc>()
                     ..add(UpdateBranchesStatus(status: BranchesBlocStatus.askForDeletingBranch))
                     ..add(UpdateSelectedBranch(branch: widget.branch));
                 },

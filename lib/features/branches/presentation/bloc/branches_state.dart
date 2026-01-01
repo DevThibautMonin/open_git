@@ -9,6 +9,8 @@ enum BranchesBlocStatus {
   branchCreated,
   branchesRetrieved,
   askForDeletingBranch,
+  askForRenamingBranch,
+  branchRenamed,
 }
 
 @MappableClass()

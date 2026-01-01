@@ -41,6 +41,26 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
       add(GetRepositoryBranches());
     });
 
+    on<RenameBranch>((event, emit) async {
+      try {
+        await gitService.renameBranch(
+          oldName: event.branch.name,
+          newName: event.newName,
+        );
+
+        add(GetRepositoryBranches());
+
+        emit(state.copyWith(status: BranchesBlocStatus.branchRenamed));
+      } catch (e) {
+        emit(
+          state.copyWith(
+            status: BranchesBlocStatus.error,
+            errorMessage: e.toString(),
+          ),
+        );
+      }
+    });
+
     on<SwitchToBranch>((event, emit) async {
       await gitService.switchBranch(event.branch.name);
       add(GetRepositoryBranches());
