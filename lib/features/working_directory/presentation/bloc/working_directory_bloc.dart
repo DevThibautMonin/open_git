@@ -165,6 +165,7 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
     });
 
     on<ClearSelectedFile>((event, emit) {
+      // Test
       emit(
         state.copyWith(
           selectedFile: null,
