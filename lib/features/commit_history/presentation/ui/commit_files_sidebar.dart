@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
 import 'package:open_git/features/commit_history/presentation/ui/commit_history_file_item.dart';
+import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
 class CommitFilesSidebar extends StatelessWidget {
   const CommitFilesSidebar({
@@ -21,18 +22,35 @@ class CommitFilesSidebar extends StatelessWidget {
           );
         }
 
-        return ListView.builder(
-          itemCount: state.selectedCommitFiles.length,
-          itemBuilder: (_, index) {
-            final file = state.selectedCommitFiles[index];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Icon(Icons.list),
+                  Gaps.w4,
+                  Text("${state.selectedCommitFiles.length} committed file${state.selectedCommitFiles.length > 1 ? "s" : ""}"),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: state.selectedCommitFiles.length,
+                itemBuilder: (_, index) {
+                  final file = state.selectedCommitFiles[index];
 
-            return CommitHistoryFileItem(
-              filePath: file,
-              onTap: () {
-                context.read<CommitHistoryBloc>().add(SelectCommitFile(filePath: file));
-              },
-            );
-          },
+                  return CommitHistoryFileItem(
+                    filePath: file,
+                    onTap: () {
+                      context.read<CommitHistoryBloc>().add(SelectCommitFile(filePath: file));
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
     );
