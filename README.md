@@ -51,6 +51,8 @@ brew upgrade --cask opengit
 - Create and checkout a new branch.
 - Delete branches.
 - Rename local branches.
+- Fetch remote branches.
+- Checkout remote branches locally.
 
 ### Working Directory
 - Display modified, added, deleted, and untracked files.

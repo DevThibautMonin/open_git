@@ -1,5 +1,10 @@
 # Changelog
 
+## Version (1.0.13) (02/01/2026)
+
+- [Repository] Fetch remote data.
+- [Branches] Checkout remote branches locally.
+
 ## Version (1.0.12) (02/01/2026)
 
 ### Added

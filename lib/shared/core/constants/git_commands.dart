@@ -3,6 +3,9 @@ class GitCommands {
     "branch",
     "--format=%(refname:short)|%(HEAD)",
   ];
+  static const gitBranch = ['branch'];
+  static const gitBranchRemote = ['branch', '-r'];
+  static const gitCurrentBranch = ['branch', '--show-current'];
   static const List<String> switchToBranch = ["switch"];
   static const List<String> checkoutBranch = ["checkout", "-b"];
   static const List<String> deleteBranch = ["branch", "-D"];
@@ -24,4 +27,6 @@ class GitCommands {
   static const List<String> getBranchUpstream = ["rev-parse", "--abbrev-ref", "--symbolic-full-name"];
   static const List<String> showCommitFiles = ["show", "--name-only", "--pretty="];
   static const List<String> diffCommitFile = ["diff"];
+  static const List<String> gitFetchPrune = ['fetch', '--prune'];
+  static const List<String> checkoutRemoteBranch = ['checkout', '-t'];
 }

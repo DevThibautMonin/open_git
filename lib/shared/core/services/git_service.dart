@@ -32,6 +32,10 @@ class GitService {
     return path;
   }
 
+  Future<void> fetch() async {
+    await _runGit(GitCommands.gitFetchPrune);
+  }
+
   Future<String?> selectRepository() async {
     final path = await FilePicker.platform.getDirectoryPath();
     if (path == null) return null;
@@ -39,6 +43,13 @@ class GitService {
     await sharedPreferencesService.setString(SharedPreferencesKeys.repositoryPath, path);
 
     return path;
+  }
+
+  Future<void> checkoutRemoteBranch(String branchName) async {
+    await _runGit([
+      ...GitCommands.checkoutRemoteBranch,
+      'origin/$branchName',
+    ]);
   }
 
   Future<bool> branchHasUpstream(String branchName) async {
@@ -233,8 +244,32 @@ class GitService {
   }
 
   Future<List<BranchEntity>> getBranches() async {
-    final output = await _runGit(GitCommands.listBranches);
-    return parseBranches(output);
+    final currentBranch = (await _runGit(
+      GitCommands.gitCurrentBranch,
+    )).trim();
+
+    final localStdout = await _runGit(GitCommands.gitBranch);
+    final remoteStdout = await _runGit(GitCommands.gitBranchRemote);
+
+    final localNames = localStdout.split("\n").map((e) => e.replaceAll("*", "").trim()).where((e) => e.isNotEmpty).toSet();
+
+    final localBranches = parseBranches(
+      localStdout,
+      isRemote: false,
+      localBranchNames: localNames,
+      currentBranch: currentBranch,
+    );
+
+    final remoteBranches = parseBranches(
+      remoteStdout,
+      isRemote: true,
+      localBranchNames: localNames,
+    );
+
+    return [
+      ...localBranches,
+      ...remoteBranches,
+    ];
   }
 
   Future<void> switchBranch(String name) async {
@@ -424,12 +459,21 @@ class GitService {
     return GitFileStatus.modified;
   }
 
-  List<BranchEntity> parseBranches(String stdout) {
-    return stdout.trim().split("\n").where((l) => l.isNotEmpty).map((line) {
-      final p = line.split("|");
+  List<BranchEntity> parseBranches(
+    String stdout, {
+    required bool isRemote,
+    required Set<String> localBranchNames,
+    String? currentBranch,
+  }) {
+    return stdout.trim().split("\n").where((l) => l.isNotEmpty && !l.contains("->")).map((line) {
+      final clean = line.replaceAll("*", "").trim();
+      final name = isRemote ? clean.replaceFirst("origin/", "") : clean;
+
       return BranchEntity(
-        name: p[0],
-        isCurrent: p.length > 1 && p[1] == "*",
+        name: name,
+        isCurrent: !isRemote && name == currentBranch,
+        isRemote: isRemote,
+        existsLocally: isRemote ? localBranchNames.contains(name) : true,
       );
     }).toList();
   }

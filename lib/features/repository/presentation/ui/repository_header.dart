@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
+import 'package:open_git/shared/presentation/widgets/fetch_button.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 import 'package:open_git/shared/presentation/widgets/push_commits_button.dart';
 
@@ -75,6 +76,17 @@ class RepositoryHeader extends StatelessWidget {
               },
             ),
           ),
+          BlocBuilder<RepositoryBloc, RepositoryState>(
+            builder: (context, state) {
+              return FetchButton(
+                onFetch: () {
+                  context.read<RepositoryBloc>().add(FetchRepository());
+                },
+                isLoading: state.status == RepositoryBlocStatus.fetching,
+              );
+            },
+          ),
+          Gaps.w8,
           PushCommitsButton(
             commitsToPush: commitsToPush,
             onPush: onPush,

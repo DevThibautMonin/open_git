@@ -92,6 +92,23 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
       );
     });
 
+    on<FetchRepository>((event, emit) async {
+      try {
+        emit(state.copyWith(status: RepositoryBlocStatus.fetching));
+
+        await gitService.fetch();
+
+        emit(state.copyWith(status: RepositoryBlocStatus.fetched));
+      } catch (e) {
+        emit(
+          state.copyWith(
+            status: RepositoryBlocStatus.error,
+            errorMessage: e.toString(),
+          ),
+        );
+      }
+    });
+
     on<CloneRepositoryConfirmed>((event, emit) async {
       emit(
         state.copyWith(
