@@ -24,7 +24,11 @@ class WorkingDirectoryScreen extends StatelessWidget {
             ),
             const Divider(height: 1),
             Expanded(
-              child: diffState.diffModeDisplay == DiffModeDisplay.split ? SplitDiffViewer() : UnifiedDiffViewer(),
+              child: selectedFile == null
+                  ? const Center(child: Text('No changes'))
+                  : diffState.diffModeDisplay == DiffModeDisplay.split
+                  ? SplitDiffViewer()
+                  : UnifiedDiffViewer(),
             ),
           ],
         );

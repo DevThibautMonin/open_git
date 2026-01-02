@@ -90,7 +90,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             },
           ),
           BlocListener<WorkingDirectoryBloc, WorkingDirectoryState>(
-            listenWhen: (previous, current) => previous.status != current.status || previous.selectedFile != current.selectedFile,
+            listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
                 case WorkingDirectoryBlocStatus.commitsAdded:
