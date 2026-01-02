@@ -47,6 +47,9 @@ class RepositorySidebar extends StatelessWidget {
                         mode: RepositoryViewMode.commitHistory,
                       ),
                     );
+                    context.read<CommitHistoryBloc>().add(
+                      LoadCommitHistory(),
+                    );
                     break;
                   default:
                     break;
