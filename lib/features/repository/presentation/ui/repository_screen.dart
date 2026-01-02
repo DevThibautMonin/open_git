@@ -212,6 +212,16 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             },
           ),
           BlocListener<RepositoryBloc, RepositoryState>(
+            listenWhen: (previous, current) {
+              return previous.repositoryViewMode != current.repositoryViewMode;
+            },
+            listener: (context, state) {
+              context.read<FilesDifferencesBloc>().add(ClearFileDiff());
+              context.read<WorkingDirectoryBloc>().add(ClearSelectedFile());
+              context.read<CommitHistoryBloc>().add(ClearSelectedCommitFile());
+            },
+          ),
+          BlocListener<RepositoryBloc, RepositoryState>(
             listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
