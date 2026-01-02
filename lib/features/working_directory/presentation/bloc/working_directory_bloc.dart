@@ -164,13 +164,24 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
       emit(state.copyWith(status: event.status));
     });
 
+    on<ClearSelectedFile>((event, emit) {
+      emit(
+        state.copyWith(
+          selectedFile: null,
+        ),
+      );
+    });
+
     on<AddCommit>((event, emit) async {
+      emit(state.copyWith(status: WorkingDirectoryBlocStatus.addingCommits));
+
       await gitService.createCommit(
         summary: event.summary,
         description: event.description,
       );
 
       add(GetRepositoryStatus());
+      emit(state.copyWith(status: WorkingDirectoryBlocStatus.commitsAdded));
     });
 
     on<ToggleFileStaging>((event, emit) async {

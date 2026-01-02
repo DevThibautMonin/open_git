@@ -12,6 +12,8 @@ enum WorkingDirectoryBlocStatus {
   pushingCommits,
   askForDiscardAllChanges,
   askForDiscardFileChanges,
+  addingCommits,
+  commitsAdded,
 }
 
 @MappableClass()

@@ -93,6 +93,10 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             listenWhen: (previous, current) => previous.status != current.status || previous.selectedFile != current.selectedFile,
             listener: (context, state) async {
               switch (state.status) {
+                case WorkingDirectoryBlocStatus.commitsAdded:
+                  _filesDifferencesBloc.add(ClearFileDiff());
+                  _workingDirectoryBloc.add(ClearSelectedFile());
+                  break;
                 case WorkingDirectoryBlocStatus.askForDiscardFileChanges:
                   if (state.selectedFile != null) {
                     await showDialog(
