@@ -7,6 +7,7 @@
 - [Repository] Fetch remote data.
 - [Branches] Checkout remote branches locally.
 - [UX/UI] Resizeable left sidebar with persistent values. Double click to reset to the default value.
+- [Commit history] Show unpushed commits with a trailing icon.
 
 ### Fixes
 
