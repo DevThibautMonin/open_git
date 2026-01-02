@@ -52,6 +52,15 @@ class GitService {
     ]);
   }
 
+  Future<Set<String>> getUnpushedCommitShas() async {
+    try {
+      final output = await _runGit(GitCommands.gitUnpushedCommits);
+      return output.split('\n').where((l) => l.isNotEmpty).toSet();
+    } catch (_) {
+      return {};
+    }
+  }
+
   Future<bool> branchHasUpstream(String branchName) async {
     try {
       await _runGit(
@@ -285,6 +294,8 @@ class GitService {
   }
 
   Future<List<GitCommitEntity>> getCommitHistory({int limit = 100}) async {
+    final unpushedShas = await getUnpushedCommitShas();
+
     final output = await _runGit(
       [
         "log",
@@ -296,11 +307,14 @@ class GitService {
 
     return output.split("\n").where((l) => l.isNotEmpty).map((line) {
       final p = line.split("|");
+      final sha = p[0];
+
       return GitCommitEntity(
-        sha: p[0],
+        sha: sha,
         author: p[1],
         date: DateTime.parse(p[2]),
         message: p[3],
+        isUnpushed: unpushedShas.contains(sha),
       );
     }).toList();
   }

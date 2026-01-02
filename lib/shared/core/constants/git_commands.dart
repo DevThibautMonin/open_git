@@ -29,4 +29,5 @@ class GitCommands {
   static const List<String> diffCommitFile = ["diff"];
   static const List<String> gitFetchPrune = ['fetch', '--prune'];
   static const List<String> checkoutRemoteBranch = ['checkout', '-t'];
+  static const List<String> gitUnpushedCommits = ['log', '--pretty=format:%H', '@{u}..HEAD'];
 }

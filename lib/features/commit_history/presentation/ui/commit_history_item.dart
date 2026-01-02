@@ -13,21 +13,60 @@ class CommitHistoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    final theme = Theme.of(context);
+
+    return InkWell(
       onTap: () {
-        context.read<CommitHistoryBloc>().add(SelectCommit(commit: commit));
+        context.read<CommitHistoryBloc>().add(
+          SelectCommit(commit: commit),
+        );
       },
-      title: Text(
-        commit.message,
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 14,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(
+              Icons.commit,
+              size: 18,
+            ),
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    commit.message,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${commit.author} • ${_formatDate(commit.date)} • ${commit.sha.substring(0, 7)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            if (commit.isUnpushed)
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Icon(
+                  Icons.arrow_upward,
+                  size: 16,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+          ],
         ),
       ),
-      subtitle: Text(
-        '${commit.author} • ${_formatDate(commit.date)} • ${commit.sha.substring(0, 7)}',
-      ),
-      leading: const Icon(Icons.commit),
     );
   }
 
