@@ -12,6 +12,14 @@ Make Git easier to understand, safer to use, and more enjoyable, without hiding 
 
 ---
 
+# 🖥️ Supported platforms
+
+| Platform | Status |
+|----------|--------|
+| **macOS** | ✅ Supported |
+| **Windows** | ⏳ Soon |
+| **Linux** | ⏳ Soon |
+
 # ⚙️ Installation
 
 ## macOS (Homebrew) - *Recommended*
