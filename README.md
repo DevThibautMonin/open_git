@@ -50,11 +50,13 @@ brew upgrade --cask opengit
 - Switch between branches.
 - Create and checkout a new branch.
 - Delete branches.
+- Rename local branches.
 
 ### Working Directory
 - Display modified, added, deleted, and untracked files.
 - File-type icons based on extensions.
 - Stage / unstage files.
+- Stage / unstage all files.
 - Create commits
   - mandatory commit summary
   - optional commit description
@@ -76,6 +78,7 @@ brew upgrade --cask opengit
 - List commit history.
 - Display author, date, and message.
 - Clean and readable chronological view.
+- Commit diff split view from history.
 
 ### SSH & Authentication
 - Automatic detection of SSH issues.
@@ -90,11 +93,9 @@ brew upgrade --cask opengit
 # 📦 Roadmap
 
 ### Git & Collaboration
-- Commit diff view from history.
 - Fetch / Pull with behind/ahead indicators.
 
 ### Branch Management
-- Rename branches.
 - Conflict resolution UI.
 
 ### UX & Product

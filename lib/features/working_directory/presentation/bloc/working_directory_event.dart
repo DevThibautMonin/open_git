@@ -56,3 +56,11 @@ class DiscardFileChanges extends WorkingDirectoryEvent {
     this.file,
   });
 }
+
+class ToggleAllFilesStaging extends WorkingDirectoryEvent {
+  final bool stage;
+
+  ToggleAllFilesStaging({
+    required this.stage,
+  });
+}

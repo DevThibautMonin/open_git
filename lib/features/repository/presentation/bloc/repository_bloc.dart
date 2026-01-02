@@ -2,6 +2,7 @@ import 'package:dart_mappable/dart_mappable.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:open_git/features/repository/domain/repository_view_mode.dart';
 import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
 import 'package:open_git/shared/core/exceptions/git_exceptions.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
@@ -81,6 +82,14 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
 
     on<CloneRepositoryUrlChanged>((event, emit) {
       emit(state.copyWith(cloneRepositoryUrl: event.url));
+    });
+
+    on<SetRepositoryViewMode>((event, emit) {
+      emit(
+        state.copyWith(
+          repositoryViewMode: event.mode,
+        ),
+      );
     });
 
     on<CloneRepositoryConfirmed>((event, emit) async {

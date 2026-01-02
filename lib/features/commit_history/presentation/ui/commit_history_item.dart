@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
 import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
 
 class CommitHistoryItem extends StatelessWidget {
@@ -12,6 +14,9 @@ class CommitHistoryItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      onTap: () {
+        context.read<CommitHistoryBloc>().add(SelectCommit(commit: commit));
+      },
       title: Text(
         commit.message,
         style: const TextStyle(

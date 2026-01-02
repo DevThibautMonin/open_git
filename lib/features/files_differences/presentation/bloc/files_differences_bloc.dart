@@ -72,5 +72,21 @@ class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesS
         );
       }
     });
+
+    on<LoadCommitFileDiff>((event, emit) async {
+      final rawDiff = await gitService.getCommitFileDiff(
+        commitSha: event.commitSha,
+        filePath: event.filePath,
+      );
+
+      final hunks = GitDiffParser.parse(rawDiff);
+
+      emit(
+        state.copyWith(
+          diff: hunks,
+          status: FilesDifferencesStatus.loaded,
+        ),
+      );
+    });
   }
 }

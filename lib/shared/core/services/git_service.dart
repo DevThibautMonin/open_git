@@ -41,11 +41,39 @@ class GitService {
     return path;
   }
 
+  Future<bool> branchHasUpstream(String branchName) async {
+    try {
+      await _runGit(
+        [
+          ...GitCommands.getBranchUpstream,
+          "$branchName@{u}",
+        ],
+        allowedExitCodes: const {0},
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> renameBranch({
+    required String oldName,
+    required String newName,
+  }) async {
+    await _runGit([
+      ...GitCommands.renameBranch,
+      oldName,
+      newName,
+    ]);
+  }
+
   Future<String> _runGit(
     List<String> args, {
     Set<int> allowedExitCodes = const {0},
   }) async {
     final repoPath = _getRepoPath();
+
+    logService.debug("Git command : git $args");
 
     final result = await Process.run(
       "git",
@@ -60,6 +88,33 @@ class GitService {
     }
 
     return result.stdout.toString();
+  }
+
+  Future<List<String>> getCommitFiles(String commitSha) async {
+    final output = await _runGit(
+      [
+        ...GitCommands.showCommitFiles,
+        commitSha,
+      ],
+    );
+
+    return output.split("\n").where((line) => line.trim().isNotEmpty).toList();
+  }
+
+  Future<String> getCommitFileDiff({
+    required String commitSha,
+    required String filePath,
+  }) async {
+    return await _runGit(
+      [
+        ...GitCommands.diffCommitFile,
+        "$commitSha^",
+        commitSha,
+        "--",
+        filePath,
+      ],
+      allowedExitCodes: const {0, 1},
+    );
   }
 
   Future<void> discardFileChanges(GitFileEntity file) async {

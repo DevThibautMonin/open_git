@@ -22,6 +22,18 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
       emit(state.copyWith(status: event.status));
     });
 
+    on<AskForRenamingBranch>((event, emit) async {
+      final hasUpstream = await gitService.branchHasUpstream(event.branch.name);
+
+      emit(
+        state.copyWith(
+          selectedBranch: event.branch,
+          selectedBranchHasUpstream: hasUpstream,
+          status: BranchesBlocStatus.askForRenamingBranch,
+        ),
+      );
+    });
+
     on<UpdateSelectedBranch>((event, emit) {
       emit(state.copyWith(selectedBranch: event.branch));
     });
@@ -39,6 +51,26 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
 
       await gitService.deleteBranch(event.branch.name);
       add(GetRepositoryBranches());
+    });
+
+    on<RenameBranch>((event, emit) async {
+      try {
+        await gitService.renameBranch(
+          oldName: event.branch.name,
+          newName: event.newName,
+        );
+
+        add(GetRepositoryBranches());
+
+        emit(state.copyWith(status: BranchesBlocStatus.branchRenamed));
+      } catch (e) {
+        emit(
+          state.copyWith(
+            status: BranchesBlocStatus.error,
+            errorMessage: e.toString(),
+          ),
+        );
+      }
     });
 
     on<SwitchToBranch>((event, emit) async {

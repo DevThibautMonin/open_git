@@ -1,0 +1,4 @@
+enum RepositoryViewMode {
+  changes,
+  commitHistory,
+}
