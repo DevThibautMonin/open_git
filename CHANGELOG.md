@@ -12,6 +12,7 @@
 ### Fixes
 
 - [Working directory / Commit history] Unselect file when committing, switching feature in sidebar.
+- [Commit history] Refresh state correctly.
 
 ## Version (1.0.12) (02/01/2026)
 
