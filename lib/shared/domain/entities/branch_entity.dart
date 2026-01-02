@@ -6,9 +6,13 @@ part 'branch_entity.mapper.dart';
 class BranchEntity with BranchEntityMappable {
   final String name;
   final bool isCurrent;
+  final bool isRemote;
+  final bool existsLocally;
 
   const BranchEntity({
     required this.isCurrent,
     required this.name,
+    required this.isRemote,
+    required this.existsLocally,
   });
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart';
-import 'package:open_git/features/branches/presentation/ui/branch_item.dart';
+import 'package:open_git/features/branches/presentation/ui/current_branch_section.dart';
+import 'package:open_git/features/branches/presentation/ui/local_branches_section.dart';
+import 'package:open_git/features/branches/presentation/ui/remote_branches_Section.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
 class BranchesSidebar extends StatelessWidget {
@@ -49,13 +51,18 @@ class BranchesSidebar extends StatelessWidget {
           Expanded(
             child: BlocBuilder<BranchesBloc, BranchesState>(
               builder: (context, state) {
-                return ListView.builder(
-                  itemCount: state.branches.length,
-                  itemBuilder: (context, index) {
-                    final branch = state.branches[index];
+                return ListView(
+                  children: [
+                    if (state.currentBranch.isNotEmpty) CurrentBranchSection(branch: state.currentBranch.first),
 
-                    return BranchItem(branch: branch);
-                  },
+                    LocalBranchesSection(
+                      branches: state.localBranches,
+                    ),
+
+                    RemoteBranchesSection(
+                      branches: state.remoteOnlyBranches,
+                    ),
+                  ],
                 );
               },
             ),

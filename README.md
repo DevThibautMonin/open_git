@@ -12,6 +12,14 @@ Make Git easier to understand, safer to use, and more enjoyable, without hiding 
 
 ---
 
+# 🖥️ Supported platforms
+
+| Platform | Status |
+|----------|--------|
+| **macOS** | ✅ Supported |
+| **Windows** | ⏳ Soon |
+| **Linux** | ⏳ Soon |
+
 # ⚙️ Installation
 
 ## macOS (Homebrew) - *Recommended*
@@ -51,6 +59,8 @@ brew upgrade --cask opengit
 - Create and checkout a new branch.
 - Delete branches.
 - Rename local branches.
+- Fetch remote branches.
+- Checkout remote branches locally.
 
 ### Working Directory
 - Display modified, added, deleted, and untracked files.
@@ -79,6 +89,7 @@ brew upgrade --cask opengit
 - Display author, date, and message.
 - Clean and readable chronological view.
 - Commit diff split view from history.
+- Show unpushed commits.
 
 ### SSH & Authentication
 - Automatic detection of SSH issues.
@@ -87,6 +98,9 @@ brew upgrade --cask opengit
   - handle unknown host verification
   - manage SSH permission errors
 - Help converting HTTPS remotes to SSH.
+
+### UX/UI
+- Resizeable areas.
 
 ---
 

@@ -22,6 +22,7 @@ import 'package:open_git/shared/core/constants/constants.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_header.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_sidebar.dart';
+import 'package:open_git/shared/presentation/widgets/resizable_sidebar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/error_snackbar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/success_snackbar.dart';
 
@@ -89,9 +90,13 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             },
           ),
           BlocListener<WorkingDirectoryBloc, WorkingDirectoryState>(
-            listenWhen: (previous, current) => previous.status != current.status || previous.selectedFile != current.selectedFile,
+            listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
+                case WorkingDirectoryBlocStatus.commitsAdded:
+                  _filesDifferencesBloc.add(ClearFileDiff());
+                  _workingDirectoryBloc.add(ClearSelectedFile());
+                  break;
                 case WorkingDirectoryBlocStatus.askForDiscardFileChanges:
                   if (state.selectedFile != null) {
                     await showDialog(
@@ -207,6 +212,16 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             },
           ),
           BlocListener<RepositoryBloc, RepositoryState>(
+            listenWhen: (previous, current) {
+              return previous.repositoryViewMode != current.repositoryViewMode;
+            },
+            listener: (context, state) {
+              context.read<FilesDifferencesBloc>().add(ClearFileDiff());
+              context.read<WorkingDirectoryBloc>().add(ClearSelectedFile());
+              context.read<CommitHistoryBloc>().add(ClearSelectedCommitFile());
+            },
+          ),
+          BlocListener<RepositoryBloc, RepositoryState>(
             listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
@@ -244,6 +259,9 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                   _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.initial));
                   break;
 
+                case RepositoryBlocStatus.fetched:
+                  context.read<BranchesBloc>().add(GetRepositoryBranches());
+                  break;
                 case RepositoryBlocStatus.repositorySelected:
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
                   _workingDirectoryBloc.add(GetRepositoryStatus());
@@ -382,7 +400,9 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                 Expanded(
                   child: Row(
                     children: [
-                      RepositorySidebar(),
+                      ResizableSidebar(
+                        child: RepositorySidebar(),
+                      ),
                       Expanded(
                         child: BlocBuilder<RepositoryBloc, RepositoryState>(
                           buildWhen: (previous, current) => previous.repositoryViewMode != current.repositoryViewMode,

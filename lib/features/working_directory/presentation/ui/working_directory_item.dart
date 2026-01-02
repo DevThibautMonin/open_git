@@ -23,6 +23,7 @@ class WorkingDirectoryItem extends StatelessWidget {
         return MouseRegion(
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onSecondaryTapDown: (details) async {
               context.read<FilesDifferencesBloc>().add(LoadFileDiff(file: file));
               context.read<WorkingDirectoryBloc>().add(SelectFile(file: file));

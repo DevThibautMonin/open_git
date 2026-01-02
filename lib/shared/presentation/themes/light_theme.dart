@@ -5,4 +5,10 @@ final lightTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(
     seedColor: Colors.blueAccent,
   ),
+  textTheme: TextTheme(
+    labelMedium: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
 );

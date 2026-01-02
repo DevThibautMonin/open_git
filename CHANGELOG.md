@@ -1,5 +1,19 @@
 # Changelog
 
+## Version (1.0.13) (02/01/2026)
+
+### Added
+
+- [Repository] Fetch remote data.
+- [Branches] Checkout remote branches locally.
+- [UX/UI] Resizeable left sidebar with persistent values. Double click to reset to the default value.
+- [Commit history] Show unpushed commits with a trailing icon.
+
+### Fixes
+
+- [Working directory / Commit history] Unselect file when committing, switching feature in sidebar.
+- [Commit history] Refresh state correctly.
+
 ## Version (1.0.12) (02/01/2026)
 
 ### Added
@@ -28,7 +42,7 @@
 
 ## Version (1.0.8) (30/12/2025)
 
-### Fix
+### Fixes
 
 - [App] Fix auto updater.
 
@@ -57,7 +71,7 @@
 
 - [Working directory] Discard all changes.
 
-### Fix
+### Fixes
 
 - [Branches] Fix branches remote error while creating local branch.
 
@@ -75,7 +89,7 @@
 
 ## Version (1.0.1) (28/12/2025)
 
-### Fix
+### Fixes
 
 - [Branches] Fix git branch checkout.
 

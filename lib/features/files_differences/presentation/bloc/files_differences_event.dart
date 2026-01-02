@@ -27,3 +27,7 @@ class LoadCommitFileDiff extends FilesDifferencesEvent {
     required this.filePath,
   });
 }
+
+class ClearFileDiff extends FilesDifferencesEvent {
+  ClearFileDiff();
+}

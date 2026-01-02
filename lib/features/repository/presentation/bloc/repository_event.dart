@@ -47,3 +47,7 @@ class SetRepositoryViewMode extends RepositoryEvent {
     required this.mode,
   });
 }
+
+class FetchRepository extends RepositoryEvent {
+  FetchRepository();
+}

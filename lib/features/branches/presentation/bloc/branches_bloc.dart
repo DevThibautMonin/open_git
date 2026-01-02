@@ -22,6 +22,21 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
       emit(state.copyWith(status: event.status));
     });
 
+    on<CheckoutRemoteBranch>((event, emit) async {
+      try {
+        await gitService.checkoutRemoteBranch(event.branch.name);
+
+        add(GetRepositoryBranches());
+      } catch (e) {
+        emit(
+          state.copyWith(
+            status: BranchesBlocStatus.error,
+            errorMessage: e.toString(),
+          ),
+        );
+      }
+    });
+
     on<AskForRenamingBranch>((event, emit) async {
       final hasUpstream = await gitService.branchHasUpstream(event.branch.name);
 

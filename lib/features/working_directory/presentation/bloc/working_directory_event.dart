@@ -64,3 +64,7 @@ class ToggleAllFilesStaging extends WorkingDirectoryEvent {
     required this.stage,
   });
 }
+
+class ClearSelectedFile extends WorkingDirectoryEvent {
+  ClearSelectedFile();
+}

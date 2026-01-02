@@ -19,3 +19,7 @@ class SelectCommitFile extends CommitHistoryEvent {
 
   SelectCommitFile({required this.filePath});
 }
+
+class ClearSelectedCommitFile extends CommitHistoryEvent {
+  ClearSelectedCommitFile();
+}

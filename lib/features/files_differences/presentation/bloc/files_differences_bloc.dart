@@ -88,5 +88,14 @@ class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesS
         ),
       );
     });
+
+    on<ClearFileDiff>((event, emit) {
+      emit(
+        state.copyWith(
+          diff: null,
+          selectedFile: null,
+        ),
+      );
+    });
   }
 }

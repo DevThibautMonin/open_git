@@ -10,6 +10,8 @@ enum RepositoryBlocStatus {
   cloneSuccess,
   cloning,
   cloneProgress,
+  fetching,
+  fetched,
 }
 
 @MappableClass()

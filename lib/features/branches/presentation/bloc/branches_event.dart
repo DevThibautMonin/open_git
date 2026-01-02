@@ -63,3 +63,11 @@ class AskForRenamingBranch extends BranchesEvent {
     required this.branch,
   });
 }
+
+class CheckoutRemoteBranch extends BranchesEvent {
+  final BranchEntity branch;
+
+  CheckoutRemoteBranch({
+    required this.branch,
+  });
+}

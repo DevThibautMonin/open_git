@@ -63,5 +63,15 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
         ),
       );
     });
+
+    on<ClearSelectedCommitFile>((event, emit) {
+      emit(
+        state.copyWith(
+          selectedCommitFile: null,
+          selectedCommit: null,
+          selectedCommitFiles: [],
+        ),
+      );
+    });
   }
 }

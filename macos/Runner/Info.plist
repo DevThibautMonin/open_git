@@ -32,5 +32,7 @@
 	<string>gkQAnVXuWn9pKFM6u+1Lr0ZkpEyI0V7k7DYpVGA1fhE=</string>
 	<key>SUFeedURL</key>
 	<string>https://raw.githubusercontent.com/DevThibautMonin/open_git/main/appcast.xml</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
 </dict>
 </plist>

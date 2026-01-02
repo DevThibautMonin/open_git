@@ -36,8 +36,16 @@ class CommitHistoryScreen extends StatelessWidget {
                     },
                   ),
                   const Divider(height: 1),
-                  Expanded(
-                    child: diffState.diffModeDisplay == DiffModeDisplay.split ? SplitDiffViewer() : UnifiedDiffViewer(),
+                  BlocBuilder<CommitHistoryBloc, CommitHistoryState>(
+                    builder: (context, state) {
+                      return Expanded(
+                        child: state.selectedCommitFile == null
+                            ? const Center(child: Text('No changes'))
+                            : diffState.diffModeDisplay == DiffModeDisplay.split
+                            ? SplitDiffViewer()
+                            : UnifiedDiffViewer(),
+                      );
+                    },
                   ),
                 ],
               ),

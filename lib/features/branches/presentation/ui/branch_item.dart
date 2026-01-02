@@ -47,19 +47,34 @@ class _BranchItemState extends State<BranchItem> {
                 },
                 child: const Text('Rename branch'),
               ),
-              PopupMenuItem(
-                onTap: () {
-                  context.read<BranchesBloc>()
-                    ..add(UpdateBranchesStatus(status: BranchesBlocStatus.askForDeletingBranch))
-                    ..add(UpdateSelectedBranch(branch: widget.branch));
-                },
-                child: const Text('Delete branch'),
-              ),
+              if (!widget.branch.isCurrent)
+                PopupMenuItem(
+                  onTap: () {
+                    context.read<BranchesBloc>()
+                      ..add(UpdateSelectedBranch(branch: widget.branch))
+                      ..add(UpdateBranchesStatus(status: BranchesBlocStatus.askForDeletingBranch));
+                  },
+                  child: const Text('Delete branch'),
+                ),
             ],
           );
         },
         onDoubleTap: () {
-          context.read<BranchesBloc>().add(SwitchToBranch(branch: widget.branch));
+          final bloc = context.read<BranchesBloc>();
+
+          if (widget.branch.isRemote && !widget.branch.existsLocally) {
+            bloc.add(
+              CheckoutRemoteBranch(
+                branch: widget.branch,
+              ),
+            );
+          } else {
+            bloc.add(
+              SwitchToBranch(
+                branch: widget.branch,
+              ),
+            );
+          }
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
@@ -76,17 +91,19 @@ class _BranchItemState extends State<BranchItem> {
           child: Row(
             children: [
               Icon(
-                Icons.call_split,
-                size: 16,
+                widget.branch.isRemote ? Icons.cloud_outlined : Icons.call_split,
+                size: 18,
                 color: isCurrent ? theme.colorScheme.primary : theme.iconTheme.color?.withValues(alpha: 0.6),
               ),
               Gaps.w8,
               Expanded(
                 child: Text(
                   widget.branch.name,
+
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
+                    fontSize: 14,
+                    fontWeight: isCurrent ? FontWeight.w800 : FontWeight.normal,
                   ),
                 ),
               ),

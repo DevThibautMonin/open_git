@@ -11,6 +11,7 @@ enum BranchesBlocStatus {
   askForDeletingBranch,
   askForRenamingBranch,
   branchRenamed,
+  fetchingBranches,
 }
 
 @MappableClass()
@@ -28,4 +29,10 @@ class BranchesState with BranchesStateMappable {
     this.selectedBranch,
     this.selectedBranchHasUpstream = false,
   });
+
+  List<BranchEntity> get currentBranch => branches.where((b) => b.isCurrent).toList();
+
+  List<BranchEntity> get localBranches => branches.where((b) => !b.isRemote && !b.isCurrent).toList();
+
+  List<BranchEntity> get remoteOnlyBranches => branches.where((b) => b.isRemote && !b.existsLocally).toList();
 }
