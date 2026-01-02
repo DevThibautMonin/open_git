@@ -89,6 +89,7 @@ brew upgrade --cask opengit
 - Display author, date, and message.
 - Clean and readable chronological view.
 - Commit diff split view from history.
+- Show unpushed commits.
 
 ### SSH & Authentication
 - Automatic detection of SSH issues.
