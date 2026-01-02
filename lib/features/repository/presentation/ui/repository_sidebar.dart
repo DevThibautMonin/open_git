@@ -3,26 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/branches_sidebar.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
+import 'package:open_git/features/repository/domain/repository_view_mode.dart';
 import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
-import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 import 'package:open_git/features/working_directory/presentation/ui/working_directory_files_list.dart';
 import 'package:open_git/features/commit_history/presentation/ui/commit_history_list.dart';
 
 class RepositorySidebar extends StatelessWidget {
-  final List<GitFileEntity> files;
-  final bool hasStagedFiles;
-  final void Function({
-    required String summary,
-    required String description,
-  })
-  onCommitPressed;
-
-  const RepositorySidebar({
-    super.key,
-    required this.files,
-    required this.hasStagedFiles,
-    required this.onCommitPressed,
-  });
+  const RepositorySidebar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +32,30 @@ class RepositorySidebar extends StatelessWidget {
             TabBar(
               isScrollable: true,
               labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+              onTap: (index) {
+                final bloc = context.read<RepositoryBloc>();
+                switch (index) {
+                  case 1:
+                    bloc.add(
+                      SetRepositoryViewMode(
+                        mode: RepositoryViewMode.changes,
+                      ),
+                    );
+                    break;
+                  case 2:
+                    bloc.add(
+                      SetRepositoryViewMode(
+                        mode: RepositoryViewMode.commitHistory,
+                      ),
+                    );
+                    break;
+                  default:
+                    break;
+                }
+              },
               tabs: [
                 Tab(text: "Branches"),
-                Tab(text: "Changes (${files.length})"),
+                Tab(text: "Changes"),
                 Tab(text: "History"),
               ],
             ),
@@ -56,15 +64,18 @@ class RepositorySidebar extends StatelessWidget {
               child: TabBarView(
                 children: [
                   BranchesSidebar(),
-                  WorkingDirectoryFilesList(
-                    files: files,
-                    hasStagedFiles: hasStagedFiles,
-                    onCommitPressed: onCommitPressed,
-                  ),
+                  WorkingDirectoryFilesList(),
                   BlocBuilder<CommitHistoryBloc, CommitHistoryState>(
-                    bloc: context.read<CommitHistoryBloc>(),
                     builder: (context, state) {
-                      return CommitHistoryList(commits: state.commits);
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: CommitHistoryList(
+                              commits: state.commits,
+                            ),
+                          ),
+                        ],
+                      );
                     },
                   ),
                 ],

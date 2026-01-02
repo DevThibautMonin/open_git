@@ -22,4 +22,6 @@ class GitCommands {
   static const List<String> cleanFile = ["clean", "-f", "--"];
   static const List<String> renameBranch = ["branch", "-m"];
   static const List<String> getBranchUpstream = ["rev-parse", "--abbrev-ref", "--symbolic-full-name"];
+  static const List<String> showCommitFiles = ["show", "--name-only", "--pretty="];
+  static const List<String> diffCommitFile = ["diff"];
 }

@@ -90,6 +90,33 @@ class GitService {
     return result.stdout.toString();
   }
 
+  Future<List<String>> getCommitFiles(String commitSha) async {
+    final output = await _runGit(
+      [
+        ...GitCommands.showCommitFiles,
+        commitSha,
+      ],
+    );
+
+    return output.split("\n").where((line) => line.trim().isNotEmpty).toList();
+  }
+
+  Future<String> getCommitFileDiff({
+    required String commitSha,
+    required String filePath,
+  }) async {
+    return await _runGit(
+      [
+        ...GitCommands.diffCommitFile,
+        "$commitSha^",
+        commitSha,
+        "--",
+        filePath,
+      ],
+      allowedExitCodes: const {0, 1},
+    );
+  }
+
   Future<void> discardFileChanges(GitFileEntity file) async {
     if (file.status == GitFileStatus.untracked) {
       await _runGit([

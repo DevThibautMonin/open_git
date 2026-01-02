@@ -17,3 +17,13 @@ class SetDiffModeDisplay extends FilesDifferencesEvent {
 class LoadDiffModeDisplay extends FilesDifferencesEvent {
   LoadDiffModeDisplay();
 }
+
+class LoadCommitFileDiff extends FilesDifferencesEvent {
+  final String commitSha;
+  final String filePath;
+
+  LoadCommitFileDiff({
+    required this.commitSha,
+    required this.filePath,
+  });
+}

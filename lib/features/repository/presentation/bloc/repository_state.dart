@@ -22,6 +22,7 @@ class RepositoryState with RepositoryStateMappable {
   final String cloneRepositoryUrl;
   final double cloneProgress;
   final String version;
+  final RepositoryViewMode? repositoryViewMode;
 
   const RepositoryState({
     this.status = RepositoryBlocStatus.initial,
@@ -32,5 +33,6 @@ class RepositoryState with RepositoryStateMappable {
     this.cloneRepositoryUrl = "",
     this.cloneProgress = 0.0,
     this.version = "",
+    this.repositoryViewMode,
   });
 }

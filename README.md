@@ -78,7 +78,7 @@ brew upgrade --cask opengit
 - List commit history.
 - Display author, date, and message.
 - Clean and readable chronological view.
-- Commit diffsplit view from history.
+- Commit diff split view from history.
 
 ### SSH & Authentication
 - Automatic detection of SSH issues.

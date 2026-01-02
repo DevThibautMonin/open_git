@@ -37,5 +37,31 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
         );
       }
     });
+
+    on<SelectCommit>((event, emit) async {
+      emit(
+        state.copyWith(
+          selectedCommit: event.commit,
+          selectedCommitFiles: [],
+          selectedCommitFile: null,
+        ),
+      );
+
+      final files = await gitService.getCommitFiles(event.commit.sha);
+
+      emit(
+        state.copyWith(
+          selectedCommitFiles: files,
+        ),
+      );
+    });
+
+    on<SelectCommitFile>((event, emit) {
+      emit(
+        state.copyWith(
+          selectedCommitFile: event.filePath,
+        ),
+      );
+    });
   }
 }

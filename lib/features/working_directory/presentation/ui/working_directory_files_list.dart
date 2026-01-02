@@ -6,19 +6,8 @@ import 'package:open_git/features/working_directory/presentation/ui/working_dire
 import 'package:open_git/shared/presentation/widgets/commit_message_textfield.dart';
 
 class WorkingDirectoryFilesList extends StatelessWidget {
-  final List<GitFileEntity> files;
-  final bool hasStagedFiles;
-  final void Function({
-    required String summary,
-    required String description,
-  })
-  onCommitPressed;
-
   const WorkingDirectoryFilesList({
     super.key,
-    required this.files,
-    required this.hasStagedFiles,
-    required this.onCommitPressed,
   });
 
   bool _areAllFilesStaged(List<GitFileEntity> files) {
@@ -28,62 +17,62 @@ class WorkingDirectoryFilesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (files.isEmpty) {
-      return const Center(
-        child: Text("No local changes"),
-      );
-    }
-
-    return Column(
-      children: [
-        Row(
+    return BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
+      builder: (context, state) {
+        if (state.files.isEmpty) {
+          return const Center(
+            child: Text("No local changes"),
+          );
+        }
+        return Column(
           children: [
-            Checkbox(
-              value: _areAllFilesStaged(files),
-              onChanged: (checked) {
-                context.read<WorkingDirectoryBloc>().add(
-                  ToggleAllFilesStaging(stage: checked ?? false),
-                );
-              },
-            ),
-            const Text("Changed files"),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: ActionChip(
-                avatar: const Icon(
-                  Icons.remove,
-                  size: 18,
+            Row(
+              children: [
+                Checkbox(
+                  value: _areAllFilesStaged(state.files),
+                  onChanged: (checked) {
+                    context.read<WorkingDirectoryBloc>().add(ToggleAllFilesStaging(stage: checked ?? false));
+                  },
                 ),
-                label: const Text("Discard all changes"),
-                onPressed: () {
-                  context.read<WorkingDirectoryBloc>().add(
-                    UpdateWorkingDirectoryStatus(
-                      status: WorkingDirectoryBlocStatus.askForDiscardAllChanges,
+                Text("(${state.files.length}) Changed files"),
+                const Spacer(),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: ActionChip(
+                    avatar: const Icon(
+                      Icons.remove,
+                      size: 18,
                     ),
+                    label: const Text("Discard all changes"),
+                    onPressed: () {
+                      context.read<WorkingDirectoryBloc>().add(
+                        UpdateWorkingDirectoryStatus(
+                          status: WorkingDirectoryBlocStatus.askForDiscardAllChanges,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            Expanded(
+              child: ListView.builder(
+                itemCount: state.files.length,
+                itemBuilder: (context, index) {
+                  final file = state.files[index];
+                  return WorkingDirectoryItem(
+                    file: file,
                   );
                 },
               ),
             ),
+            CommitMessageTextfield(
+              hasStagedFiles: state.files.any((file) => file.staged),
+            ),
           ],
-        ),
-
-        Expanded(
-          child: ListView.builder(
-            itemCount: files.length,
-            itemBuilder: (context, index) {
-              final file = files[index];
-              return WorkingDirectoryItem(
-                file: file,
-              );
-            },
-          ),
-        ),
-        CommitMessageTextfield(
-          onCommitPressed: onCommitPressed,
-          hasStagedFiles: hasStagedFiles,
-        ),
-      ],
+        );
+      },
     );
   }
 }

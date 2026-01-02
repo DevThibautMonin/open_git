@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
 class CommitMessageTextfield extends StatefulWidget {
   final bool hasStagedFiles;
-  final void Function({
-    required String summary,
-    required String description,
-  })
-  onCommitPressed;
 
   const CommitMessageTextfield({
     super.key,
-    required this.onCommitPressed,
     required this.hasStagedFiles,
   });
 
@@ -48,10 +44,7 @@ class _CommitMessageTextfieldState extends State<CommitMessageTextfield> {
   void _onCommit() {
     if (!_isCommitEnabled) return;
 
-    widget.onCommitPressed(
-      summary: _summaryController.text.trim(),
-      description: _descriptionController.text.trim(),
-    );
+    context.read<WorkingDirectoryBloc>().add(AddCommit(summary: _summaryController.text.trim(), description: _descriptionController.text.trim()));
 
     _summaryController.clear();
     _descriptionController.clear();

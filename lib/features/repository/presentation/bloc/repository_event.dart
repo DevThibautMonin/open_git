@@ -39,3 +39,11 @@ class CloneRepositoryUrlChanged extends RepositoryEvent {
 class RetrieveAppVersion extends RepositoryEvent {
   RetrieveAppVersion();
 }
+
+class SetRepositoryViewMode extends RepositoryEvent {
+  final RepositoryViewMode mode;
+
+  SetRepositoryViewMode({
+    required this.mode,
+  });
+}

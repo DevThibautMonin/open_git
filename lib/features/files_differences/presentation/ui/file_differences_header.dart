@@ -3,19 +3,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/files_differences/domain/enums/diff_mode_display.dart';
 import 'package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart';
 import 'package:open_git/shared/core/extensions/string_extensions.dart';
-import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 import 'package:open_git/shared/domain/enums/file_type_enum.dart';
 import 'package:open_git/shared/presentation/widgets/file_type_icon.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
 class FileDifferencesHeader extends StatelessWidget {
-  final GitFileEntity? file;
+  final String? filePath;
   final DiffModeDisplay mode;
 
   const FileDifferencesHeader({
     super.key,
-    required this.file,
     required this.mode,
+    this.filePath,
   });
 
   @override
@@ -25,12 +24,12 @@ class FileDifferencesHeader extends StatelessWidget {
       child: Row(
         children: [
           FileTypeIcon(
-            type: file?.path.fileType ?? FileTypeEnum.unknown,
+            type: filePath?.fileType ?? FileTypeEnum.unknown,
           ),
           Gaps.w8,
           Expanded(
             child: Text(
-              file?.path ?? '',
+              filePath ?? '',
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
               ),

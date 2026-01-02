@@ -4,12 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/new_branch_dialog.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
-import 'package:open_git/features/files_differences/domain/enums/diff_mode_display.dart';
+import 'package:open_git/features/commit_history/presentation/ui/commit_history_screen.dart';
 import 'package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart';
-import 'package:open_git/features/files_differences/presentation/ui/file_differences_header.dart';
-import 'package:open_git/features/files_differences/presentation/ui/split_diff_viewer.dart';
+import 'package:open_git/features/repository/domain/repository_view_mode.dart';
 import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
+import 'package:open_git/features/working_directory/presentation/ui/working_directory_screen.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/branch_delete_confirmation_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/branch_rename_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/clone_repository_dialog.dart';
@@ -20,7 +20,6 @@ import 'package:open_git/shared/presentation/widgets/dialogs/ssh_host_verificati
 import 'package:open_git/shared/presentation/widgets/dialogs/ssh_permission_denied_dialog.dart';
 import 'package:open_git/shared/core/constants/constants.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
-import 'package:open_git/features/files_differences/presentation/ui/unified_diff_viewer.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_header.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_sidebar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/error_snackbar.dart';
@@ -73,6 +72,22 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
       ],
       child: MultiBlocListener(
         listeners: [
+          BlocListener<CommitHistoryBloc, CommitHistoryState>(
+            listenWhen: (previous, current) => previous.selectedCommitFile != current.selectedCommitFile,
+            listener: (context, state) {
+              final commit = state.selectedCommit;
+              final file = state.selectedCommitFile;
+
+              if (commit == null || file == null) return;
+
+              context.read<FilesDifferencesBloc>().add(
+                LoadCommitFileDiff(
+                  commitSha: commit.sha,
+                  filePath: file,
+                ),
+              );
+            },
+          ),
           BlocListener<WorkingDirectoryBloc, WorkingDirectoryState>(
             listenWhen: (previous, current) => previous.status != current.status || previous.selectedFile != current.selectedFile,
             listener: (context, state) async {
@@ -265,9 +280,10 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     },
                   );
 
-                  context.read<BranchesBloc>().add(
-                    UpdateBranchesStatus(status: BranchesBlocStatus.initial),
-                  );
+                  if (context.mounted) {
+                    context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
+                  }
+
                   break;
                 case BranchesBlocStatus.branchRenamed:
                   SuccessSnackBar.show(
@@ -364,44 +380,25 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                   },
                 ),
                 Expanded(
-                  child: BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
-                    builder: (context, workingDirectoryState) {
-                      return Row(
-                        children: [
-                          RepositorySidebar(
-                            files: workingDirectoryState.files,
-                            hasStagedFiles: workingDirectoryState.files.any((file) => file.staged),
-                            onCommitPressed: ({required description, required summary}) {
-                              _workingDirectoryBloc.add(AddCommit(summary: summary, description: description));
-                            },
-                          ),
-                          BlocBuilder<FilesDifferencesBloc, FilesDifferencesState>(
-                            builder: (context, state) {
-                              if (state.status == FilesDifferencesStatus.loading) {
-                                return const Center(child: CircularProgressIndicator());
-                              }
+                  child: Row(
+                    children: [
+                      RepositorySidebar(),
+                      Expanded(
+                        child: BlocBuilder<RepositoryBloc, RepositoryState>(
+                          buildWhen: (previous, current) => previous.repositoryViewMode != current.repositoryViewMode,
+                          builder: (context, state) {
+                            switch (state.repositoryViewMode) {
+                              case RepositoryViewMode.commitHistory:
+                                return const CommitHistoryScreen();
 
-                              return Expanded(
-                                child: Column(
-                                  children: [
-                                    FileDifferencesHeader(
-                                      file: workingDirectoryState.selectedFile,
-                                      mode: state.diffModeDisplay,
-                                    ),
-                                    const Divider(height: 1),
-                                    Expanded(
-                                      child: state.diffModeDisplay == DiffModeDisplay.split
-                                          ? SplitDiffViewer(hunks: state.diff)
-                                          : UnifiedDiffViewer(hunks: state.diff),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      );
-                    },
+                              case RepositoryViewMode.changes:
+                              default:
+                                return const WorkingDirectoryScreen();
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
