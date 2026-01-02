@@ -98,6 +98,9 @@ brew upgrade --cask opengit
   - manage SSH permission errors
 - Help converting HTTPS remotes to SSH.
 
+### UX/UI
+- Resizeable areas.
+
 ---
 
 # 📦 Roadmap

@@ -30,7 +30,6 @@ class RepositorySidebar extends StatelessWidget {
         child: Column(
           children: [
             TabBar(
-              isScrollable: true,
               labelPadding: const EdgeInsets.symmetric(horizontal: 12),
               onTap: (index) {
                 final bloc = context.read<RepositoryBloc>();

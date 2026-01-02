@@ -22,6 +22,7 @@ import 'package:open_git/shared/core/constants/constants.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_header.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_sidebar.dart';
+import 'package:open_git/shared/presentation/widgets/resizable_sidebar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/error_snackbar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/success_snackbar.dart';
 
@@ -385,7 +386,9 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                 Expanded(
                   child: Row(
                     children: [
-                      RepositorySidebar(),
+                      ResizableSidebar(
+                        child: RepositorySidebar(),
+                      ),
                       Expanded(
                         child: BlocBuilder<RepositoryBloc, RepositoryState>(
                           buildWhen: (previous, current) => previous.repositoryViewMode != current.repositoryViewMode,

@@ -32,4 +32,14 @@ class SharedPreferencesServiceImpl implements SharedPreferencesService {
     if (encoded == null) return null;
     return base64Decode(encoded);
   }
+
+  @override
+  double? getDouble(String key) {
+    return prefs.getDouble(key);
+  }
+
+  @override
+  Future<void> setDouble(String key, double value) async {
+    await prefs.setDouble(key, value);
+  }
 }

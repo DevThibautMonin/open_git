@@ -2,8 +2,11 @@
 
 ## Version (1.0.13) (02/01/2026)
 
+### Added
+
 - [Repository] Fetch remote data.
 - [Branches] Checkout remote branches locally.
+- [UX/UI] Resizeable left sidebar with persistant values. Double click to reset to the default value.
 
 ## Version (1.0.12) (02/01/2026)
 
