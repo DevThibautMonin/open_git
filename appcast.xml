@@ -4,15 +4,15 @@
     <title>OpenGit Updates</title>
     <language>en</language>
     <item>
-      <title>Version 1.0.12</title>
-      <pubDate>Fri, 02 Jan 2026 00:21:18 +0000</pubDate>
-      <sparkle:version>13</sparkle:version>
-      <sparkle:shortVersionString>1.0.12</sparkle:shortVersionString>
+      <title>Version 1.0.13</title>
+      <pubDate>Fri, 02 Jan 2026 18:31:17 +0000</pubDate>
+      <sparkle:version>14</sparkle:version>
+      <sparkle:shortVersionString>1.0.13</sparkle:shortVersionString>
       <enclosure 
-        url="https://github.com/DevThibautMonin/open_git/releases/download/v1.0.12/OpenGit-1.0.12.dmg" 
-        length="19465087" 
+        url="https://github.com/DevThibautMonin/open_git/releases/download/v1.0.13/OpenGit-1.0.13.dmg" 
+        length="19446927" 
         type="application/octet-stream" 
-        sparkle:edSignature="qcUxCcGgQm6x/q8vONjVUsmmh9F3B2yCQVwVgpRYc9g2mnI2CboAlu3xAiiEd9y5yixymt+vyMTsgRDW48lFDg==" />
+        sparkle:edSignature="ixdIqAkzr0mUwiRPLqxz+onJCvwzURi4kBtPBMrfUGMU72Z06pmRq+n3QU5SlPO8MT6vVgFXSQd+ZC/nXLrAAA==" />
     </item>
   </channel>
 </rss>
