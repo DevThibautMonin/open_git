@@ -14,7 +14,9 @@ class UnifiedDiffHunkWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ...hunk.lines.map((line) => UnifiedDiffLineItem(line: line)),
+        ...hunk.lines.map((line) {
+          return UnifiedDiffLineItem(line: line);
+        }),
       ],
     );
   }
