@@ -7,6 +7,7 @@ import 'package:open_git/features/repository/domain/repository_view_mode.dart';
 import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/ui/working_directory_files_list.dart';
 import 'package:open_git/features/commit_history/presentation/ui/commit_history_list.dart';
+import 'package:open_git/shared/presentation/themes/bloc/theme_bloc.dart';
 
 class RepositorySidebar extends StatelessWidget {
   const RepositorySidebar({super.key});
@@ -91,6 +92,14 @@ class RepositorySidebar extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      IconButton(
+                        icon: Icon(
+                          context.watch<ThemeBloc>().state.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode,
+                        ),
+                        onPressed: () {
+                          context.read<ThemeBloc>().add(UpdateTheme());
+                        },
+                      ),
                       Text("Version : ${state.version}"),
                       const SizedBox(width: 8),
                       InkWell(
