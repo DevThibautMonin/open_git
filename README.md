@@ -101,6 +101,7 @@ brew upgrade --cask opengit
 
 ### UX/UI
 - Resizeable areas.
+- Light / Dark theme supported.
 
 ---
 

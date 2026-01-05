@@ -1,5 +1,15 @@
 # Changelog
 
+## Version (1.0.14) (05/01/2026)
+
+### Added
+
+- [UX/UI] Dark theme support.
+
+### Updated
+
+- [Files differences] Improved lines readability.
+
 ## Version (1.0.13) (02/01/2026)
 
 ### Added

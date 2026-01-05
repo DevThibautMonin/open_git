@@ -3,12 +3,23 @@ import 'package:open_git/shared/domain/enums/file_type_enum.dart';
 
 extension FileTypeEnumResolver on String {
   FileTypeEnum get fileType {
-    if (!contains('.')) {
+    final lower = toLowerCase();
+
+    switch (lower) {
+      case 'jenkinsfile':
+        return FileTypeEnum.jenkins;
+    }
+
+    if (lower.endsWith('.blade.php')) {
+      return FileTypeEnum.laravel;
+    }
+
+    if (!lower.contains('.')) {
       _log('NO EXTENSION');
       return FileTypeEnum.unknown;
     }
 
-    final ext = split('.').last.toLowerCase();
+    final ext = lower.split('.').last;
 
     switch (ext) {
       case 'dart':
@@ -17,8 +28,14 @@ extension FileTypeEnumResolver on String {
         return FileTypeEnum.swift;
       case 'kt':
         return FileTypeEnum.kotlin;
+      case 'php':
+        return FileTypeEnum.php;
+      case 'gitignore':
+        return FileTypeEnum.git;
       case 'js':
         return FileTypeEnum.javascript;
+      case 'Jenkinsfile':
+        return FileTypeEnum.jenkins;
       case 'ts':
         return FileTypeEnum.typescript;
       case 'md':
