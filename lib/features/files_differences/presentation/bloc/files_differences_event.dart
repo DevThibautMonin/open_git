@@ -19,11 +19,11 @@ class LoadDiffModeDisplay extends FilesDifferencesEvent {
 }
 
 class LoadCommitFileDiff extends FilesDifferencesEvent {
-  final String commitSha;
+  final GitCommitEntity commit;
   final String filePath;
 
   LoadCommitFileDiff({
-    required this.commitSha,
+    required this.commit,
     required this.filePath,
   });
 }

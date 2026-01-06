@@ -110,29 +110,47 @@ class GitService {
     return result.stdout.toString();
   }
 
-  Future<List<String>> getCommitFiles(String commitSha) async {
-    final output = await _runGit(
-      [
-        ...GitCommands.showCommitFiles,
-        commitSha,
-      ],
-    );
+  Future<List<String>> getCommitFiles(GitCommitEntity commit) async {
+    // Merge commit
+    if (commit.isMergeCommit) {
+      return getMergeCommitFiles(commit);
+    }
+
+    // Single commit
+    final output = await _runGit([
+      ...GitCommands.showCommitFiles,
+      commit.sha,
+    ]);
 
     return output.split("\n").where((line) => line.trim().isNotEmpty).toList();
   }
 
   Future<String> getCommitFileDiff({
-    required String commitSha,
+    required GitCommitEntity commit,
     required String filePath,
   }) async {
-    return await _runGit(
-      [
-        ...GitCommands.diffCommitFile,
-        "$commitSha^",
-        commitSha,
+    late final List<String> args;
+
+    if (commit.isMergeCommit) {
+      args = [
+        "diff",
+        commit.parents[0],
+        commit.parents[1],
         "--",
         filePath,
-      ],
+      ];
+    } else {
+      args = [
+        "diff",
+        "${commit.sha}^",
+        commit.sha,
+        "--",
+        filePath,
+      ];
+    }
+
+    return await _runGit(
+      args,
       allowedExitCodes: const {0, 1},
     );
   }
@@ -293,13 +311,27 @@ class GitService {
     await _runGit([...GitCommands.deleteBranch, name]);
   }
 
+  Future<List<String>> getMergeCommitFiles(GitCommitEntity commit) async {
+    final parent1 = commit.parents[0];
+    final parent2 = commit.parents[1];
+
+    final output = await _runGit([
+      "diff",
+      "--name-only",
+      parent1,
+      parent2,
+    ]);
+
+    return output.split("\n").where((l) => l.trim().isNotEmpty).toList();
+  }
+
   Future<List<GitCommitEntity>> getCommitHistory({int limit = 100}) async {
     final unpushedShas = await getUnpushedCommitShas();
 
     final output = await _runGit(
       [
         "log",
-        "--pretty=format:%H|%an|%ad|%s",
+        "--pretty=format:%H|%P|%an|%ad|%s",
         "--date=iso",
         "--max-count=$limit",
       ],
@@ -307,13 +339,16 @@ class GitService {
 
     return output.split("\n").where((l) => l.isNotEmpty).map((line) {
       final p = line.split("|");
+
       final sha = p[0];
+      final parents = p[1].split(" ").where((e) => e.isNotEmpty).toList();
 
       return GitCommitEntity(
         sha: sha,
-        author: p[1],
-        date: DateTime.parse(p[2]),
-        message: p[3],
+        parents: parents,
+        author: p[2],
+        date: DateTime.parse(p[3]),
+        message: p[4],
         isUnpushed: unpushedShas.contains(sha),
       );
     }).toList();

@@ -83,7 +83,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
 
               context.read<FilesDifferencesBloc>().add(
                 LoadCommitFileDiff(
-                  commitSha: commit.sha,
+                  commit: commit,
                   filePath: file,
                 ),
               );

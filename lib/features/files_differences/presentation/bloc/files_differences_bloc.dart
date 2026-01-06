@@ -8,6 +8,7 @@ import 'package:open_git/shared/core/services/git_diff_parser.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
 import 'package:open_git/features/files_differences/domain/entities/diff_hunk_entity.dart';
+import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 
 part 'files_differences_event.dart';
@@ -75,7 +76,7 @@ class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesS
 
     on<LoadCommitFileDiff>((event, emit) async {
       final rawDiff = await gitService.getCommitFileDiff(
-        commitSha: event.commitSha,
+        commit: event.commit,
         filePath: event.filePath,
       );
 

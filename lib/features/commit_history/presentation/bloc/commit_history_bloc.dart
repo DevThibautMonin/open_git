@@ -47,7 +47,7 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
         ),
       );
 
-      final files = await gitService.getCommitFiles(event.commit.sha);
+      final files = await gitService.getCommitFiles(event.commit);
 
       emit(
         state.copyWith(
