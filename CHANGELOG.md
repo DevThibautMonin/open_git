@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.0.15) (06/01/2026)
+
+### Added
+
+- [Commit history] Display merge files list + commit file differences.
+
 ## Version (1.0.14) (05/01/2026)
 
 ### Added
