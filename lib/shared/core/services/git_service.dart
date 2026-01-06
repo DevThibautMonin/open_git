@@ -32,6 +32,12 @@ class GitService {
     return path;
   }
 
+  Future<Set<String>> getRemoteBranchNames() async {
+    final output = await _runGit(GitCommands.gitRemoteBranches);
+
+    return output.split('\n').map((l) => l.replaceFirst('origin/', '').trim()).where((l) => l.isNotEmpty).toSet();
+  }
+
   Future<void> fetch() async {
     await _runGit(GitCommands.gitFetchPrune);
   }
@@ -276,22 +282,39 @@ class GitService {
     )).trim();
 
     final localStdout = await _runGit(GitCommands.gitBranch);
-    final remoteStdout = await _runGit(GitCommands.gitBranchRemote);
+    final remoteStdout = await _runGit(GitCommands.gitRemoteBranches);
 
-    final localNames = localStdout.split("\n").map((e) => e.replaceAll("*", "").trim()).where((e) => e.isNotEmpty).toSet();
+    final localNames = localStdout.split('\n').map((e) => e.replaceAll('*', '').trim()).where((e) => e.isNotEmpty).toSet();
 
-    final localBranches = parseBranches(
-      localStdout,
-      isRemote: false,
-      localBranchNames: localNames,
-      currentBranch: currentBranch,
-    );
+    final remoteNames = remoteStdout
+        .split('\n')
+        .where((l) => l.isNotEmpty && !l.contains('->'))
+        .map((l) => l.replaceFirst('origin/', '').trim())
+        .toSet();
 
-    final remoteBranches = parseBranches(
-      remoteStdout,
-      isRemote: true,
-      localBranchNames: localNames,
-    );
+    final localBranches = localNames.map((name) {
+      final isCurrent = name == currentBranch;
+
+      final deletedOnRemote = !isCurrent && !remoteNames.contains(name);
+
+      return BranchEntity(
+        name: name,
+        isCurrent: isCurrent,
+        isRemote: false,
+        existsLocally: true,
+        deletedOnRemote: deletedOnRemote,
+      );
+    }).toList();
+
+    final remoteBranches = remoteNames.map((name) {
+      return BranchEntity(
+        name: name,
+        isCurrent: false,
+        isRemote: true,
+        existsLocally: localNames.contains(name),
+        deletedOnRemote: false,
+      );
+    }).toList();
 
     return [
       ...localBranches,

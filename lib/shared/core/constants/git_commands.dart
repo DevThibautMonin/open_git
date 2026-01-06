@@ -4,7 +4,7 @@ class GitCommands {
     "--format=%(refname:short)|%(HEAD)",
   ];
   static const List<String> gitBranch = ['branch'];
-  static const List<String> gitBranchRemote = ['branch', '-r'];
+  static const List<String> gitRemoteBranches = ['branch', '-r'];
   static const List<String> gitCurrentBranch = ['branch', '--show-current'];
   static const List<String> switchToBranch = ["switch"];
   static const List<String> checkoutBranch = ["checkout", "-b"];

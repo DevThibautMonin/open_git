@@ -5,6 +5,7 @@
 ### Added
 
 - [Commit history] Display merge files list + commit file differences.
+- [Branches] Show if a remote branch has been deleted but still exists locally.
 
 ## Version (1.0.14) (05/01/2026)
 

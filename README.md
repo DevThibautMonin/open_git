@@ -60,6 +60,7 @@ brew upgrade --cask opengit
 - Delete branches.
 - Rename local branches.
 - Fetch remote branches.
+- Show remote branches state (deleted, active).
 - Checkout remote branches locally.
 
 ### Working Directory
