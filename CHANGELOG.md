@@ -1,11 +1,15 @@
 # Changelog
 
-## Version (1.0.15) (06/01/2026)
+## Version (1.0.15) (11/01/2026)
 
 ### Added
 
 - [Commit history] Display merge files list + commit file differences.
 - [Branches] Show if a remote branch has been deleted but still exists locally.
+
+### Fixes
+
+- [Global / UI] Improve error management.
 
 ## Version (1.0.14) (05/01/2026)
 
