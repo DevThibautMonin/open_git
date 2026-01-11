@@ -15,6 +15,7 @@
 ### Fixes
 
 - [Global / UI] Improve error management.
+
 ## Version (1.0.14) (05/01/2026)
 
 ### Added
