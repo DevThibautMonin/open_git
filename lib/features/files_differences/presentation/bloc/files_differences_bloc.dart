@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 import 'package:open_git/features/files_differences/core/diff_mode_display_extensions.dart';
 import 'package:open_git/features/files_differences/domain/enums/diff_mode_display.dart';
 import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
+import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
 import 'package:open_git/shared/core/services/git_diff_parser.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
@@ -49,38 +50,55 @@ class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesS
         ),
       );
 
-      try {
-        final rawDiff = await gitService.getFileDiff(
-          filePath: event.file.path,
-          staged: event.file.staged,
-          status: event.file.status,
-        );
+      final diffResult = await gitService.getFileDiff(
+        filePath: event.file.path,
+        staged: event.file.staged,
+        status: event.file.status,
+      );
 
-        final hunks = GitDiffParser.parse(rawDiff);
-
-        emit(
-          state.copyWith(
-            diff: hunks,
-            status: FilesDifferencesStatus.loaded,
-          ),
-        );
-      } catch (e) {
+      if (diffResult.isLeft) {
         emit(
           state.copyWith(
             status: FilesDifferencesStatus.error,
-            errorMessage: e.toString(),
+            errorMessage: diffResult.left.errorMessage,
           ),
         );
+        return;
       }
+
+      final hunks = GitDiffParser.parse(diffResult.right);
+
+      emit(
+        state.copyWith(
+          diff: hunks,
+          status: FilesDifferencesStatus.loaded,
+        ),
+      );
     });
 
     on<LoadCommitFileDiff>((event, emit) async {
-      final rawDiff = await gitService.getCommitFileDiff(
+      emit(
+        state.copyWith(
+          status: FilesDifferencesStatus.loading,
+        ),
+      );
+
+      final diffResult = await gitService.getCommitFileDiff(
         commit: event.commit,
         filePath: event.filePath,
       );
 
-      final hunks = GitDiffParser.parse(rawDiff);
+      if (diffResult.isLeft) {
+        emit(
+          state.copyWith(
+            status: FilesDifferencesStatus.error,
+            errorMessage: diffResult.left.errorMessage,
+          ),
+        );
+        return;
+      }
+
+      final hunks = GitDiffParser.parse(diffResult.right);
 
       emit(
         state.copyWith(

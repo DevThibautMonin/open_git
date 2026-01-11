@@ -1,6 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
 import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
@@ -19,23 +20,28 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
     required this.gitService,
   }) : super(CommitHistoryState()) {
     on<LoadCommitHistory>((event, emit) async {
-      try {
-        emit(state.copyWith(status: CommitHistoryBlocStatus.loading));
-        final commits = await gitService.getCommitHistory(limit: event.limit);
-        emit(
-          state.copyWith(
-            commits: commits,
-            status: CommitHistoryBlocStatus.loaded,
-          ),
-        );
-      } catch (e) {
-        emit(
-          state.copyWith(
-            status: CommitHistoryBlocStatus.error,
-            errorMessage: e.toString(),
-          ),
-        );
-      }
+      emit(state.copyWith(status: CommitHistoryBlocStatus.loading));
+
+      final commitsResult = await gitService.getCommitHistory(limit: event.limit);
+
+      commitsResult.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: CommitHistoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (data) {
+          emit(
+            state.copyWith(
+              commits: data,
+              status: CommitHistoryBlocStatus.loaded,
+            ),
+          );
+        },
+      );
     });
 
     on<SelectCommit>((event, emit) async {
@@ -47,12 +53,24 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
         ),
       );
 
-      final files = await gitService.getCommitFiles(event.commit);
+      final filesResult = await gitService.getCommitFiles(event.commit);
 
-      emit(
-        state.copyWith(
-          selectedCommitFiles: files,
-        ),
+      filesResult.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: CommitHistoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (data) {
+          emit(
+            state.copyWith(
+              selectedCommitFiles: data,
+            ),
+          );
+        },
       );
     });
 

@@ -17,6 +17,7 @@ class RepositorySidebar extends StatelessWidget {
     final theme = Theme.of(context);
 
     return DefaultTabController(
+      initialIndex: 1,
       length: 3,
       child: Container(
         width: 400,

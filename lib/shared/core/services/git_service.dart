@@ -1,17 +1,18 @@
 import "dart:convert";
 import "dart:io";
+import "package:either_dart/either.dart";
 import "package:file_picker/file_picker.dart";
 import "package:injectable/injectable.dart";
 import "package:open_git/shared/core/constants/git_commands.dart";
 import "package:open_git/shared/core/constants/git_regex.dart";
 import "package:open_git/shared/core/constants/shared_preferences_keys.dart";
-import "package:open_git/shared/core/exceptions/git_exceptions.dart";
 import "package:open_git/shared/core/logger/log_service.dart";
 import "package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart";
 import "package:open_git/shared/domain/entities/branch_entity.dart";
 import "package:open_git/shared/domain/entities/git_commit_entity.dart";
 import "package:open_git/shared/domain/entities/git_file_entity.dart";
 import "package:open_git/shared/domain/enums/git_file_status.dart";
+import "package:open_git/shared/domain/failures/git_service_failure.dart";
 
 @LazySingleton()
 class GitService {
@@ -23,32 +24,58 @@ class GitService {
     required this.sharedPreferencesService,
   });
 
+  Future<Either<GitServiceFailure, bool>> repositoryExists() async {
+    final path = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath);
+
+    if (path == null || path.isEmpty) {
+      return Left(RepositoryDoesntExistsFailure());
+    }
+    final dir = Directory(path);
+    return Right(await dir.exists());
+  }
+
   /// Récupère le chemin du repository actuellement stocké.
-  String _getRepoPath() {
+  Either<GitServiceFailure, String> _getRepoPath() {
     final path = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath);
     if (path == null || path.isEmpty) {
-      throw Exception("Aucun repository n'est sélectionné.");
+      return Left(RepositoryDoesntExistsFailure());
     }
-    return path;
+    return Right(path);
   }
 
-  Future<Set<String>> getRemoteBranchNames() async {
-    final output = await _runGit(GitCommands.gitRemoteBranches);
+  Future<Either<GitServiceFailure, Set<String>>> getRemoteBranchNames() async {
+    final result = await _runGit(GitCommands.gitRemoteBranches);
 
-    return output.split('\n').map((l) => l.replaceFirst('origin/', '').trim()).where((l) => l.isNotEmpty).toSet();
+    return result.map(
+      (output) {
+        return output.split('\n').map((l) => l.replaceFirst('origin/', '').trim()).where((l) => l.isNotEmpty).toSet();
+      },
+    );
   }
 
-  Future<void> fetch() async {
-    await _runGit(GitCommands.gitFetchPrune);
+  Future<Either<GitServiceFailure, void>> fetch() async {
+    final result = await _runGit(GitCommands.gitFetchPrune);
+
+    return result.fold(
+      (failure) {
+        return Left(failure);
+      },
+      (data) {
+        return Right(data);
+      },
+    );
   }
 
-  Future<String?> selectRepository() async {
+  Future<Either<GitServiceFailure, String?>> selectRepository() async {
     final path = await FilePicker.platform.getDirectoryPath();
-    if (path == null) return null;
+
+    if (path == null) {
+      return Left(RepositoryNotSelectedFailure());
+    }
 
     await sharedPreferencesService.setString(SharedPreferencesKeys.repositoryPath, path);
 
-    return path;
+    return Right(path);
   }
 
   Future<void> checkoutRemoteBranch(String branchName) async {
@@ -58,28 +85,34 @@ class GitService {
     ]);
   }
 
-  Future<Set<String>> getUnpushedCommitShas() async {
-    try {
-      final output = await _runGit(GitCommands.gitUnpushedCommits);
-      return output.split('\n').where((l) => l.isNotEmpty).toSet();
-    } catch (_) {
-      return {};
-    }
+  Future<Either<GitServiceFailure, Set<String>>> getUnpushedCommitShas() async {
+    final result = await _runGit(
+      GitCommands.gitUnpushedCommits,
+      allowedExitCodes: const {0, 1},
+    );
+
+    return result.fold(
+      (_) {
+        return Right(<String>{});
+      },
+      (output) {
+        return Right(
+          output.split('\n').where((l) => l.isNotEmpty).toSet(),
+        );
+      },
+    );
   }
 
-  Future<bool> branchHasUpstream(String branchName) async {
-    try {
-      await _runGit(
-        [
-          ...GitCommands.getBranchUpstream,
-          "$branchName@{u}",
-        ],
-        allowedExitCodes: const {0},
-      );
-      return true;
-    } catch (_) {
-      return false;
-    }
+  Future<Either<GitServiceFailure, bool>> branchHasUpstream(String branchName) async {
+    final result = await _runGit(
+      [...GitCommands.getBranchUpstream, "$branchName@{u}"],
+      allowedExitCodes: const {0, 1},
+    );
+
+    return result.fold(
+      (failure) => Left(failure),
+      (_) => const Right(true),
+    );
   }
 
   Future<void> renameBranch({
@@ -93,45 +126,94 @@ class GitService {
     ]);
   }
 
-  Future<String> _runGit(
+  Future<Either<GitServiceFailure, String>> _runGit(
     List<String> args, {
     Set<int> allowedExitCodes = const {0},
   }) async {
-    final repoPath = _getRepoPath();
+    final repoPathResult = _getRepoPath();
 
-    logService.debug("Git command : git $args");
-
-    final result = await Process.run(
-      "git",
-      args,
-      workingDirectory: repoPath,
-    );
-
-    if (!allowedExitCodes.contains(result.exitCode)) {
-      logService.error("❌ git ${args.join(" ")}");
-      logService.error(result.stderr.toString());
-      throw _mapGitError(result.stderr.toString(), args);
+    if (repoPathResult.isLeft) {
+      return Left(repoPathResult.left);
     }
 
-    return result.stdout.toString();
+    final repoPath = repoPathResult.right;
+
+    try {
+      final dir = Directory(repoPath);
+      if (!await dir.exists()) {
+        return Left(
+          RepositoryPathInvalidFailure(
+            command: 'git ${args.join(" ")}',
+          ),
+        );
+      }
+
+      logService.debug("Git command : git $args");
+
+      final result = await Process.run(
+        "git",
+        args,
+        workingDirectory: repoPath,
+      );
+
+      if (!allowedExitCodes.contains(result.exitCode)) {
+        logService.error(result.stderr.toString());
+
+        return Left(
+          _mapGitFailure(result.stderr.toString(), args),
+        );
+      }
+
+      return Right(result.stdout.toString());
+    } on ProcessException catch (e) {
+      logService.error(e.toString());
+
+      // Git non trouvé
+      if (e.executable == 'git') {
+        return Left(GitNotFoundFailure());
+      }
+
+      return Left(
+        GitProcessFailure(
+          command: 'git ${args.join(" ")}',
+          stdErr: e.message,
+        ),
+      );
+    } catch (e) {
+      logService.error(e.toString());
+
+      return Left(
+        GitProcessFailure(
+          command: 'git ${args.join(" ")}',
+          stdErr: e.toString(),
+        ),
+      );
+    }
   }
 
-  Future<List<String>> getCommitFiles(GitCommitEntity commit) async {
+  Future<Either<GitServiceFailure, List<String>>> getCommitFiles(GitCommitEntity commit) async {
     // Merge commit
     if (commit.isMergeCommit) {
-      return getMergeCommitFiles(commit);
+      return await getMergeCommitFiles(commit);
     }
 
     // Single commit
-    final output = await _runGit([
+    final result = await _runGit([
       ...GitCommands.showCommitFiles,
       commit.sha,
     ]);
 
-    return output.split("\n").where((line) => line.trim().isNotEmpty).toList();
+    return result.fold(
+      (failure) {
+        return Left(failure);
+      },
+      (data) {
+        return Right(data.split("\n").where((line) => line.trim().isNotEmpty).toList());
+      },
+    );
   }
 
-  Future<String> getCommitFileDiff({
+  Future<Either<GitServiceFailure, String>> getCommitFileDiff({
     required GitCommitEntity commit,
     required String filePath,
   }) async {
@@ -155,9 +237,18 @@ class GitService {
       ];
     }
 
-    return await _runGit(
+    final result = await _runGit(
       args,
       allowedExitCodes: const {0, 1},
+    );
+
+    return result.fold(
+      (failure) {
+        return Left(failure);
+      },
+      (data) {
+        return Right(data);
+      },
     );
   }
 
@@ -185,26 +276,26 @@ class GitService {
     await _runGit(GitCommands.removeUntrackedFiles);
   }
 
-  GitException _mapGitError(String stderr, List<String> args) {
+  GitServiceFailure _mapGitFailure(String stderr, List<String> args) {
     final error = stderr.toLowerCase();
 
     if (error.contains("host key verification failed")) {
-      return GitSshHostVerificationFailed();
+      return GitSshHostVerificationFailure();
     }
     if (error.contains("permission denied (publickey)")) {
-      return GitSshPermissionDenied();
+      return GitSshPermissionDeniedFailure();
     }
     if (error.contains("could not read username")) {
-      return GitHttpsAuthRequired();
+      return GitHttpsAuthRequiredFailure();
     }
 
-    return GitCommandFailed(
+    return GitServiceUnknownFailure(
       command: "git ${args.join(" ")}",
-      stderr: stderr,
+      stdErr: stderr,
     );
   }
 
-  Future<void> cloneRepositoryWithProgress({
+  Future<Either<GitServiceFailure, void>> cloneRepositoryWithProgress({
     required String sshUrl,
     required String targetPath,
     required void Function(double progress) onProgress,
@@ -215,7 +306,6 @@ class GitService {
     );
 
     final stderrBuffer = StringBuffer();
-    final stdoutBuffer = StringBuffer();
 
     final progressRegex = GitRegex.cloneRepositoryProgress;
 
@@ -228,61 +318,94 @@ class GitService {
       }
     });
 
-    process.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
-      stdoutBuffer.writeln(line);
-    });
+    process.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen((_) {});
 
     final exitCode = await process.exitCode;
 
     if (exitCode != 0) {
-      final errorMessage = stderrBuffer.toString().trim();
-      throw GitCommandFailed(
-        command: 'git clone',
-        stderr: errorMessage.isEmpty ? 'Erreur inconnue lors du clone.' : errorMessage,
+      final stderr = stderrBuffer.toString().trim();
+
+      return Left(
+        GitCloneFailure(
+          stdErr: stderr,
+          command: 'git clone $sshUrl $targetPath',
+        ),
       );
     }
+
+    return const Right(null);
   }
 
-  Future<bool> hasUpstream() async {
-    final result = await Process.run(
-      "git",
+  Future<Either<GitServiceFailure, bool>> hasUpstream() async {
+    final result = await _runGit(
       GitCommands.getUpstreamState,
-      workingDirectory: _getRepoPath(),
+      allowedExitCodes: const {0, 1},
     );
 
-    return result.exitCode == 0;
+    return result.fold(
+      (_) {
+        return const Right(false);
+      },
+      (_) {
+        return const Right(true);
+      },
+    );
   }
 
-  Future<void> pushOrPublish() async {
-    final hasUpstreamBranch = await hasUpstream();
+  Future<Either<GitServiceFailure, String>> pushOrPublish() async {
+    final upstreamResult = await hasUpstream();
 
-    if (!hasUpstreamBranch) {
-      await _runGit(GitCommands.publishBranch);
-    } else {
-      await push();
+    if (upstreamResult.isLeft) {
+      return Left(upstreamResult.left);
     }
+
+    final hasUpstreamBranch = upstreamResult.right;
+
+    if (hasUpstreamBranch) {
+      return push();
+    }
+
+    return _runGit(GitCommands.publishBranch);
   }
 
-  Future<void> ensureDirectoryIsEmpty(String path) async {
+  Future<Either<GitServiceFailure, bool>> ensureDirectoryIsEmpty(String path) async {
     final dir = Directory(path);
 
-    if (await dir.exists()) {
-      final isEmpty = await dir.list().isEmpty;
-      if (!isEmpty) {
-        throw DirectoryNotEmptyFailure(
-          message: 'Le dossier cible n’est pas vide.',
-        );
-      }
+    if (!await dir.exists()) {
+      return const Right(false);
     }
+
+    final isEmpty = await dir.list().isEmpty;
+
+    if (!isEmpty) {
+      return Left(DirectoryNotEmptyFailure());
+    }
+
+    return const Right(true);
   }
 
-  Future<List<BranchEntity>> getBranches() async {
-    final currentBranch = (await _runGit(
-      GitCommands.gitCurrentBranch,
-    )).trim();
+  Future<Either<GitServiceFailure, List<BranchEntity>>> getBranches() async {
+    final currentBranchResult = await _runGit(GitCommands.gitCurrentBranch);
 
-    final localStdout = await _runGit(GitCommands.gitBranch);
-    final remoteStdout = await _runGit(GitCommands.gitRemoteBranches);
+    if (currentBranchResult.isLeft) {
+      return Left(currentBranchResult.left);
+    }
+
+    final localResult = await _runGit(GitCommands.gitBranch);
+
+    if (localResult.isLeft) {
+      return Left(localResult.left);
+    }
+
+    final remoteResult = await _runGit(GitCommands.gitRemoteBranches);
+
+    if (remoteResult.isLeft) {
+      return Left(remoteResult.left);
+    }
+
+    final currentBranch = currentBranchResult.right.trim();
+    final localStdout = localResult.right;
+    final remoteStdout = remoteResult.right;
 
     final localNames = localStdout.split('\n').map((e) => e.replaceAll('*', '').trim()).where((e) => e.isNotEmpty).toSet();
 
@@ -294,7 +417,6 @@ class GitService {
 
     final localBranches = localNames.map((name) {
       final isCurrent = name == currentBranch;
-
       final deletedOnRemote = !isCurrent && !remoteNames.contains(name);
 
       return BranchEntity(
@@ -304,7 +426,7 @@ class GitService {
         existsLocally: true,
         deletedOnRemote: deletedOnRemote,
       );
-    }).toList();
+    });
 
     final remoteBranches = remoteNames.map((name) {
       return BranchEntity(
@@ -314,12 +436,12 @@ class GitService {
         existsLocally: localNames.contains(name),
         deletedOnRemote: false,
       );
-    }).toList();
+    });
 
-    return [
+    return Right([
       ...localBranches,
       ...remoteBranches,
-    ];
+    ]);
   }
 
   Future<void> switchBranch(String name) async {
@@ -334,37 +456,62 @@ class GitService {
     await _runGit([...GitCommands.deleteBranch, name]);
   }
 
-  Future<List<String>> getMergeCommitFiles(GitCommitEntity commit) async {
+  Future<Either<GitServiceFailure, List<String>>> getMergeCommitFiles(GitCommitEntity commit) async {
     final parent1 = commit.parents[0];
     final parent2 = commit.parents[1];
 
-    final output = await _runGit([
+    final result = await _runGit([
       "diff",
       "--name-only",
       parent1,
       parent2,
     ]);
 
-    return output.split("\n").where((l) => l.trim().isNotEmpty).toList();
+    return result.fold(
+      (failure) {
+        return Left(failure);
+      },
+      (data) {
+        return Right(data.split("\n").where((l) => l.trim().isNotEmpty).toList());
+      },
+    );
   }
 
-  Future<List<GitCommitEntity>> getCommitHistory({int limit = 100}) async {
-    final unpushedShas = await getUnpushedCommitShas();
+  Future<Either<GitServiceFailure, List<GitCommitEntity>>> getCommitHistory({
+    int limit = 100,
+  }) async {
+    final unpushedResult = await getUnpushedCommitShas();
+    if (unpushedResult.isLeft) {
+      return Left(unpushedResult.left);
+    }
 
-    final output = await _runGit(
-      [
-        "log",
-        "--pretty=format:%H|%P|%an|%ad|%s",
-        "--date=iso",
-        "--max-count=$limit",
-      ],
-    );
+    final logResult = await _runGit([
+      'log',
+      '--pretty=format:%H|%P|%an|%ad|%s',
+      '--date=iso',
+      '--max-count=$limit',
+    ]);
 
-    return output.split("\n").where((l) => l.isNotEmpty).map((line) {
-      final p = line.split("|");
+    if (logResult.isLeft) {
+      return Left(logResult.left);
+    }
+
+    final unpushedShas = unpushedResult.right;
+    final output = logResult.right;
+
+    final commits = output.split('\n').where((l) => l.isNotEmpty).map(_parseCommitLine(unpushedShas)).toList();
+
+    return Right(commits);
+  }
+
+  GitCommitEntity Function(String) _parseCommitLine(
+    Set<String> unpushedShas,
+  ) {
+    return (line) {
+      final p = line.split('|');
 
       final sha = p[0];
-      final parents = p[1].split(" ").where((e) => e.isNotEmpty).toList();
+      final parents = p[1].split(' ').where((e) => e.isNotEmpty).toList();
 
       return GitCommitEntity(
         sha: sha,
@@ -374,45 +521,90 @@ class GitService {
         message: p[4],
         isUnpushed: unpushedShas.contains(sha),
       );
-    }).toList();
+    };
   }
 
-  Future<List<GitFileEntity>> getWorkingDirectoryStatus() async {
-    final output = await _runGit(
+  Future<Either<GitServiceFailure, List<GitFileEntity>>> getWorkingDirectoryStatus() async {
+    final result = await _runGit(
       GitCommands.statusPorcelain,
       allowedExitCodes: const {0, 1},
     );
-    return parseGitStatusPorcelain(output);
+
+    if (result.isLeft) {
+      return Left(result.left);
+    }
+
+    final files = parseGitStatusPorcelain(result.right);
+
+    return Right(files);
   }
 
-  Future<int> getCommitsAheadCount() async {
+  Future<Either<GitServiceFailure, int>> getCommitsAheadCount() async {
     final result = await _runGit(GitCommands.commitsAheadCount);
-    return int.tryParse(result.trim()) ?? 0;
+
+    if (result.isLeft) {
+      return Left(result.left);
+    }
+
+    final count = int.tryParse(result.right.trim()) ?? 0;
+    return Right(count);
   }
 
-  Future<void> push() async {
-    await _runGit(GitCommands.gitPush);
+  Future<Either<GitServiceFailure, String>> push() async {
+    final result = await _runGit(GitCommands.gitPush);
+
+    return result.fold(
+      (failure) {
+        return Left(failure);
+      },
+      (data) {
+        return Right(data);
+      },
+    );
   }
 
-  Future<bool> isRemoteHttps() async {
-    final url = await _runGit(GitCommands.remoteGetOrigin);
-    return url.startsWith("https://");
+  Future<Either<GitServiceFailure, bool>> isRemoteHttps() async {
+    final urlResult = await _runGit(GitCommands.remoteGetOrigin);
+
+    return urlResult.fold(
+      (failure) {
+        return Left(failure);
+      },
+      (data) {
+        return Right(data.startsWith("https://"));
+      },
+    );
   }
 
-  Future<String?> getRepositorySlug() async {
-    final output = await _runGit(GitCommands.remoteVerbose);
+  Future<Either<GitServiceFailure, String?>> getRepositorySlug() async {
+    final result = await _runGit(GitCommands.remoteVerbose);
 
-    for (final line in output.split("\n")) {
-      if (!line.contains("(fetch)")) continue;
+    if (result.isLeft) {
+      return Left(result.left);
+    }
+
+    final slug = _extractRepositorySlug(result.right);
+    return Right(slug);
+  }
+
+  String? _extractRepositorySlug(String output) {
+    for (final line in output.split('\n')) {
+      if (!line.contains('(fetch)')) continue;
+
       final parts = line.split(GitRegex.line);
       if (parts.length < 2) continue;
 
       final url = parts[1];
+
       final https = GitRegex.httpsMatch.firstMatch(url);
-      if (https != null) return https.group(1);
+      if (https != null) {
+        return https.group(1);
+      }
 
       final ssh = GitRegex.sshMatch.firstMatch(url);
-      if (ssh != null) return ssh.group(1);
+      if (ssh != null) {
+        return ssh.group(1);
+      }
     }
     return null;
   }
@@ -468,59 +660,71 @@ class GitService {
     await _runGit([...GitCommands.gitRestoreStaged, filePath]);
   }
 
-  Future<String> getFileDiff({
+  Future<Either<GitServiceFailure, String>> getFileDiff({
     required String filePath,
     required GitFileStatus status,
     required bool staged,
   }) async {
-    late final List<String> args;
+    final args = _buildDiffArgs(
+      filePath: filePath,
+      status: status,
+      staged: staged,
+    );
 
-    switch (status) {
-      case GitFileStatus.untracked:
-        args = [
-          "diff",
-          "--no-index",
-          "/dev/null",
-          filePath,
-        ];
-        break;
-
-      case GitFileStatus.added:
-        args = [
-          "diff",
-          "--cached",
-          "--unified=3",
-          "--",
-          filePath,
-        ];
-        break;
-
-      case GitFileStatus.deleted:
-        args = [
-          "diff",
-          "HEAD",
-          "--unified=3",
-          "--",
-          filePath,
-        ];
-        break;
-
-      case GitFileStatus.modified:
-      case GitFileStatus.renamed:
-        args = [
-          "diff",
-          if (staged) "--cached",
-          "--unified=3",
-          "--",
-          filePath,
-        ];
-        break;
-    }
-
-    return await _runGit(
+    final result = await _runGit(
       args,
       allowedExitCodes: const {0, 1},
     );
+
+    if (result.isLeft) {
+      return Left(result.left);
+    }
+
+    return Right(result.right);
+  }
+
+  List<String> _buildDiffArgs({
+    required String filePath,
+    required GitFileStatus status,
+    required bool staged,
+  }) {
+    switch (status) {
+      case GitFileStatus.untracked:
+        return [
+          'diff',
+          '--no-index',
+          '/dev/null',
+          filePath,
+        ];
+
+      case GitFileStatus.added:
+        return [
+          'diff',
+          '--cached',
+          '--unified=3',
+          '--',
+          filePath,
+        ];
+
+      case GitFileStatus.deleted:
+        return [
+          'diff',
+          'HEAD',
+          '--unified=3',
+          '--',
+          filePath,
+        ];
+
+      case GitFileStatus.modified:
+      case GitFileStatus.renamed:
+        return [
+          'diff',
+          if (staged) '--cached',
+          '--unified=3',
+          '--',
+          filePath,
+        ];
+    }
   }
 
   GitFileStatus mapGitFileStatus(String x, String y) {

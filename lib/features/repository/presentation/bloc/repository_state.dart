@@ -12,6 +12,7 @@ enum RepositoryBlocStatus {
   cloneProgress,
   fetching,
   fetched,
+  repositoryDeleted,
 }
 
 @MappableClass()

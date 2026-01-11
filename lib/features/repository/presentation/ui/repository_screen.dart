@@ -16,6 +16,7 @@ import 'package:open_git/shared/presentation/widgets/dialogs/clone_repository_di
 import 'package:open_git/shared/presentation/widgets/dialogs/discard_all_changes_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/discard_file_changes_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/git_https_remote_dialog.dart';
+import 'package:open_git/shared/presentation/widgets/dialogs/repository_has_been_deleted_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/ssh_host_verification_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/dialogs/ssh_permission_denied_dialog.dart';
 import 'package:open_git/shared/core/constants/constants.dart';
@@ -225,6 +226,25 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
+                case RepositoryBlocStatus.repositoryDeleted:
+                  await showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) {
+                      return const RepositoryHasBeenDeletedDialog();
+                    },
+                  );
+
+                  if (context.mounted) {
+                    context.read<RepositoryBloc>().add(
+                      UpdateRepositoryStatus(
+                        status: RepositoryBlocStatus.initial,
+                      ),
+                    );
+                  }
+
+                  break;
+
                 case RepositoryBlocStatus.error:
                   ErrorSnackBar.show(
                     context,
