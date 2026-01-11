@@ -7,10 +7,14 @@
 - [Commit history] Display merge files list + commit file differences.
 - [Branches] Show if a remote branch has been deleted but still exists locally.
 
+### Updated
+
+- [Global / UI] Improve default feature selection.
+- [Global / UI] Improve commit button UI readability.
+
 ### Fixes
 
 - [Global / UI] Improve error management.
-
 ## Version (1.0.14) (05/01/2026)
 
 ### Added
