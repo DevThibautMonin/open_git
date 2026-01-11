@@ -60,6 +60,7 @@ brew upgrade --cask opengit
 - Delete branches.
 - Rename local branches.
 - Fetch remote branches.
+- Show remote branches state (deleted, active).
 - Checkout remote branches locally.
 
 ### Working Directory
@@ -85,7 +86,7 @@ brew upgrade --cask opengit
 - Unified / Split view.
 
 ### Commit History
-- List commit history.
+- List commit / merge history.
 - Display author, date, and message.
 - Clean and readable chronological view.
 - Commit diff split view from history.

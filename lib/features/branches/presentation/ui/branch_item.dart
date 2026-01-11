@@ -107,6 +107,15 @@ class _BranchItemState extends State<BranchItem> {
                   ),
                 ),
               ),
+              if (widget.branch.deletedOnRemote && !widget.branch.isCurrent)
+                Tooltip(
+                  message: "Branch deleted on remote. You can delete it safely.",
+                  child: Icon(
+                    Icons.warning_amber_rounded,
+                    size: 20,
+                    color: Colors.orange,
+                  ),
+                ),
             ],
           ),
         ),

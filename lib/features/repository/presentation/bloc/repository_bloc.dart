@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:open_git/features/repository/domain/repository_view_mode.dart';
 import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
-import 'package:open_git/shared/core/exceptions/git_exceptions.dart';
+import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -53,16 +53,47 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
     });
 
     on<InitLastRepository>((event, emit) async {
-      final path = sharedPreferencesService.getString(
-        SharedPreferencesKeys.repositoryPath,
-      );
+      final path = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath);
 
-      if (path == null || path.isEmpty) return;
+      if (path == null || path.isEmpty) {
+        return;
+      }
+
+      final existsResult = await gitService.repositoryExists();
+
+      if (existsResult.isLeft) {
+        emit(
+          state.copyWith(
+            status: RepositoryBlocStatus.error,
+            errorMessage: existsResult.left.errorMessage,
+          ),
+        );
+        return;
+      }
+
+      final exists = existsResult.right;
+
+      if (!exists) {
+        await sharedPreferencesService.setString(
+          SharedPreferencesKeys.repositoryPath,
+          '',
+        );
+
+        emit(
+          state.copyWith(
+            repositoryPath: '',
+            currentRepositoryName: '',
+            status: RepositoryBlocStatus.repositoryDeleted,
+            errorMessage: 'The previously opened repository no longer exists.',
+          ),
+        );
+        return;
+      }
 
       emit(
         state.copyWith(
           repositoryPath: path,
-          currentRepositoryName: repoNameFromPath(path),
+          currentRepositoryName: p.basename(path),
           status: RepositoryBlocStatus.repositorySelected,
         ),
       );
@@ -117,56 +148,47 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
         ),
       );
 
-      try {
-        await gitService.ensureDirectoryIsEmpty(event.destinationPath);
-        await gitService.cloneRepositoryWithProgress(
-          sshUrl: event.sshUrl,
-          targetPath: event.destinationPath,
-          onProgress: (progress) {
-            emit(
-              state.copyWith(
-                status: RepositoryBlocStatus.cloneProgress,
-                cloneProgress: progress,
-              ),
-            );
-          },
-        );
+      final dirResult = await gitService.ensureDirectoryIsEmpty(event.destinationPath);
 
-        emit(
-          state.copyWith(
-            status: RepositoryBlocStatus.cloneSuccess,
-            cloneProgress: 1.0,
-          ),
-        );
-      } on GitSshHostVerificationFailed {
+      if (dirResult.isLeft) {
         emit(
           state.copyWith(
             status: RepositoryBlocStatus.error,
-            errorMessage: 'SSH host not trusted. Run ssh -T git@host first.',
+            errorMessage: dirResult.left.errorMessage,
           ),
         );
-      } on GitSshPermissionDenied {
-        emit(
-          state.copyWith(
-            status: RepositoryBlocStatus.error,
-            errorMessage: 'SSH permission denied. Add your key to the provider.',
-          ),
-        );
-      } on DirectoryNotEmptyFailure {
-        emit(
-          state.copyWith(
-            status: RepositoryBlocStatus.error,
-            errorMessage: "The target directory must be empty.",
-          ),
-        );
-      } catch (e) {
-        emit(
-          state.copyWith(
-            status: RepositoryBlocStatus.error,
-            errorMessage: e.toString(),
-          ),
-        );
+        return;
       }
+
+      final cloneResult = await gitService.cloneRepositoryWithProgress(
+        sshUrl: event.sshUrl,
+        targetPath: event.destinationPath,
+        onProgress: (progress) {
+          emit(
+            state.copyWith(
+              status: RepositoryBlocStatus.cloneProgress,
+              cloneProgress: progress,
+            ),
+          );
+        },
+      );
+
+      if (cloneResult.isLeft) {
+        emit(
+          state.copyWith(
+            status: RepositoryBlocStatus.error,
+            errorMessage: cloneResult.left.errorMessage,
+          ),
+        );
+        return;
+      }
+
+      emit(
+        state.copyWith(
+          status: RepositoryBlocStatus.cloneSuccess,
+          cloneProgress: 1.0,
+        ),
+      );
     });
   }
 }

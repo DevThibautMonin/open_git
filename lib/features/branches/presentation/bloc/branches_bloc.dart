@@ -1,6 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
 import 'package:open_git/shared/core/services/git_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
 import 'package:open_git/shared/domain/entities/branch_entity.dart';
@@ -38,12 +39,22 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
     });
 
     on<AskForRenamingBranch>((event, emit) async {
-      final hasUpstream = await gitService.branchHasUpstream(event.branch.name);
+      final upstreamResult = await gitService.branchHasUpstream(event.branch.name);
+
+      if (upstreamResult.isLeft) {
+        emit(
+          state.copyWith(
+            status: BranchesBlocStatus.error,
+            errorMessage: upstreamResult.left.errorMessage,
+          ),
+        );
+        return;
+      }
 
       emit(
         state.copyWith(
           selectedBranch: event.branch,
-          selectedBranchHasUpstream: hasUpstream,
+          selectedBranchHasUpstream: upstreamResult.right,
           status: BranchesBlocStatus.askForRenamingBranch,
         ),
       );
@@ -94,12 +105,25 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
     });
 
     on<GetRepositoryBranches>((event, emit) async {
-      final branches = await gitService.getBranches();
-      emit(
-        state.copyWith(
-          branches: branches,
-          status: BranchesBlocStatus.branchesRetrieved,
-        ),
+      final branchesResult = await gitService.getBranches();
+
+      branchesResult.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: BranchesBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (data) {
+          emit(
+            state.copyWith(
+              branches: data,
+              status: BranchesBlocStatus.branchesRetrieved,
+            ),
+          );
+        },
       );
     });
 

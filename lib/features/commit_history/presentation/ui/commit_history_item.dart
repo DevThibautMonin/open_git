@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
 import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
+import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
 class CommitHistoryItem extends StatelessWidget {
   final GitCommitEntity commit;
@@ -26,11 +27,13 @@ class CommitHistoryItem extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(
-              Icons.commit,
+            Icon(
+              commit.isMergeCommit ? Icons.call_merge : Icons.commit,
               size: 18,
+              color: commit.isMergeCommit ? theme.colorScheme.secondary : null,
             ),
-            const SizedBox(width: 12),
+
+            Gaps.w12,
 
             Expanded(
               child: Column(

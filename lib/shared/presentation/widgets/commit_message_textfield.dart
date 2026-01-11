@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
+import 'package:open_git/shared/presentation/widgets/commit_button.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
 class CommitMessageTextfield extends StatefulWidget {
@@ -77,11 +78,10 @@ class _CommitMessageTextfieldState extends State<CommitMessageTextfield> {
             ),
           ),
           Gaps.h8,
-          ElevatedButton(
-            onPressed: _isCommitEnabled ? _onCommit : null,
-            child: Text(
-              widget.hasStagedFiles ? 'Commit' : 'No staged files',
-            ),
+          CommitButton(
+            text: widget.hasStagedFiles ? 'Commit' : 'No staged files',
+            onPressed: _onCommit,
+            isEnabled: _isCommitEnabled,
           ),
         ],
       ),

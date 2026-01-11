@@ -24,7 +24,6 @@ class SplitDiffLineRow extends StatelessWidget {
             diffLineType: line.type,
           ),
         ),
-
         Expanded(
           child: SplitDiffLineContent(
             visible: line.type != DiffLineType.removed,
