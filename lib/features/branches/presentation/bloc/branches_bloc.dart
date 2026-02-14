@@ -2,8 +2,7 @@ import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
-import 'package:open_git/shared/core/services/git_service.dart';
-import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
+import 'package:open_git/shared/core/services/git_branch_service.dart';
 import 'package:open_git/shared/domain/entities/branch_entity.dart';
 
 part 'branches_event.dart';
@@ -12,34 +11,35 @@ part 'branches_bloc.mapper.dart';
 
 @LazySingleton()
 class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
-  final GitService gitService;
-  final SharedPreferencesService sharedPreferencesService;
+  final GitBranchService gitBranchService;
 
   BranchesBloc({
-    required this.gitService,
-    required this.sharedPreferencesService,
+    required this.gitBranchService,
   }) : super(BranchesState()) {
     on<UpdateBranchesStatus>((event, emit) {
       emit(state.copyWith(status: event.status));
     });
 
     on<CheckoutRemoteBranch>((event, emit) async {
-      try {
-        await gitService.checkoutRemoteBranch(event.branch.name);
+      final result = await gitBranchService.checkoutRemoteBranch(event.branch.name);
 
-        add(GetRepositoryBranches());
-      } catch (e) {
-        emit(
-          state.copyWith(
-            status: BranchesBlocStatus.error,
-            errorMessage: e.toString(),
-          ),
-        );
-      }
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: BranchesBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryBranches());
+        },
+      );
     });
 
     on<AskForRenamingBranch>((event, emit) async {
-      final upstreamResult = await gitService.branchHasUpstream(event.branch.name);
+      final upstreamResult = await gitBranchService.branchHasUpstream(event.branch.name);
 
       if (upstreamResult.isLeft) {
         emit(
@@ -75,37 +75,65 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
         return;
       }
 
-      await gitService.deleteBranch(event.branch.name);
-      add(GetRepositoryBranches());
+      final result = await gitBranchService.deleteBranch(event.branch.name);
+
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: BranchesBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryBranches());
+        },
+      );
     });
 
     on<RenameBranch>((event, emit) async {
-      try {
-        await gitService.renameBranch(
-          oldName: event.branch.name,
-          newName: event.newName,
-        );
+      final result = await gitBranchService.renameBranch(
+        oldName: event.branch.name,
+        newName: event.newName,
+      );
 
-        add(GetRepositoryBranches());
-
-        emit(state.copyWith(status: BranchesBlocStatus.branchRenamed));
-      } catch (e) {
-        emit(
-          state.copyWith(
-            status: BranchesBlocStatus.error,
-            errorMessage: e.toString(),
-          ),
-        );
-      }
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: BranchesBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryBranches());
+          emit(state.copyWith(status: BranchesBlocStatus.branchRenamed));
+        },
+      );
     });
 
     on<SwitchToBranch>((event, emit) async {
-      await gitService.switchBranch(event.branch.name);
-      add(GetRepositoryBranches());
+      final result = await gitBranchService.switchBranch(event.branch.name);
+
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: BranchesBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryBranches());
+        },
+      );
     });
 
     on<GetRepositoryBranches>((event, emit) async {
-      final branchesResult = await gitService.getBranches();
+      final branchesResult = await gitBranchService.getBranches();
 
       branchesResult.fold(
         (failure) {
@@ -128,9 +156,22 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
     });
 
     on<CreateNewBranchAndCheckout>((event, emit) async {
-      await gitService.createBranchAndCheckout(event.branchName);
-      add(GetRepositoryBranches());
-      emit(state.copyWith(status: BranchesBlocStatus.branchCreated));
+      final result = await gitBranchService.createBranchAndCheckout(event.branchName);
+
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: BranchesBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryBranches());
+          emit(state.copyWith(status: BranchesBlocStatus.branchCreated));
+        },
+      );
     });
   }
 }
