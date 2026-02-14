@@ -1,10 +1,11 @@
 import 'package:dart_mappable/dart_mappable.dart';
+import 'package:either_dart/either.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
 import 'package:open_git/shared/core/logger/log_service.dart';
-import 'package:open_git/shared/core/services/git_service.dart';
-import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
+import 'package:open_git/shared/core/services/git_remote_service.dart';
+import 'package:open_git/shared/core/services/git_working_directory_service.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 import 'package:open_git/shared/domain/failures/git_service_failure.dart';
 
@@ -14,19 +15,19 @@ part 'working_directory_bloc.mapper.dart';
 
 @LazySingleton()
 class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryState> {
-  final SharedPreferencesService sharedPreferencesService;
-  final GitService gitService;
+  final GitWorkingDirectoryService gitWorkingDirectoryService;
+  final GitRemoteService gitRemoteService;
   final LogService logService;
 
   WorkingDirectoryBloc({
-    required this.sharedPreferencesService,
-    required this.gitService,
+    required this.gitWorkingDirectoryService,
+    required this.gitRemoteService,
     required this.logService,
   }) : super(WorkingDirectoryState()) {
     on<GetRepositoryStatus>((event, emit) async {
       emit(state.copyWith(status: WorkingDirectoryBlocStatus.loading));
 
-      final filesResult = await gitService.getWorkingDirectoryStatus();
+      final filesResult = await gitWorkingDirectoryService.getWorkingDirectoryStatus();
 
       if (filesResult.isLeft) {
         final failure = filesResult.left;
@@ -55,7 +56,7 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
 
       final files = filesResult.right;
 
-      final upstreamResult = await gitService.hasUpstream();
+      final upstreamResult = await gitRemoteService.hasUpstream();
       if (upstreamResult.isLeft) {
         emit(
           state.copyWith(
@@ -71,7 +72,7 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
       int commitsToPush = 0;
 
       if (hasUpstream) {
-        final commitsResult = await gitService.getCommitsAheadCount();
+        final commitsResult = await gitRemoteService.getCommitsAheadCount();
 
         if (commitsResult.isLeft) {
           emit(
@@ -98,43 +99,48 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
 
     on<DiscardFileChanges>((event, emit) async {
       final GitFileEntity? file = event.file;
-      try {
-        emit(state.copyWith(status: WorkingDirectoryBlocStatus.loading));
 
-        if (file != null) {
-          await gitService.discardFileChanges(file);
+      if (file == null) return;
 
+      emit(state.copyWith(status: WorkingDirectoryBlocStatus.loading));
+
+      final result = await gitWorkingDirectoryService.discardFileChanges(file);
+
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
           add(GetRepositoryStatus());
-
           emit(state.copyWith(status: WorkingDirectoryBlocStatus.initial));
-        }
-      } catch (e) {
-        emit(
-          state.copyWith(
-            status: WorkingDirectoryBlocStatus.error,
-            errorMessage: e.toString(),
-          ),
-        );
-      }
+        },
+      );
     });
 
     on<DiscardAllChanges>((event, emit) async {
-      try {
-        emit(state.copyWith(status: WorkingDirectoryBlocStatus.loading));
+      emit(state.copyWith(status: WorkingDirectoryBlocStatus.loading));
 
-        await gitService.discardAllChanges();
+      final result = await gitWorkingDirectoryService.discardAllChanges();
 
-        add(GetRepositoryStatus());
-
-        emit(state.copyWith(status: WorkingDirectoryBlocStatus.initial));
-      } catch (e) {
-        emit(
-          state.copyWith(
-            status: WorkingDirectoryBlocStatus.error,
-            errorMessage: e.toString(),
-          ),
-        );
-      }
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryStatus());
+          emit(state.copyWith(status: WorkingDirectoryBlocStatus.initial));
+        },
+      );
     });
 
     on<SelectFile>((event, emit) {
@@ -142,36 +148,45 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
     });
 
     on<ToggleAllFilesStaging>((event, emit) async {
-      try {
-        final files = state.files;
+      final files = state.files;
 
-        for (final file in files) {
-          if (event.stage && !file.staged) {
-            await gitService.stageFile(file.path);
-            logService.debug("Staging : ${file.path}");
+      for (final file in files) {
+        if (event.stage && !file.staged) {
+          final result = await gitWorkingDirectoryService.stageFile(file.path);
+          if (result.isLeft) {
+            emit(
+              state.copyWith(
+                status: WorkingDirectoryBlocStatus.error,
+                errorMessage: result.left.errorMessage,
+              ),
+            );
+            return;
           }
-
-          if (!event.stage && file.staged) {
-            await gitService.unstageFile(file.path);
-            logService.debug("Unstaging : ${file.path}");
-          }
+          logService.debug("Staging : ${file.path}");
         }
 
-        add(GetRepositoryStatus());
-      } catch (e) {
-        emit(
-          state.copyWith(
-            status: WorkingDirectoryBlocStatus.error,
-            errorMessage: e.toString(),
-          ),
-        );
+        if (!event.stage && file.staged) {
+          final result = await gitWorkingDirectoryService.unstageFile(file.path);
+          if (result.isLeft) {
+            emit(
+              state.copyWith(
+                status: WorkingDirectoryBlocStatus.error,
+                errorMessage: result.left.errorMessage,
+              ),
+            );
+            return;
+          }
+          logService.debug("Unstaging : ${file.path}");
+        }
       }
+
+      add(GetRepositoryStatus());
     });
 
     on<PushCommits>((event, emit) async {
       emit(state.copyWith(status: WorkingDirectoryBlocStatus.pushingCommits));
 
-      final isHttpsResult = await gitService.isRemoteHttps();
+      final isHttpsResult = await gitRemoteService.isRemoteHttps();
       if (isHttpsResult.isLeft) {
         emit(
           state.copyWith(
@@ -185,7 +200,7 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
       final isHttps = isHttpsResult.right;
 
       if (isHttps) {
-        final slugResult = await gitService.getRepositorySlug();
+        final slugResult = await gitRemoteService.getRepositorySlug();
 
         if (slugResult.isLeft) {
           emit(
@@ -206,7 +221,7 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
         return;
       }
 
-      final pushResult = await gitService.pushOrPublish();
+      final pushResult = await gitRemoteService.pushOrPublish();
       if (pushResult.isLeft) {
         emit(
           state.copyWith(
@@ -237,32 +252,49 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
     on<AddCommit>((event, emit) async {
       emit(state.copyWith(status: WorkingDirectoryBlocStatus.addingCommits));
 
-      await gitService.createCommit(
+      final result = await gitWorkingDirectoryService.createCommit(
         summary: event.summary,
         description: event.description,
       );
 
-      add(GetRepositoryStatus());
-      emit(state.copyWith(status: WorkingDirectoryBlocStatus.commitsAdded));
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryStatus());
+          emit(state.copyWith(status: WorkingDirectoryBlocStatus.commitsAdded));
+        },
+      );
     });
 
     on<ToggleFileStaging>((event, emit) async {
-      try {
-        if (event.stage) {
-          await gitService.stageFile(event.file.path);
-        } else {
-          await gitService.unstageFile(event.file.path);
-        }
+      final Either<GitServiceFailure, void> result;
 
-        add(GetRepositoryStatus());
-      } catch (e) {
-        emit(
-          state.copyWith(
-            status: WorkingDirectoryBlocStatus.error,
-            errorMessage: e.toString(),
-          ),
-        );
+      if (event.stage) {
+        result = await gitWorkingDirectoryService.stageFile(event.file.path);
+      } else {
+        result = await gitWorkingDirectoryService.unstageFile(event.file.path);
       }
+
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryStatus());
+        },
+      );
     });
   }
 }

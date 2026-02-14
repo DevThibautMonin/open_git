@@ -2,8 +2,7 @@ import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
-import 'package:open_git/shared/core/services/git_service.dart';
-import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
+import 'package:open_git/shared/core/services/git_commit_history_service.dart';
 import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
 
 part 'commit_history_event.dart';
@@ -12,17 +11,15 @@ part 'commit_history_bloc.mapper.dart';
 
 @LazySingleton()
 class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
-  final SharedPreferencesService sharedPreferencesService;
-  final GitService gitService;
+  final GitCommitHistoryService gitCommitHistoryService;
 
   CommitHistoryBloc({
-    required this.sharedPreferencesService,
-    required this.gitService,
+    required this.gitCommitHistoryService,
   }) : super(CommitHistoryState()) {
     on<LoadCommitHistory>((event, emit) async {
       emit(state.copyWith(status: CommitHistoryBlocStatus.loading));
 
-      final commitsResult = await gitService.getCommitHistory(limit: event.limit);
+      final commitsResult = await gitCommitHistoryService.getCommitHistory(limit: event.limit);
 
       commitsResult.fold(
         (failure) {
@@ -53,7 +50,7 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
         ),
       );
 
-      final filesResult = await gitService.getCommitFiles(event.commit);
+      final filesResult = await gitCommitHistoryService.getCommitFiles(event.commit);
 
       filesResult.fold(
         (failure) {
