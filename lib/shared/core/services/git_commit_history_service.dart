@@ -23,7 +23,7 @@ class GitCommitHistoryService {
 
     final logResult = await commandRunner.run([
       'log',
-      '--pretty=format:%H|%P|%an|%ad|%s',
+      '--pretty=format:%H|%P|%an|%ad|%B%x00',
       '--date=iso',
       '--max-count=$limit',
     ]);
@@ -35,7 +35,7 @@ class GitCommitHistoryService {
     final unpushedShas = unpushedResult.right;
     final output = logResult.right;
 
-    final commits = output.split('\n').where((l) => l.isNotEmpty).map(_parseCommitLine(unpushedShas)).toList();
+    final commits = output.split('\x00').where((l) => l.trim().isNotEmpty).map(_parseCommitLine(unpushedShas)).toList();
 
     return Right(commits);
   }
@@ -91,17 +91,25 @@ class GitCommitHistoryService {
     Set<String> unpushedShas,
   ) {
     return (line) {
-      final p = line.split('|');
+      final p = line.split('|').map((e) => e.trim()).toList();
 
       final sha = p[0];
       final parents = p[1].split(' ').where((e) => e.isNotEmpty).toList();
+
+      final fullMessage = p.sublist(4).join('|').trim();
+      final messageParts = fullMessage.split('\n');
+      final message = messageParts.first.trim();
+      final description = messageParts.length > 1
+          ? messageParts.sublist(1).where((line) => line.trim().isNotEmpty).join('\n').trim()
+          : '';
 
       return GitCommitEntity(
         sha: sha,
         parents: parents,
         author: p[2],
         date: DateTime.parse(p[3]),
-        message: p.sublist(4).join('|'),
+        message: message,
+        description: description,
         isUnpushed: unpushedShas.contains(sha),
       );
     };

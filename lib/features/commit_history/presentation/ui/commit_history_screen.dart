@@ -7,6 +7,7 @@ import 'package:open_git/features/files_differences/presentation/ui/file_differe
 import 'package:open_git/features/files_differences/presentation/ui/split_diff_viewer.dart';
 import 'package:open_git/features/files_differences/presentation/ui/unified_diff_viewer.dart';
 import 'package:open_git/features/commit_history/presentation/ui/commit_files_sidebar.dart';
+import 'package:open_git/features/commit_history/presentation/ui/commit_details_header.dart';
 
 class CommitHistoryScreen extends StatelessWidget {
   const CommitHistoryScreen({super.key});
@@ -17,9 +18,24 @@ class CommitHistoryScreen extends StatelessWidget {
       builder: (context, diffState) {
         return Row(
           children: [
-            const SizedBox(
+            SizedBox(
               width: 300,
-              child: CommitFilesSidebar(),
+              child: Column(
+                children: [
+                  BlocBuilder<CommitHistoryBloc, CommitHistoryState>(
+                    builder: (context, state) {
+                      final selectedCommit = state.selectedCommit;
+                      if (selectedCommit == null) {
+                        return const SizedBox.shrink();
+                      }
+                      return CommitDetailsHeader(commit: selectedCommit);
+                    },
+                  ),
+                  const Expanded(
+                    child: CommitFilesSidebar(),
+                  ),
+                ],
+              ),
             ),
 
             const VerticalDivider(width: 1),
