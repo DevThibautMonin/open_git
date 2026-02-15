@@ -68,6 +68,7 @@ brew upgrade --cask opengit
 - File-type icons based on extensions.
 - Stage / unstage files.
 - Stage / unstage all files.
+- Keyboard navigation (Arrow Up/Down to navigate, Space to toggle staging).
 - Create commits
   - mandatory commit summary
   - optional commit description
@@ -115,4 +116,4 @@ brew upgrade --cask opengit
 - Conflict resolution UI.
 
 ### UX & Product
-- Keyboard shortcuts.
+- Extended keyboard shortcuts coverage (branches, commit history).

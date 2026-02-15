@@ -1,5 +1,15 @@
 # Changelog
 
+## Version (1.0.16) (15/02/2026)
+
+### Added
+
+- [Working directory] Keyboard navigation support (Arrow Up/Down to navigate files, Space to toggle staging).
+
+### Fixes
+
+- [Working directory] Preserve commit message when switching between tabs.
+
 ## Version (1.0.15) (11/01/2026)
 
 ### Added
