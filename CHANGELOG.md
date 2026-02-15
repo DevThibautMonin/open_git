@@ -13,6 +13,7 @@
 - [Commit history] Commit description is now scrollable instead of being truncated to 2 lines.
 - [Commit history] Auto-select first commit and first file when opening commit history feature.
 - [Commit history] Add visual indicators for selected commit and selected file (left border + subtle background color).
+- [Branches] Group branches by prefix. (feature/, bugfix/).
 
 ### Fixes
 

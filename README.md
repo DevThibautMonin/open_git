@@ -62,6 +62,7 @@ brew upgrade --cask opengit
 - Fetch remote branches.
 - Show remote branches state (deleted, active).
 - Checkout remote branches locally.
+- Group branches by prefix. (feature/, bugfix/).
 
 ### Working Directory
 - Display modified, added, deleted, and untracked files.

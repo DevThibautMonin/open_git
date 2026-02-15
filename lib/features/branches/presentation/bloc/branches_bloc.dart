@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
 import 'package:open_git/shared/core/services/git_branch_service.dart';
 import 'package:open_git/shared/domain/entities/branch_entity.dart';
+import 'package:open_git/shared/domain/entities/branch_group_entity.dart';
 
 part 'branches_event.dart';
 part 'branches_state.dart';
