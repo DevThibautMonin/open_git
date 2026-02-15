@@ -11,6 +11,8 @@
 
 - [Working directory] Optimized "Stage all" / "Unstage all" to use native Git commands (`git add -A` / `git reset`) instead of individual file loops for better performance.
 - [Commit history] Commit description is now scrollable instead of being truncated to 2 lines.
+- [Commit history] Auto-select first commit and first file when opening commit history feature.
+- [Commit history] Add visual indicators for selected commit and selected file (left border + subtle background color).
 
 ### Fixes
 

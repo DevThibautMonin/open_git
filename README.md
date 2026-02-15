@@ -90,6 +90,8 @@ brew upgrade --cask opengit
 - List commit / merge history.
 - Display author, date, and message.
 - Show full commit description in scrollable details panel.
+- Auto-select first commit and file on feature load.
+- Visual indicators for selected commits and files.
 - Clean and readable chronological view.
 - Commit diff split view from history.
 - Show unpushed commits.

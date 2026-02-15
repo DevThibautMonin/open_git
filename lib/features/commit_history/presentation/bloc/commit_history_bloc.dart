@@ -37,6 +37,10 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
               status: CommitHistoryBlocStatus.loaded,
             ),
           );
+
+          if (data.isNotEmpty) {
+            add(SelectCommit(commit: data.first));
+          }
         },
       );
     });
@@ -65,6 +69,7 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
           emit(
             state.copyWith(
               selectedCommitFiles: data,
+              selectedCommitFile: data.isNotEmpty ? data.first : null,
             ),
           );
         },
