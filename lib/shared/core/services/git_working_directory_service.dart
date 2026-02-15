@@ -47,6 +47,24 @@ class GitWorkingDirectoryService {
     );
   }
 
+  Future<Either<GitServiceFailure, void>> stageAllFiles() async {
+    final result = await commandRunner.run(GitCommands.gitAddAll);
+
+    return result.fold(
+      (failure) => Left(failure),
+      (_) => const Right(null),
+    );
+  }
+
+  Future<Either<GitServiceFailure, void>> unstageAllFiles() async {
+    final result = await commandRunner.run(GitCommands.gitUnstageAll);
+
+    return result.fold(
+      (failure) => Left(failure),
+      (_) => const Right(null),
+    );
+  }
+
   Future<Either<GitServiceFailure, void>> discardFileChanges(GitFileEntity file) async {
     if (file.status == GitFileStatus.untracked) {
       final result = await commandRunner.run([
@@ -122,14 +140,26 @@ class GitWorkingDirectoryService {
 
       final x = line[0];
       final y = line[1];
-      final path = line.substring(3).trim();
+      var path = line.substring(3).trim();
+
+      // Remove surrounding quotes if present (Git adds quotes for paths with spaces)
+      if (path.startsWith('"') && path.endsWith('"')) {
+        path = path.substring(1, path.length - 1);
+      }
 
       final status = _mapGitFileStatus(x, y);
       final staged = status == GitFileStatus.untracked ? false : x != " ";
 
+      var finalPath = path.contains("->") ? path.split("->").last.trim() : path;
+
+      // Remove quotes from renamed file path as well
+      if (finalPath.startsWith('"') && finalPath.endsWith('"')) {
+        finalPath = finalPath.substring(1, finalPath.length - 1);
+      }
+
       files.add(
         GitFileEntity(
-          path: path.contains("->") ? path.split("->").last.trim() : path,
+          path: finalPath,
           status: status,
           staged: staged,
         ),

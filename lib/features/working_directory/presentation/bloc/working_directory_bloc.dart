@@ -148,39 +148,29 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
     });
 
     on<ToggleAllFilesStaging>((event, emit) async {
-      final files = state.files;
+      final Either<GitServiceFailure, void> result;
 
-      for (final file in files) {
-        if (event.stage && !file.staged) {
-          final result = await gitWorkingDirectoryService.stageFile(file.path);
-          if (result.isLeft) {
-            emit(
-              state.copyWith(
-                status: WorkingDirectoryBlocStatus.error,
-                errorMessage: result.left.errorMessage,
-              ),
-            );
-            return;
-          }
-          logService.debug("Staging : ${file.path}");
-        }
-
-        if (!event.stage && file.staged) {
-          final result = await gitWorkingDirectoryService.unstageFile(file.path);
-          if (result.isLeft) {
-            emit(
-              state.copyWith(
-                status: WorkingDirectoryBlocStatus.error,
-                errorMessage: result.left.errorMessage,
-              ),
-            );
-            return;
-          }
-          logService.debug("Unstaging : ${file.path}");
-        }
+      if (event.stage) {
+        logService.debug("Staging all files");
+        result = await gitWorkingDirectoryService.stageAllFiles();
+      } else {
+        logService.debug("Unstaging all files");
+        result = await gitWorkingDirectoryService.unstageAllFiles();
       }
 
-      add(GetRepositoryStatus());
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryStatus());
+        },
+      );
     });
 
     on<PushCommits>((event, emit) async {

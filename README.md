@@ -89,7 +89,7 @@ brew upgrade --cask opengit
 ### Commit History
 - List commit / merge history.
 - Display author, date, and message.
-- Show full commit description in details panel.
+- Show full commit description in scrollable details panel.
 - Clean and readable chronological view.
 - Commit diff split view from history.
 - Show unpushed commits.
