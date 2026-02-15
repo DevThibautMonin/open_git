@@ -15,10 +15,13 @@ class WorkingDirectoryFilesList extends StatefulWidget {
   State<WorkingDirectoryFilesList> createState() => _WorkingDirectoryFilesListState();
 }
 
-class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList> {
+class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList> with AutomaticKeepAliveClientMixin {
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   static const double _itemExtent = 40.0;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void dispose() {
@@ -47,22 +50,31 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList> {
     final currentOffset = _scrollController.offset;
 
     if (targetOffset < currentOffset) {
-      unawaited(_scrollController.animateTo(
-        targetOffset,
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeOut,
-      ));
+      unawaited(
+        _scrollController.animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOut,
+        ),
+      );
     } else if (targetOffset + _itemExtent > currentOffset + viewportHeight) {
-      unawaited(_scrollController.animateTo(
-        targetOffset + _itemExtent - viewportHeight,
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeOut,
-      ));
+      unawaited(
+        _scrollController.animateTo(
+          targetOffset + _itemExtent - viewportHeight,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOut,
+        ),
+      );
     }
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+
+    final focusedNode = FocusScope.of(context).focusedChild;
+    if (focusedNode != null && focusedNode != _focusNode) {
       return KeyEventResult.ignored;
     }
 
@@ -109,6 +121,7 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
       builder: (context, state) {
         if (state.files.isEmpty) {
