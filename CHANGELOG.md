@@ -5,6 +5,7 @@
 ### Added
 
 - [Working directory] Keyboard navigation support (Arrow Up/Down to navigate files, Space to toggle staging).
+- [Commit history] Display full commit message description in commit details panel.
 
 ### Fixes
 
