@@ -6,7 +6,7 @@ import 'package:open_git/features/files_differences/domain/enums/diff_mode_displ
 import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
 import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
 import 'package:open_git/shared/core/services/git_diff_parser.dart';
-import 'package:open_git/shared/core/services/git_service.dart';
+import 'package:open_git/shared/core/services/git_diff_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
 import 'package:open_git/features/files_differences/domain/entities/diff_hunk_entity.dart';
 import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
@@ -19,11 +19,11 @@ part 'files_differences_bloc.mapper.dart';
 @LazySingleton()
 class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesState> {
   final SharedPreferencesService sharedPreferencesService;
-  final GitService gitService;
+  final GitDiffService gitDiffService;
 
   FilesDifferencesBloc({
     required this.sharedPreferencesService,
-    required this.gitService,
+    required this.gitDiffService,
   }) : super(FilesDifferencesState()) {
     on<SetDiffModeDisplay>((event, emit) async {
       await sharedPreferencesService.setString(
@@ -50,7 +50,7 @@ class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesS
         ),
       );
 
-      final diffResult = await gitService.getFileDiff(
+      final diffResult = await gitDiffService.getFileDiff(
         filePath: event.file.path,
         staged: event.file.staged,
         status: event.file.status,
@@ -83,7 +83,7 @@ class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesS
         ),
       );
 
-      final diffResult = await gitService.getCommitFileDiff(
+      final diffResult = await gitDiffService.getCommitFileDiff(
         commit: event.commit,
         filePath: event.filePath,
       );

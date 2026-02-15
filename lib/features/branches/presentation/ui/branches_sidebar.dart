@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/current_branch_section.dart';
 import 'package:open_git/features/branches/presentation/ui/local_branches_section.dart';
-import 'package:open_git/features/branches/presentation/ui/remote_branches_Section.dart';
+import 'package:open_git/features/branches/presentation/ui/remote_branches_section.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
 class BranchesSidebar extends StatelessWidget {
@@ -56,11 +56,11 @@ class BranchesSidebar extends StatelessWidget {
                     if (state.currentBranch.isNotEmpty) CurrentBranchSection(branch: state.currentBranch.first),
 
                     LocalBranchesSection(
-                      branches: state.localBranches,
+                      branchGroups: state.localBranchGroups,
                     ),
 
                     RemoteBranchesSection(
-                      branches: state.remoteOnlyBranches,
+                      branchGroups: state.remoteBranchGroups,
                     ),
                   ],
                 );

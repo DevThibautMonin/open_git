@@ -62,12 +62,14 @@ brew upgrade --cask opengit
 - Fetch remote branches.
 - Show remote branches state (deleted, active).
 - Checkout remote branches locally.
+- Group branches by prefix. (feature/, bugfix/).
 
 ### Working Directory
 - Display modified, added, deleted, and untracked files.
 - File-type icons based on extensions.
 - Stage / unstage files.
 - Stage / unstage all files.
+- Keyboard navigation (Arrow Up/Down to navigate, Space to toggle staging).
 - Create commits
   - mandatory commit summary
   - optional commit description
@@ -88,6 +90,9 @@ brew upgrade --cask opengit
 ### Commit History
 - List commit / merge history.
 - Display author, date, and message.
+- Show full commit description in scrollable details panel.
+- Auto-select first commit and file on feature load.
+- Visual indicators for selected commits and files.
 - Clean and readable chronological view.
 - Commit diff split view from history.
 - Show unpushed commits.
@@ -115,4 +120,4 @@ brew upgrade --cask opengit
 - Conflict resolution UI.
 
 ### UX & Product
-- Keyboard shortcuts.
+- Extended keyboard shortcuts coverage (branches, commit history).

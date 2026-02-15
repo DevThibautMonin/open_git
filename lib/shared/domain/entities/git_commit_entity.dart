@@ -4,6 +4,7 @@ class GitCommitEntity {
   final String author;
   final DateTime date;
   final String message;
+  final String description;
   final bool isUnpushed;
 
   bool get isMergeCommit => parents.length > 1;
@@ -14,6 +15,7 @@ class GitCommitEntity {
     required this.author,
     required this.date,
     required this.message,
+    this.description = '',
     required this.isUnpushed,
   });
 }

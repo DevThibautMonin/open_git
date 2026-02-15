@@ -5,7 +5,8 @@ import 'package:injectable/injectable.dart';
 import 'package:open_git/features/repository/domain/repository_view_mode.dart';
 import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
 import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
-import 'package:open_git/shared/core/services/git_service.dart';
+import 'package:open_git/shared/core/services/git_remote_service.dart';
+import 'package:open_git/shared/core/services/git_repository_service.dart';
 import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
@@ -16,11 +17,13 @@ part 'repository_bloc.mapper.dart';
 
 @LazySingleton()
 class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
-  final GitService gitService;
+  final GitRepositoryService gitRepositoryService;
+  final GitRemoteService gitRemoteService;
   final SharedPreferencesService sharedPreferencesService;
 
   RepositoryBloc({
-    required this.gitService,
+    required this.gitRepositoryService,
+    required this.gitRemoteService,
     required this.sharedPreferencesService,
   }) : super(RepositoryState()) {
     String repoNameFromPath(String path) => p.basename(path);
@@ -35,7 +38,7 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
     });
 
     on<SelectRepository>((event, emit) async {
-      await gitService.selectRepository();
+      await gitRepositoryService.selectRepository();
 
       final path = sharedPreferencesService.getString(
         SharedPreferencesKeys.repositoryPath,
@@ -59,7 +62,7 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
         return;
       }
 
-      final existsResult = await gitService.repositoryExists();
+      final existsResult = await gitRepositoryService.repositoryExists();
 
       if (existsResult.isLeft) {
         emit(
@@ -124,20 +127,23 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
     });
 
     on<FetchRepository>((event, emit) async {
-      try {
-        emit(state.copyWith(status: RepositoryBlocStatus.fetching));
+      emit(state.copyWith(status: RepositoryBlocStatus.fetching));
 
-        await gitService.fetch();
+      final result = await gitRemoteService.fetch();
 
-        emit(state.copyWith(status: RepositoryBlocStatus.fetched));
-      } catch (e) {
-        emit(
-          state.copyWith(
-            status: RepositoryBlocStatus.error,
-            errorMessage: e.toString(),
-          ),
-        );
-      }
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: RepositoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          emit(state.copyWith(status: RepositoryBlocStatus.fetched));
+        },
+      );
     });
 
     on<CloneRepositoryConfirmed>((event, emit) async {
@@ -148,7 +154,7 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
         ),
       );
 
-      final dirResult = await gitService.ensureDirectoryIsEmpty(event.destinationPath);
+      final dirResult = await gitRepositoryService.ensureDirectoryIsEmpty(event.destinationPath);
 
       if (dirResult.isLeft) {
         emit(
@@ -160,7 +166,7 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
         return;
       }
 
-      final cloneResult = await gitService.cloneRepositoryWithProgress(
+      final cloneResult = await gitRepositoryService.cloneRepositoryWithProgress(
         sshUrl: event.sshUrl,
         targetPath: event.destinationPath,
         onProgress: (progress) {

@@ -1,5 +1,25 @@
 # Changelog
 
+## Version (1.0.16) (15/02/2026)
+
+### Added
+
+- [Working directory] Keyboard navigation support (Arrow Up/Down to navigate files, Space to toggle staging).
+- [Commit history] Display full commit message description in commit details panel.
+
+### Updated
+
+- [Working directory] Optimized "Stage all" / "Unstage all" to use native Git commands (`git add -A` / `git reset`) instead of individual file loops for better performance.
+- [Commit history] Commit description is now scrollable instead of being truncated to 2 lines.
+- [Commit history] Auto-select first commit and first file when opening commit history feature.
+- [Commit history] Add visual indicators for selected commit and selected file (left border + subtle background color).
+- [Branches] Group branches by prefix. (feature/, bugfix/).
+
+### Fixes
+
+- [Working directory] Preserve commit message when switching between tabs.
+- [Working directory] Fix staging/unstaging files with spaces in their names (Git quotes were not properly removed from file paths).
+
 ## Version (1.0.15) (11/01/2026)
 
 ### Added
