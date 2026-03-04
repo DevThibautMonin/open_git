@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart';
+import 'package:open_git/features/branches/presentation/ui/branches_screen.dart';
 import 'package:open_git/features/branches/presentation/ui/new_branch_dialog.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
 import 'package:open_git/features/commit_history/presentation/ui/commit_history_screen.dart';
@@ -428,6 +429,8 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                           buildWhen: (previous, current) => previous.repositoryViewMode != current.repositoryViewMode,
                           builder: (context, state) {
                             switch (state.repositoryViewMode) {
+                              case RepositoryViewMode.branches:
+                                return const BranchesScreen();
                               case RepositoryViewMode.commitHistory:
                                 return const CommitHistoryScreen();
 

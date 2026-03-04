@@ -12,6 +12,7 @@ enum FileTypeEnum {
   laravel(assetPath: "assets/file_type_icons/laravel.svg"),
   git(assetPath: "assets/file_type_icons/git.svg"),
   jenkins(assetPath: "assets/file_type_icons/jenkins.svg"),
+  rust(assetPath: "assets/file_type_icons/rust.svg"),
 
   image(assetPath: "assets/file_type_icons/default_image.svg"),
   folder(assetPath: "assets/file_type_icons/default_file.svg"),

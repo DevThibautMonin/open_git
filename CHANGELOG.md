@@ -1,5 +1,13 @@
 # Changelog
 
+## Version (1.1.0) (04/03/2026)
+
+### Added
+
+- [Branches] Add git graph visualization to display branches timeline, forks, and merges.
+- [Branches] Display user avatars using GitHub API (or initials fallback).
+- [Commit history] Display user avatars using GitHub API (or initials fallback).
+
 ## Version (1.0.19) (15/02/2026)
 
 ### Added

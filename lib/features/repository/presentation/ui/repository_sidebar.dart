@@ -36,6 +36,13 @@ class RepositorySidebar extends StatelessWidget {
               onTap: (index) {
                 final bloc = context.read<RepositoryBloc>();
                 switch (index) {
+                  case 0:
+                    bloc.add(
+                      SetRepositoryViewMode(
+                        mode: RepositoryViewMode.branches,
+                      ),
+                    );
+                    break;
                   case 1:
                     bloc.add(
                       SetRepositoryViewMode(

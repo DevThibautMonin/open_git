@@ -2,6 +2,7 @@ class GitCommitEntity {
   final String sha;
   final List<String> parents;
   final String author;
+  final String authorEmail;
   final DateTime date;
   final String message;
   final String description;
@@ -13,6 +14,7 @@ class GitCommitEntity {
     required this.sha,
     required this.parents,
     required this.author,
+    required this.authorEmail,
     required this.date,
     required this.message,
     this.description = '',

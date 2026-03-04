@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
 import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
+import 'package:open_git/shared/presentation/widgets/user_avatar.dart';
 
 class CommitHistoryItem extends StatelessWidget {
   final GitCommitEntity commit;
@@ -68,11 +69,24 @@ class CommitHistoryItem extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            '${commit.author} • ${_formatDate(commit.date)} • ${commit.sha.substring(0, 7)}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                            ),
+                          Row(
+                            children: [
+                              UserAvatar(
+                                authorName: commit.author,
+                                authorEmail: commit.authorEmail,
+                                size: 16.0,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  '${commit.author} • ${_formatDate(commit.date)} • ${commit.sha.substring(0, 7)}',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

@@ -30,6 +30,10 @@ class GetRepositoryBranches extends BranchesEvent {
   GetRepositoryBranches();
 }
 
+class GetGraphCommits extends BranchesEvent {
+  GetGraphCommits();
+}
+
 class CreateNewBranchAndCheckout extends BranchesEvent {
   final String branchName;
 

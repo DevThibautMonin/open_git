@@ -32,4 +32,12 @@ class GitCommands {
   static const List<String> gitFetchPrune = ['fetch', '--prune'];
   static const List<String> checkoutRemoteBranch = ['checkout', '-t'];
   static const List<String> gitUnpushedCommits = ['log', '--pretty=format:%H', '@{u}..HEAD'];
+  
+  static const List<String> gitLogGraphAll = [
+    'log',
+    '--all',
+    '--date-order',
+    '--format=%H|%P|%D|%an|%ae|%ad|%s%x00',
+    '--date=iso',
+  ];
 }

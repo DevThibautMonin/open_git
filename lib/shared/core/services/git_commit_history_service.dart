@@ -23,7 +23,7 @@ class GitCommitHistoryService {
 
     final logResult = await commandRunner.run([
       'log',
-      '--pretty=format:%H|%P|%an|%ad|%B%x00',
+      '--pretty=format:%H|%P|%an|%ae|%ad|%B%x00',
       '--date=iso',
       '--max-count=$limit',
     ]);
@@ -96,7 +96,7 @@ class GitCommitHistoryService {
       final sha = p[0];
       final parents = p[1].split(' ').where((e) => e.isNotEmpty).toList();
 
-      final fullMessage = p.sublist(4).join('|').trim();
+      final fullMessage = p.sublist(5).join('|').trim();
       final messageParts = fullMessage.split('\n');
       final message = messageParts.first.trim();
       final description = messageParts.length > 1
@@ -107,7 +107,8 @@ class GitCommitHistoryService {
         sha: sha,
         parents: parents,
         author: p[2],
-        date: DateTime.parse(p[3]),
+        authorEmail: p[3],
+        date: DateTime.parse(p[4]),
         message: message,
         description: description,
         isUnpushed: unpushedShas.contains(sha),

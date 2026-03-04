@@ -63,6 +63,8 @@ brew upgrade --cask opengit
 - Show remote branches state (deleted, active).
 - Checkout remote branches locally.
 - Group branches by prefix. (feature/, bugfix/).
+- Visual Git Graph of commit history, forks, and merges.
+- GitHub user avatars integrated.
 
 ### Working Directory
 - Display modified, added, deleted, and untracked files.
@@ -96,6 +98,7 @@ brew upgrade --cask opengit
 - Clean and readable chronological view.
 - Commit diff split view from history.
 - Show unpushed commits.
+- Display GitHub user avatars for authors.
 
 ### SSH & Authentication
 - Automatic detection of SSH issues.
