@@ -36,6 +36,8 @@ extension FileTypeEnumResolver on String {
         return FileTypeEnum.javascript;
       case 'Jenkinsfile':
         return FileTypeEnum.jenkins;
+      case 'rs':
+        return FileTypeEnum.rust;
       case 'ts':
         return FileTypeEnum.typescript;
       case 'md':
