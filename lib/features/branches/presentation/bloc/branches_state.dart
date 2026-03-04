@@ -18,6 +18,7 @@ enum BranchesBlocStatus {
 class BranchesState with BranchesStateMappable {
   final BranchesBlocStatus status;
   final List<BranchEntity> branches;
+  final List<GraphCommitEntity> graphCommits;
   final String errorMessage;
   final BranchEntity? selectedBranch;
   final bool selectedBranchHasUpstream;
@@ -25,6 +26,7 @@ class BranchesState with BranchesStateMappable {
   const BranchesState({
     this.status = BranchesBlocStatus.initial,
     this.branches = const [],
+    this.graphCommits = const [],
     this.errorMessage = "",
     this.selectedBranch,
     this.selectedBranchHasUpstream = false,
