@@ -13,12 +13,12 @@ enum FileTypeEnum {
   git(assetPath: "assets/file_type_icons/git.svg"),
   jenkins(assetPath: "assets/file_type_icons/jenkins.svg"),
   rust(assetPath: "assets/file_type_icons/rust.svg"),
+  go(assetPath: "assets/file_type_icons/go.svg"),
 
   image(assetPath: "assets/file_type_icons/default_image.svg"),
   folder(assetPath: "assets/file_type_icons/default_file.svg"),
 
-  unknown(assetPath: "assets/file_type_icons/default_file.svg")
-  ;
+  unknown(assetPath: "assets/file_type_icons/default_file.svg");
 
   final String assetPath;
 
