@@ -1,5 +1,26 @@
 # Changelog
 
+## Version (1.0.1+22) (02/07/2026)
+
+### Added
+
+- [UX/UI] Add a desktop theme foundation with dedicated light and dark palettes.
+- [UX/UI] Add reusable desktop widgets for buttons, panels, dialogs, lists, section headers, segmented controls, text fields, and empty states.
+
+### Updated
+
+- [Global / UI] Rework the application layout with a cleaner desktop-oriented interface.
+- [Repository] Replace the tab sidebar with desktop navigation and footer controls.
+- [Branches] Refresh branches sidebar and graph layout with compact rows and badges.
+- [Working directory] Refresh files list, staging controls, and commit panel with desktop components.
+- [Commit history] Refresh commits list, details header, and changed files sidebar.
+- [Files differences] Refresh unified and split diff views with themed line colors.
+
+### Fixes
+
+- [Global / UI] Remove hover highlight states from interactive desktop widgets.
+- [Global / UI] Prevent the previously selected item from flashing during selection changes.
+
 ## Version (1.1.0) (04/03/2026)
 
 ### Added
