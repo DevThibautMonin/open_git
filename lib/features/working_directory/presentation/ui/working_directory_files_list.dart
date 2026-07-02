@@ -6,16 +6,24 @@ import 'package:open_git/features/files_differences/presentation/bloc/files_diff
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 import 'package:open_git/features/working_directory/presentation/ui/working_directory_item.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
 import 'package:open_git/shared/presentation/widgets/commit_message_textfield.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_checkbox.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_empty_state.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_section_header.dart';
 
 class WorkingDirectoryFilesList extends StatefulWidget {
   const WorkingDirectoryFilesList({super.key});
 
   @override
-  State<WorkingDirectoryFilesList> createState() => _WorkingDirectoryFilesListState();
+  State<WorkingDirectoryFilesList> createState() =>
+      _WorkingDirectoryFilesListState();
 }
 
-class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList> with AutomaticKeepAliveClientMixin {
+class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
+    with AutomaticKeepAliveClientMixin {
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   static const double _itemExtent = 40.0;
@@ -85,8 +93,11 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList> w
 
     final key = event.logicalKey;
 
-    if (key == LogicalKeyboardKey.arrowDown || key == LogicalKeyboardKey.arrowUp) {
-      final currentIndex = state.selectedFile != null ? files.indexWhere((f) => f.path == state.selectedFile!.path) : -1;
+    if (key == LogicalKeyboardKey.arrowDown ||
+        key == LogicalKeyboardKey.arrowUp) {
+      final currentIndex = state.selectedFile != null
+          ? files.indexWhere((f) => f.path == state.selectedFile!.path)
+          : -1;
 
       int newIndex;
       if (currentIndex == -1) {
@@ -112,7 +123,9 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList> w
         orElse: () => selectedFile,
       );
 
-      bloc.add(ToggleFileStaging(file: currentFile, stage: !currentFile.staged));
+      bloc.add(
+        ToggleFileStaging(file: currentFile, stage: !currentFile.staged),
+      );
       return KeyEventResult.handled;
     }
 
@@ -124,62 +137,78 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList> w
     super.build(context);
     return BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
       builder: (context, state) {
-        if (state.files.isEmpty) {
-          return const Center(
-            child: Text("No local changes"),
-          );
-        }
         return Focus(
           focusNode: _focusNode,
           autofocus: true,
           onKeyEvent: _handleKeyEvent,
           child: Column(
             children: [
-              Row(
-                children: [
-                  Checkbox(
-                    value: _areAllFilesStaged(state.files),
-                    onChanged: (checked) {
-                      context.read<WorkingDirectoryBloc>().add(ToggleAllFilesStaging(stage: checked ?? false));
-                    },
-                  ),
-                  Text("(${state.files.length}) Changed files"),
-                  const Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: ActionChip(
-                      avatar: const Icon(
-                        Icons.remove,
-                        size: 18,
-                      ),
-                      label: const Text("Discard all changes"),
-                      onPressed: () {
-                        context.read<WorkingDirectoryBloc>().add(
-                          UpdateWorkingDirectoryStatus(
-                            status: WorkingDirectoryBlocStatus.askForDiscardAllChanges,
-                          ),
-                        );
-                      },
+              DesktopPanel(
+                color: Theme.of(context).openGit.toolbar,
+                bottomBorder: true,
+                padding: const EdgeInsets.fromLTRB(8, 7, 8, 7),
+                child: Row(
+                  children: [
+                    DesktopCheckbox(
+                      value: _areAllFilesStaged(state.files),
+                      tooltip: 'Stage all files',
+                      onChanged: state.files.isEmpty
+                          ? null
+                          : (checked) {
+                              context.read<WorkingDirectoryBloc>().add(
+                                ToggleAllFilesStaging(stage: checked),
+                              );
+                            },
                     ),
-                  ),
-                ],
-              ),
-              Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  itemExtent: _itemExtent,
-                  itemCount: state.files.length,
-                  itemBuilder: (context, index) {
-                    final file = state.files[index];
-                    return WorkingDirectoryItem(
-                      file: file,
-                    );
-                  },
+                    Expanded(
+                      child: DesktopSectionHeader(
+                        title: 'Changed files',
+                        count: state.files.length.toString(),
+                        padding: EdgeInsets.zero,
+                      ),
+                    ),
+                    DesktopButton(
+                      icon: Icons.remove_circle_outline,
+                      label: 'Discard all',
+                      tooltip: 'Discard all local changes',
+                      variant: DesktopButtonVariant.danger,
+                      onPressed: state.files.isEmpty
+                          ? null
+                          : () {
+                              context.read<WorkingDirectoryBloc>().add(
+                                UpdateWorkingDirectoryStatus(
+                                  status: WorkingDirectoryBlocStatus
+                                      .askForDiscardAllChanges,
+                                ),
+                              );
+                            },
+                    ),
+                  ],
                 ),
               ),
-              CommitMessageTextfield(
-                hasStagedFiles: state.files.any((file) => file.staged),
+              Expanded(
+                child: state.files.isEmpty
+                    ? const DesktopEmptyState(
+                        icon: Icons.check_circle_outline,
+                        title: 'No local changes',
+                        message: 'Your working directory is clean.',
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        itemExtent: _itemExtent,
+                        itemCount: state.files.length,
+                        itemBuilder: (context, index) {
+                          final file = state.files[index];
+                          return WorkingDirectoryItem(
+                            file: file,
+                          );
+                        },
+                      ),
               ),
+              if (state.files.isNotEmpty)
+                CommitMessageTextfield(
+                  hasStagedFiles: state.files.any((file) => file.staged),
+                ),
             ],
           ),
         );
