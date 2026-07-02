@@ -1,131 +1,65 @@
-import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/branches_sidebar.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
+import 'package:open_git/features/commit_history/presentation/ui/commit_history_list.dart';
 import 'package:open_git/features/repository/domain/repository_view_mode.dart';
 import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
+import 'package:open_git/features/repository/presentation/ui/repository_sidebar_footer.dart';
+import 'package:open_git/features/repository/presentation/ui/repository_sidebar_navigation.dart';
 import 'package:open_git/features/working_directory/presentation/ui/working_directory_files_list.dart';
-import 'package:open_git/features/commit_history/presentation/ui/commit_history_list.dart';
-import 'package:open_git/shared/presentation/themes/bloc/theme_bloc.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart';
 
 class RepositorySidebar extends StatelessWidget {
   const RepositorySidebar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    return DesktopPanel(
+      rightBorder: true,
+      child: BlocBuilder<RepositoryBloc, RepositoryState>(
+        buildWhen: (previous, current) =>
+            previous.repositoryViewMode != current.repositoryViewMode,
+        builder: (context, state) {
+          final selectedMode =
+              state.repositoryViewMode ?? RepositoryViewMode.changes;
 
-    return DefaultTabController(
-      initialIndex: 1,
-      length: 3,
-      child: Container(
-        width: 400,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          border: Border(
-            right: BorderSide(
-              color: theme.dividerColor.withValues(alpha: 0.2),
-            ),
-          ),
-        ),
-        child: Column(
-          children: [
-            TabBar(
-              labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-              onTap: (index) {
-                final bloc = context.read<RepositoryBloc>();
-                switch (index) {
-                  case 0:
-                    bloc.add(
-                      SetRepositoryViewMode(
-                        mode: RepositoryViewMode.branches,
-                      ),
-                    );
-                    break;
-                  case 1:
-                    bloc.add(
-                      SetRepositoryViewMode(
-                        mode: RepositoryViewMode.changes,
-                      ),
-                    );
-                    break;
-                  case 2:
-                    bloc.add(
-                      SetRepositoryViewMode(
-                        mode: RepositoryViewMode.commitHistory,
-                      ),
-                    );
-                    context.read<CommitHistoryBloc>().add(
-                      LoadCommitHistory(),
-                    );
-                    break;
-                  default:
-                    break;
-                }
-              },
-              tabs: [
-                Tab(text: "Branches"),
-                Tab(text: "Changes"),
-                Tab(text: "History"),
-              ],
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  BranchesSidebar(),
-                  WorkingDirectoryFilesList(),
-                  BlocBuilder<CommitHistoryBloc, CommitHistoryState>(
-                    builder: (context, state) {
-                      return Row(
-                        children: [
-                          Expanded(
-                            child: CommitHistoryList(
-                              commits: state.commits,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
+          return Column(
+            children: [
+              RepositorySidebarNavigation(
+                selectedMode: selectedMode,
+                onModeSelected: (mode) {
+                  context.read<RepositoryBloc>().add(
+                    SetRepositoryViewMode(mode: mode),
+                  );
+
+                  if (mode == RepositoryViewMode.commitHistory) {
+                    context.read<CommitHistoryBloc>().add(LoadCommitHistory());
+                  }
+                },
               ),
-            ),
-            BlocBuilder<RepositoryBloc, RepositoryState>(
-              buildWhen: (previous, current) => previous.version != current.version,
-              builder: (context, state) {
-                return Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          context.watch<ThemeBloc>().state.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode,
-                        ),
-                        onPressed: () {
-                          context.read<ThemeBloc>().add(UpdateTheme());
-                        },
-                      ),
-                      Text("Version : ${state.version}"),
-                      const SizedBox(width: 8),
-                      InkWell(
-                        onTap: () async {
-                          await autoUpdater.checkForUpdates(inBackground: false);
-                        },
-                        child: const Icon(
-                          Icons.refresh,
-                          size: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+              Expanded(
+                child: switch (selectedMode) {
+                  RepositoryViewMode.branches => const BranchesSidebar(),
+                  RepositoryViewMode.commitHistory =>
+                    BlocBuilder<CommitHistoryBloc, CommitHistoryState>(
+                      builder: (context, historyState) {
+                        return CommitHistoryList(
+                          commits: historyState.commits,
+                          isLoading:
+                              historyState.status ==
+                              CommitHistoryBlocStatus.loading,
+                        );
+                      },
+                    ),
+                  RepositoryViewMode.changes =>
+                    const WorkingDirectoryFilesList(),
+                },
+              ),
+              const RepositorySidebarFooter(),
+            ],
+          );
+        },
       ),
     );
   }
