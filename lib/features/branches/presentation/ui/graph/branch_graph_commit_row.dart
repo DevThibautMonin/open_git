@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_git/features/branches/presentation/ui/graph/branch_graph_ref_badge.dart';
 import 'package:open_git/shared/domain/entities/graph_commit_entity.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 import 'package:open_git/shared/presentation/widgets/user_avatar.dart';
 
@@ -19,23 +20,18 @@ class BranchGraphCommitRow extends StatefulWidget {
 }
 
 class _BranchGraphCommitRowState extends State<BranchGraphCommitRow> {
-  bool _isHovering = false;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return MouseRegion(
-      onEnter: (_) => setState(() => _isHovering = true),
-      onExit: (_) => setState(() => _isHovering = false),
-      child: Container(
+      opaque: false,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
         height: widget.rowHeight,
-        color: _isHovering
-            ? theme.colorScheme.onSurface.withValues(alpha: 0.05)
-            : Colors.transparent,
+        color: Colors.transparent,
         child: Row(
           children: [
-            // Commit message and badges
             Expanded(
               flex: 3,
               child: Row(
@@ -58,10 +54,10 @@ class _BranchGraphCommitRowState extends State<BranchGraphCommitRow> {
                       widget.commit.message,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: theme.openGitBody.copyWith(
                         fontWeight: widget.commit.refs.isNotEmpty
-                            ? FontWeight.bold
-                            : FontWeight.normal,
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                       ),
                     ),
                   ),
@@ -69,7 +65,6 @@ class _BranchGraphCommitRowState extends State<BranchGraphCommitRow> {
               ),
             ),
             Gaps.w16,
-            // Author
             Expanded(
               flex: 1,
               child: Row(
@@ -85,35 +80,29 @@ class _BranchGraphCommitRowState extends State<BranchGraphCommitRow> {
                       widget.commit.author,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-                      ),
+                      style: theme.openGitCaption,
                     ),
                   ),
                 ],
               ),
             ),
-            // Date
             SizedBox(
               width: 100,
               child: Text(
                 "${widget.commit.date.year}-${widget.commit.date.month.toString().padLeft(2, '0')}-${widget.commit.date.day.toString().padLeft(2, '0')}",
                 textAlign: TextAlign.right,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-                ),
+                style: theme.openGitCaption,
               ),
             ),
             Gaps.w16,
-            // SHA
             SizedBox(
               width: 60,
               child: Text(
                 widget.commit.sha.substring(0, 7),
                 textAlign: TextAlign.right,
-                style: theme.textTheme.labelSmall?.copyWith(
+                style: theme.openGitCaption.copyWith(
                   fontFamily: 'monospace',
-                  color: theme.colorScheme.primary,
+                  color: theme.openGit.textMuted,
                 ),
               ),
             ),

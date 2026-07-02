@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_git/features/branches/presentation/ui/branch_item.dart';
 import 'package:open_git/shared/domain/entities/branch_entity.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_section_header.dart';
 
 class CurrentBranchSection extends StatelessWidget {
   final BranchEntity branch;
@@ -12,18 +13,10 @@ class CurrentBranchSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: Text(
-            "Current",
-            style: theme.textTheme.labelMedium,
-          ),
-        ),
+        const DesktopSectionHeader(title: "Current"),
         BranchItem(branch: branch),
       ],
     );
