@@ -8,6 +8,8 @@ import 'package:open_git/features/files_differences/presentation/ui/split_diff_v
 import 'package:open_git/features/files_differences/presentation/ui/unified_diff_viewer.dart';
 import 'package:open_git/features/commit_history/presentation/ui/commit_files_sidebar.dart';
 import 'package:open_git/features/commit_history/presentation/ui/commit_details_header.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_empty_state.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart';
 
 class CommitHistoryScreen extends StatelessWidget {
   const CommitHistoryScreen({super.key});
@@ -18,27 +20,20 @@ class CommitHistoryScreen extends StatelessWidget {
       builder: (context, diffState) {
         return Row(
           children: [
-            SizedBox(
+            const SizedBox(
               width: 300,
-              child: Column(
-                children: [
-                  BlocBuilder<CommitHistoryBloc, CommitHistoryState>(
-                    builder: (context, state) {
-                      final selectedCommit = state.selectedCommit;
-                      if (selectedCommit == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return CommitDetailsHeader(commit: selectedCommit);
-                    },
-                  ),
-                  const Expanded(
-                    child: CommitFilesSidebar(),
-                  ),
-                ],
+              child: DesktopPanel(
+                rightBorder: true,
+                child: Column(
+                  children: [
+                    CommitDetailsHeaderHost(),
+                    Expanded(
+                      child: CommitFilesSidebar(),
+                    ),
+                  ],
+                ),
               ),
             ),
-
-            const VerticalDivider(width: 1),
 
             Expanded(
               child: Column(
@@ -51,12 +46,16 @@ class CommitHistoryScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  const Divider(height: 1),
                   BlocBuilder<CommitHistoryBloc, CommitHistoryState>(
                     builder: (context, state) {
                       return Expanded(
                         child: state.selectedCommitFile == null
-                            ? const Center(child: Text('No changes'))
+                            ? const DesktopEmptyState(
+                                icon: Icons.file_present_outlined,
+                                title: 'No file selected',
+                                message:
+                                    'Select a file from the commit to inspect its diff.',
+                              )
                             : diffState.diffModeDisplay == DiffModeDisplay.split
                             ? SplitDiffViewer()
                             : UnifiedDiffViewer(),
@@ -68,6 +67,24 @@ class CommitHistoryScreen extends StatelessWidget {
             ),
           ],
         );
+      },
+    );
+  }
+}
+
+class CommitDetailsHeaderHost extends StatelessWidget {
+  const CommitDetailsHeaderHost({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CommitHistoryBloc, CommitHistoryState>(
+      builder: (context, state) {
+        final selectedCommit = state.selectedCommit;
+        if (selectedCommit == null) {
+          return const SizedBox.shrink();
+        }
+
+        return CommitDetailsHeader(commit: selectedCommit);
       },
     );
   }

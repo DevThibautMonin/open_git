@@ -18,7 +18,6 @@ class BranchGraphPainter extends CustomPainter {
     required this.baseColor,
   });
 
-  // A simple palette of colors for different lanes
   static const List<Color> _laneColors = [
     Colors.blue,
     Colors.red,
@@ -48,14 +47,15 @@ class BranchGraphPainter extends CustomPainter {
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
-    // Draw connecting lines first (so they are under the nodes)
     for (int i = 0; i < commits.length; i++) {
       final commit = commits[i];
       final startY = i * rowHeight + (rowHeight / 2);
 
       for (final route in commit.routes) {
-        // Find the index of the commit this route points to
-        int targetIndex = commits.indexWhere((c) => c.sha == route.commitSha, i + 1);
+        int targetIndex = commits.indexWhere(
+          (c) => c.sha == route.commitSha,
+          i + 1,
+        );
         if (targetIndex != -1) {
           final endY = targetIndex * rowHeight + (rowHeight / 2);
           final startX = (route.fromLane * laneWidth) + (laneWidth / 2);
@@ -64,21 +64,21 @@ class BranchGraphPainter extends CustomPainter {
           paint.color = _getLaneColor(route.fromLane);
 
           if (route.fromLane == route.toLane) {
-            // Straight vertical line
             canvas.drawLine(Offset(startX, startY), Offset(endX, endY), paint);
           } else {
-            // Bezier curve for changing lanes
             final path = Path();
             path.moveTo(startX, startY);
-            
-            // Control points for a smooth S-curve
+
             final controlPoint1Y = startY + (endY - startY) * 0.5;
             final controlPoint2Y = startY + (endY - startY) * 0.5;
-            
+
             path.cubicTo(
-              startX, controlPoint1Y,
-              endX, controlPoint2Y,
-              endX, endY,
+              startX,
+              controlPoint1Y,
+              endX,
+              controlPoint2Y,
+              endX,
+              endY,
             );
 
             canvas.drawPath(path, paint);
@@ -87,7 +87,6 @@ class BranchGraphPainter extends CustomPainter {
       }
     }
 
-    // Draw nodes on top
     for (int i = 0; i < commits.length; i++) {
       final commit = commits[i];
       final y = i * rowHeight + (rowHeight / 2);
@@ -96,8 +95,7 @@ class BranchGraphPainter extends CustomPainter {
       nodePaint.color = _getLaneColor(commit.lane);
       canvas.drawCircle(Offset(x, y), nodeRadius, nodePaint);
 
-      // Add a small inner circle to make it look like a subway stop
-      nodePaint.color = Colors.white; // Or background color if we pass it
+      nodePaint.color = Colors.white;
       canvas.drawCircle(Offset(x, y), nodeRadius * 0.4, nodePaint);
     }
   }
@@ -105,7 +103,7 @@ class BranchGraphPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant BranchGraphPainter oldDelegate) {
     return oldDelegate.commits != commits ||
-           oldDelegate.rowHeight != rowHeight ||
-           oldDelegate.laneWidth != laneWidth;
+        oldDelegate.rowHeight != rowHeight ||
+        oldDelegate.laneWidth != laneWidth;
   }
 }

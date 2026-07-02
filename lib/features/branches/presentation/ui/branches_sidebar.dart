@@ -4,7 +4,9 @@ import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart'
 import 'package:open_git/features/branches/presentation/ui/current_branch_section.dart';
 import 'package:open_git/features/branches/presentation/ui/local_branches_section.dart';
 import 'package:open_git/features/branches/presentation/ui/remote_branches_section.dart';
-import 'package:open_git/shared/presentation/widgets/gaps.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart';
 
 class BranchesSidebar extends StatelessWidget {
   const BranchesSidebar({super.key});
@@ -13,29 +15,21 @@ class BranchesSidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      width: 260,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          right: BorderSide(
-            color: theme.dividerColor.withValues(alpha: 0.2),
-          ),
-        ),
-      ),
+    return DesktopPanel(
+      color: theme.openGit.panel,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: ActionChip(
-                  avatar: const Icon(
-                    Icons.add_circle_outline_sharp,
-                    size: 18,
-                  ),
-                  label: const Text("New"),
+          DesktopPanel(
+            color: theme.openGit.toolbar,
+            bottomBorder: true,
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: [
+                DesktopButton(
+                  icon: Icons.add,
+                  label: "New branch",
+                  tooltip: "Create branch",
                   onPressed: () {
                     context.read<BranchesBloc>().add(
                       UpdateBranchesStatus(
@@ -44,16 +38,16 @@ class BranchesSidebar extends StatelessWidget {
                     );
                   },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          Gaps.h8,
           Expanded(
             child: BlocBuilder<BranchesBloc, BranchesState>(
               builder: (context, state) {
                 return ListView(
                   children: [
-                    if (state.currentBranch.isNotEmpty) CurrentBranchSection(branch: state.currentBranch.first),
+                    if (state.currentBranch.isNotEmpty)
+                      CurrentBranchSection(branch: state.currentBranch.first),
 
                     LocalBranchesSection(
                       branchGroups: state.localBranchGroups,

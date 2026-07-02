@@ -6,6 +6,7 @@ import 'package:open_git/features/files_differences/presentation/ui/split_diff_v
 import 'package:open_git/features/files_differences/presentation/ui/unified_diff_viewer.dart';
 import 'package:open_git/features/files_differences/presentation/ui/file_differences_header.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_empty_state.dart';
 
 class WorkingDirectoryScreen extends StatelessWidget {
   const WorkingDirectoryScreen({super.key});
@@ -14,7 +15,10 @@ class WorkingDirectoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<FilesDifferencesBloc, FilesDifferencesState>(
       builder: (context, diffState) {
-        final selectedFile = context.watch<WorkingDirectoryBloc>().state.selectedFile;
+        final selectedFile = context
+            .watch<WorkingDirectoryBloc>()
+            .state
+            .selectedFile;
 
         return Column(
           children: [
@@ -22,10 +26,13 @@ class WorkingDirectoryScreen extends StatelessWidget {
               filePath: selectedFile?.path,
               mode: diffState.diffModeDisplay,
             ),
-            const Divider(height: 1),
             Expanded(
               child: selectedFile == null
-                  ? const Center(child: Text('No changes'))
+                  ? const DesktopEmptyState(
+                      icon: Icons.file_present_outlined,
+                      title: 'No file selected',
+                      message: 'Select a changed file to inspect its diff.',
+                    )
                   : diffState.diffModeDisplay == DiffModeDisplay.split
                   ? SplitDiffViewer()
                   : UnifiedDiffViewer(),

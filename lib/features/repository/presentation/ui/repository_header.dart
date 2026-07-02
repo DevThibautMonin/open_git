@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart';
 import 'package:open_git/shared/presentation/widgets/fetch_button.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 import 'package:open_git/shared/presentation/widgets/push_commits_button.dart';
@@ -27,37 +30,25 @@ class RepositoryHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return DesktopPanel(
+      color: theme.openGit.toolbar,
+      bottomBorder: true,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
           Wrap(
-            spacing: 8,
+            spacing: 6,
             children: [
-              ActionChip(
-                avatar: const Icon(
-                  Icons.download,
-                  size: 18,
-                ),
-                label: const Text('Clone'),
+              DesktopButton(
+                icon: Icons.download,
+                label: 'Clone',
+                tooltip: 'Clone repository',
                 onPressed: onCloneRepository,
               ),
-              ActionChip(
-                avatar: const Icon(
-                  Icons.folder_open,
-                  size: 18,
-                ),
-                label: const Text('Open'),
+              DesktopButton(
+                icon: Icons.folder_open,
+                label: 'Open',
+                tooltip: 'Open local repository',
                 onPressed: onSelectRepository,
               ),
             ],
@@ -66,16 +57,41 @@ class RepositoryHeader extends StatelessWidget {
           Expanded(
             child: BlocBuilder<RepositoryBloc, RepositoryState>(
               builder: (context, state) {
-                return Text(
-                  state.currentRepositoryName.isEmpty ? "No repository selected" : state.currentRepositoryName,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                final hasRepository = state.currentRepositoryName.isNotEmpty;
+                final theme = Theme.of(context);
+
+                return Row(
+                  children: [
+                    Icon(
+                      hasRepository
+                          ? Icons.data_object
+                          : Icons.folder_off_outlined,
+                      size: 16,
+                      color: hasRepository
+                          ? theme.openGit.accent
+                          : theme.openGit.textMuted,
+                    ),
+                    Gaps.w8,
+                    Expanded(
+                      child: Text(
+                        hasRepository
+                            ? state.currentRepositoryName
+                            : "No repository selected",
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.openGitBody.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: hasRepository
+                              ? theme.openGit.textPrimary
+                              : theme.openGit.textMuted,
+                        ),
+                      ),
+                    ),
+                  ],
                 );
               },
             ),
           ),
+          Gaps.w8,
           BlocBuilder<RepositoryBloc, RepositoryState>(
             builder: (context, state) {
               return FetchButton(

@@ -3,7 +3,7 @@ import 'package:open_git/features/branches/presentation/ui/branch_group.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
 import 'package:open_git/shared/core/services/ui_preferences_service.dart';
 import 'package:open_git/shared/domain/entities/branch_group_entity.dart';
-import 'package:open_git/shared/presentation/widgets/gaps.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_section_header.dart';
 
 class LocalBranchesSection extends StatefulWidget {
   final List<BranchGroupEntity> branchGroups;
@@ -48,21 +48,16 @@ class _LocalBranchesSectionState extends State<LocalBranchesSection> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     if (widget.branchGroups.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Gaps.h8,
-        const Divider(height: 1),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: Text(
-            "Local branches",
-            style: theme.textTheme.labelMedium,
-          ),
+        DesktopSectionHeader(
+          title: "Local branches",
+          count: widget.branchGroups
+              .fold<int>(0, (sum, group) => sum + group.count)
+              .toString(),
         ),
         ...widget.branchGroups.map((group) {
           return BranchGroup(

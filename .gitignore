@@ -28,6 +28,7 @@ coverage/
 # Ignore IDE
 .idea/
 .vscode/
+.zed/
 
 # Android build
 keystore.jks

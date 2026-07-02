@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_dialog.dart';
 
 class DiscardAllChangesDialog extends StatelessWidget {
   final VoidCallback onCancel;
@@ -12,25 +14,28 @@ class DiscardAllChangesDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text("Discard all changes"),
-      content: const Text(
-        "This will permanently discard all local changes. This action cannot be undone.",
-      ),
+    return DesktopDialog(
+      title: "Discard all changes",
+      icon: Icons.remove_circle_outline,
       actions: [
-        TextButton(
+        DesktopButton(
+          label: "Cancel",
           onPressed: () {
             onCancel();
           },
-          child: const Text("Cancel"),
         ),
-        ElevatedButton(
+        DesktopButton(
+          label: "Discard",
+          icon: Icons.remove_circle_outline,
+          variant: DesktopButtonVariant.danger,
           onPressed: () {
             onDiscard();
           },
-          child: const Text("Discard"),
         ),
       ],
+      child: const Text(
+        "This will permanently discard all local changes. This action cannot be undone.",
+      ),
     );
   }
 }

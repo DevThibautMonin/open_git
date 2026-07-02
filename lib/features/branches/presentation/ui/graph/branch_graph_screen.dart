@@ -33,7 +33,6 @@ class BranchGraphScreen extends StatelessWidget {
       controller: scrollController,
       child: Stack(
         children: [
-          // Graph layer
           Positioned(
             left: 0,
             top: 0,
@@ -49,15 +48,14 @@ class BranchGraphScreen extends StatelessWidget {
               ),
             ),
           ),
-          
-          // Commits list layer
+
           Padding(
             padding: EdgeInsets.only(left: graphWidth),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: List.generate(commits.length, (index) {
                 final commit = commits[index];
-                
+
                 return BranchGraphCommitRow(
                   commit: commit,
                   rowHeight: rowHeight,

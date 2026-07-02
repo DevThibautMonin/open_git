@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
 
 class ErrorSnackBar {
   static void show(
@@ -19,8 +20,8 @@ class ErrorSnackBar {
           content: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: const Color(0xFFD32F2F),
-              borderRadius: BorderRadius.circular(12),
+              color: Theme.of(context).openGit.danger,
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,

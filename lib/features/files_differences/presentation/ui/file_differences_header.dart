@@ -4,6 +4,9 @@ import 'package:open_git/features/files_differences/domain/enums/diff_mode_displ
 import 'package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart';
 import 'package:open_git/shared/core/extensions/string_extensions.dart';
 import 'package:open_git/shared/domain/enums/file_type_enum.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_segmented_control.dart';
 import 'package:open_git/shared/presentation/widgets/file_type_icon.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
@@ -19,7 +22,11 @@ class FileDifferencesHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final theme = Theme.of(context);
+
+    return DesktopPanel(
+      color: theme.openGit.toolbar,
+      bottomBorder: true,
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       child: Row(
         children: [
@@ -29,30 +36,35 @@ class FileDifferencesHeader extends StatelessWidget {
           Gaps.w8,
           Expanded(
             child: Text(
-              filePath ?? '',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
+              filePath ?? 'No file selected',
+              style: theme.openGitBody.copyWith(
+                fontWeight: FontWeight.w700,
+                color: filePath == null
+                    ? theme.openGit.textMuted
+                    : theme.openGit.textPrimary,
               ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
 
-          SegmentedButton<DiffModeDisplay>(
+          DesktopSegmentedControl<DiffModeDisplay>(
+            selected: mode,
             segments: const [
-              ButtonSegment(
+              DesktopSegment(
                 value: DiffModeDisplay.unified,
-                label: Text('Unified'),
-                icon: Icon(Icons.view_agenda),
+                label: 'Unified',
+                icon: Icons.view_agenda,
               ),
-              ButtonSegment(
+              DesktopSegment(
                 value: DiffModeDisplay.split,
-                label: Text('Split'),
-                icon: Icon(Icons.view_column),
+                label: 'Split',
+                icon: Icons.view_column,
               ),
             ],
-            selected: {mode},
-            onSelectionChanged: (selection) {
-              context.read<FilesDifferencesBloc>().add(SetDiffModeDisplay(selection.first));
+            onChanged: (selection) {
+              context.read<FilesDifferencesBloc>().add(
+                SetDiffModeDisplay(selection),
+              );
             },
           ),
         ],

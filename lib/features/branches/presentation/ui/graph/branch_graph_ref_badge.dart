@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
 
 class BranchGraphRefBadge extends StatelessWidget {
   final String refName;
@@ -11,23 +12,21 @@ class BranchGraphRefBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
-    // Simple heuristic to differentiate HEAD, remote branches, local branches, and tags
-    Color bgColor = theme.colorScheme.surfaceContainerHighest;
-    Color textColor = theme.colorScheme.onSurfaceVariant;
-    
+
+    Color bgColor = theme.openGit.panelAlt;
+    Color textColor = theme.openGit.textSecondary;
+
     String cleanRef = refName;
     if (refName.startsWith('HEAD -> ')) {
-      bgColor = theme.colorScheme.primaryContainer;
-      textColor = theme.colorScheme.onPrimaryContainer;
+      bgColor = theme.openGit.accent;
+      textColor = Colors.white;
       cleanRef = refName.replaceFirst('HEAD -> ', '');
     } else if (refName.contains('/')) {
-      // Remote branch
-      bgColor = theme.colorScheme.tertiaryContainer;
-      textColor = theme.colorScheme.onTertiaryContainer;
+      bgColor = theme.openGit.success.withValues(alpha: 0.12);
+      textColor = theme.openGit.success;
     } else if (refName.startsWith('tag: ')) {
-      bgColor = Colors.amber.withValues(alpha: 0.2);
-      textColor = Colors.amber.shade900;
+      bgColor = theme.openGit.warning.withValues(alpha: 0.16);
+      textColor = theme.openGit.warning;
       cleanRef = refName.replaceFirst('tag: ', '');
     }
 
@@ -44,10 +43,11 @@ class BranchGraphRefBadge extends StatelessWidget {
       ),
       child: Text(
         cleanRef,
-        style: theme.textTheme.labelSmall?.copyWith(
+        style: TextStyle(
           color: textColor,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           fontSize: 10,
+          letterSpacing: 0,
         ),
       ),
     );

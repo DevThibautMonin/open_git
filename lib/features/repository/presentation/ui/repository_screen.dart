@@ -24,6 +24,7 @@ import 'package:open_git/shared/core/constants/constants.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_header.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_sidebar.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
 import 'package:open_git/shared/presentation/widgets/resizable_sidebar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/error_snackbar.dart';
 import 'package:open_git/shared/presentation/widgets/snackbars/success_snackbar.dart';
@@ -53,6 +54,8 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -64,19 +67,22 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
           create: (context) => getIt<BranchesBloc>(),
         ),
         BlocProvider(
-          create: (context) => _workingDirectoryBloc..add(GetRepositoryStatus()),
+          create: (context) =>
+              _workingDirectoryBloc..add(GetRepositoryStatus()),
         ),
         BlocProvider(
           create: (context) => getIt<CommitHistoryBloc>(),
         ),
         BlocProvider(
-          create: (context) => _filesDifferencesBloc..add(LoadDiffModeDisplay()),
+          create: (context) =>
+              _filesDifferencesBloc..add(LoadDiffModeDisplay()),
         ),
       ],
       child: MultiBlocListener(
         listeners: [
           BlocListener<CommitHistoryBloc, CommitHistoryState>(
-            listenWhen: (previous, current) => previous.selectedCommitFile != current.selectedCommitFile,
+            listenWhen: (previous, current) =>
+                previous.selectedCommitFile != current.selectedCommitFile,
             listener: (context, state) {
               final commit = state.selectedCommit;
               final file = state.selectedCommitFile;
@@ -92,7 +98,8 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             },
           ),
           BlocListener<WorkingDirectoryBloc, WorkingDirectoryState>(
-            listenWhen: (previous, current) => previous.status != current.status,
+            listenWhen: (previous, current) =>
+                previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
                 case WorkingDirectoryBlocStatus.commitsAdded:
@@ -117,7 +124,9 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                           },
                           onDiscard: () {
                             Navigator.pop(context);
-                            _workingDirectoryBloc.add(DiscardFileChanges(file: state.selectedFile));
+                            _workingDirectoryBloc.add(
+                              DiscardFileChanges(file: state.selectedFile),
+                            );
                           },
                         );
                       },
@@ -207,7 +216,11 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     message: state.errorMessage,
                     duration: Constants.snackbarErrorDuration,
                   );
-                  _workingDirectoryBloc.add(UpdateWorkingDirectoryStatus(status: WorkingDirectoryBlocStatus.initial));
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
                   break;
                 default:
               }
@@ -224,7 +237,8 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             },
           ),
           BlocListener<RepositoryBloc, RepositoryState>(
-            listenWhen: (previous, current) => previous.status != current.status,
+            listenWhen: (previous, current) =>
+                previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
                 case RepositoryBlocStatus.repositoryDeleted:
@@ -260,7 +274,11 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     context,
                     message: 'Repository cloned successfully',
                   );
-                  _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.initial));
+                  _repositoryBloc.add(
+                    UpdateRepositoryStatus(
+                      status: RepositoryBlocStatus.initial,
+                    ),
+                  );
                   break;
 
                 case RepositoryBlocStatus.askForCloningRepository:
@@ -277,7 +295,11 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     },
                   );
 
-                  _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.initial));
+                  _repositoryBloc.add(
+                    UpdateRepositoryStatus(
+                      status: RepositoryBlocStatus.initial,
+                    ),
+                  );
                   break;
 
                 case RepositoryBlocStatus.fetched:
@@ -293,7 +315,8 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             },
           ),
           BlocListener<BranchesBloc, BranchesState>(
-            listenWhen: (previous, current) => previous.status != current.status,
+            listenWhen: (previous, current) =>
+                previous.status != current.status,
             listener: (context, state) async {
               switch (state.status) {
                 case BranchesBlocStatus.askForRenamingBranch:
@@ -320,7 +343,9 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                   );
 
                   if (context.mounted) {
-                    context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
+                    context.read<BranchesBloc>().add(
+                      UpdateBranchesStatus(status: BranchesBlocStatus.initial),
+                    );
                   }
 
                   break;
@@ -341,21 +366,33 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                       barrierDismissible: false,
                       builder: (_) {
                         return BranchDeleteConfirmationDialog(
-                          branchName: state.selectedBranch?.name ?? "No branch selected",
+                          branchName:
+                              state.selectedBranch?.name ??
+                              "No branch selected",
                           onDelete: () {
-                            context.read<BranchesBloc>().add(DeleteBranch(branch: state.selectedBranch!));
+                            context.read<BranchesBloc>().add(
+                              DeleteBranch(branch: state.selectedBranch!),
+                            );
                           },
                         );
                       },
                     );
                   }
                   if (context.mounted) {
-                    context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
+                    context.read<BranchesBloc>().add(
+                      UpdateBranchesStatus(status: BranchesBlocStatus.initial),
+                    );
                   }
 
                 case BranchesBlocStatus.branchesRetrieved:
-                  _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.initial));
-                  context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
+                  _repositoryBloc.add(
+                    UpdateRepositoryStatus(
+                      status: RepositoryBlocStatus.initial,
+                    ),
+                  );
+                  context.read<BranchesBloc>().add(
+                    UpdateBranchesStatus(status: BranchesBlocStatus.initial),
+                  );
                   break;
                 case BranchesBlocStatus.error:
                   ErrorSnackBar.show(
@@ -363,14 +400,18 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     message: state.errorMessage,
                     duration: Constants.snackbarErrorDuration,
                   );
-                  context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
+                  context.read<BranchesBloc>().add(
+                    UpdateBranchesStatus(status: BranchesBlocStatus.initial),
+                  );
                   break;
                 case BranchesBlocStatus.branchCreated:
                   SuccessSnackBar.show(
                     context,
                     message: 'Branch created successfully !',
                   );
-                  context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
+                  context.read<BranchesBloc>().add(
+                    UpdateBranchesStatus(status: BranchesBlocStatus.initial),
+                  );
                   break;
                 case BranchesBlocStatus.createNewBranchAndCheckout:
                   final name = await showDialog<String>(
@@ -383,7 +424,9 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
 
                   if (!context.mounted) return;
 
-                  context.read<BranchesBloc>().add(UpdateBranchesStatus(status: BranchesBlocStatus.initial));
+                  context.read<BranchesBloc>().add(
+                    UpdateBranchesStatus(status: BranchesBlocStatus.initial),
+                  );
 
                   if (name != null && name.isNotEmpty) {
                     context.read<BranchesBloc>().add(
@@ -397,54 +440,67 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
           ),
         ],
         child: Scaffold(
+          backgroundColor: theme.openGit.appBackground,
           body: SafeArea(
-            child: Column(
-              children: [
-                BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
-                  builder: (context, wdState) {
-                    return RepositoryHeader(
-                      onSelectRepository: () {
-                        _repositoryBloc.add(SelectRepository());
-                      },
-                      onCloneRepository: () {
-                        _repositoryBloc.add(UpdateRepositoryStatus(status: RepositoryBlocStatus.askForCloningRepository));
-                      },
-                      commitsToPush: wdState.commitsToPush,
-                      onPush: () {
-                        _workingDirectoryBloc.add(PushCommits());
-                      },
-                      isLoading: wdState.status == WorkingDirectoryBlocStatus.pushingCommits,
-                      hasUpstream: wdState.hasUpstream,
-                    );
-                  },
-                ),
-                Expanded(
-                  child: Row(
-                    children: [
-                      ResizableSidebar(
-                        child: RepositorySidebar(),
-                      ),
-                      Expanded(
-                        child: BlocBuilder<RepositoryBloc, RepositoryState>(
-                          buildWhen: (previous, current) => previous.repositoryViewMode != current.repositoryViewMode,
-                          builder: (context, state) {
-                            switch (state.repositoryViewMode) {
-                              case RepositoryViewMode.branches:
-                                return const BranchesScreen();
-                              case RepositoryViewMode.commitHistory:
-                                return const CommitHistoryScreen();
-
-                              case RepositoryViewMode.changes:
-                              default:
-                                return const WorkingDirectoryScreen();
-                            }
-                          },
-                        ),
-                      ),
-                    ],
+            child: ColoredBox(
+              color: theme.openGit.appBackground,
+              child: Column(
+                children: [
+                  BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
+                    builder: (context, wdState) {
+                      return RepositoryHeader(
+                        onSelectRepository: () {
+                          _repositoryBloc.add(SelectRepository());
+                        },
+                        onCloneRepository: () {
+                          _repositoryBloc.add(
+                            UpdateRepositoryStatus(
+                              status:
+                                  RepositoryBlocStatus.askForCloningRepository,
+                            ),
+                          );
+                        },
+                        commitsToPush: wdState.commitsToPush,
+                        onPush: () {
+                          _workingDirectoryBloc.add(PushCommits());
+                        },
+                        isLoading:
+                            wdState.status ==
+                            WorkingDirectoryBlocStatus.pushingCommits,
+                        hasUpstream: wdState.hasUpstream,
+                      );
+                    },
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const ResizableSidebar(
+                          child: RepositorySidebar(),
+                        ),
+                        Expanded(
+                          child: BlocBuilder<RepositoryBloc, RepositoryState>(
+                            buildWhen: (previous, current) =>
+                                previous.repositoryViewMode !=
+                                current.repositoryViewMode,
+                            builder: (context, state) {
+                              switch (state.repositoryViewMode) {
+                                case RepositoryViewMode.branches:
+                                  return const BranchesScreen();
+                                case RepositoryViewMode.commitHistory:
+                                  return const CommitHistoryScreen();
+
+                                case RepositoryViewMode.changes:
+                                default:
+                                  return const WorkingDirectoryScreen();
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

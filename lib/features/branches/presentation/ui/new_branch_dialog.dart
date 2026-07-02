@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_dialog.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_text_field.dart';
 
 class NewBranchDialog extends StatefulWidget {
   const NewBranchDialog({super.key});
@@ -34,62 +37,34 @@ class _NewBranchDialogState extends State<NewBranchDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Dialog(
-      insetPadding: const EdgeInsets.all(24),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: SizedBox(
-        width: 360,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Create new branch',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _controller,
-                focusNode: _focusNode,
-                onSubmitted: (_) {
-                  _submit();
-                },
-                decoration: const InputDecoration(
-                  hintText: 'Branch name',
-                  isDense: true,
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text("Cancel"),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: () {
-                      _submit();
-                    },
-                    child: const Text("Create"),
-                  ),
-                ],
-              ),
-            ],
-          ),
+    return DesktopDialog(
+      title: 'Create new branch',
+      icon: Icons.add,
+      width: 380,
+      actions: [
+        DesktopButton(
+          label: "Cancel",
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
         ),
+        DesktopButton(
+          label: "Create",
+          icon: Icons.check,
+          variant: DesktopButtonVariant.primary,
+          onPressed: () {
+            _submit();
+          },
+        ),
+      ],
+      child: DesktopTextField(
+        controller: _controller,
+        focusNode: _focusNode,
+        hintText: 'feature/new-branch',
+        labelText: 'Branch name',
+        onSubmitted: (_) {
+          _submit();
+        },
       ),
     );
   }

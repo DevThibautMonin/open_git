@@ -17,7 +17,6 @@ class BranchGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If ungrouped (single branch without prefix), render directly
     if (group.prefix.isEmpty && group.branches.length == 1) {
       return BranchItem(branch: group.branches.first);
     }
@@ -39,7 +38,7 @@ class BranchGroup extends StatelessWidget {
               ? Column(
                   children: group.branches.map((branch) {
                     return Padding(
-                      padding: const EdgeInsets.only(left: 16), // Indent grouped items
+                      padding: const EdgeInsets.only(left: 16),
                       child: BranchItem(branch: branch),
                     );
                   }).toList(),

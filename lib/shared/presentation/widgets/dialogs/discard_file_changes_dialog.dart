@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_dialog.dart';
 
 class DiscardFileChangesDialog extends StatelessWidget {
   final VoidCallback onCancel;
@@ -15,25 +17,28 @@ class DiscardFileChangesDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text("Discard file changes"),
-      content: Text(
-        "This will permanently discard ${file?.path} changes. This action cannot be undone.",
-      ),
+    return DesktopDialog(
+      title: "Discard file changes",
+      icon: Icons.remove_circle_outline,
       actions: [
-        TextButton(
+        DesktopButton(
+          label: "Cancel",
           onPressed: () {
             onCancel();
           },
-          child: const Text("Cancel"),
         ),
-        ElevatedButton(
+        DesktopButton(
+          label: "Discard",
+          icon: Icons.remove_circle_outline,
+          variant: DesktopButtonVariant.danger,
           onPressed: () {
             onDiscard();
           },
-          child: const Text("Discard"),
         ),
       ],
+      child: Text(
+        "This will permanently discard ${file?.path} changes. This action cannot be undone.",
+      ),
     );
   }
 }

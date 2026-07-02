@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
 class CommitDetailsHeader extends StatelessWidget {
@@ -14,23 +16,19 @@ class CommitDetailsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
+    return DesktopPanel(
+      color: theme.openGit.toolbar,
+      bottomBorder: true,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: theme.dividerColor,
-          ),
-        ),
-      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
             commit.isMergeCommit ? Icons.call_merge : Icons.commit,
             size: 18,
-            color: commit.isMergeCommit ? theme.colorScheme.secondary : theme.colorScheme.primary,
+            color: commit.isMergeCommit
+                ? theme.openGit.accent
+                : theme.openGit.textMuted,
           ),
           Gaps.w12,
           Expanded(
@@ -42,8 +40,8 @@ class CommitDetailsHeader extends StatelessWidget {
                     Expanded(
                       child: Text(
                         commit.message,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
+                        style: theme.openGitTitle.copyWith(
+                          fontSize: 13,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -52,10 +50,16 @@ class CommitDetailsHeader extends StatelessWidget {
                     if (commit.isUnpushed) ...[
                       Gaps.w8,
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
+                          color: theme.openGit.accent.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(
+                            color: theme.openGit.accent.withValues(alpha: 0.22),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -63,14 +67,14 @@ class CommitDetailsHeader extends StatelessWidget {
                             Icon(
                               Icons.arrow_upward,
                               size: 10,
-                              color: theme.colorScheme.primary,
+                              color: theme.openGit.accent,
                             ),
                             const SizedBox(width: 3),
                             Text(
                               'Unpushed',
                               style: TextStyle(
                                 fontSize: 9,
-                                color: theme.colorScheme.primary,
+                                color: theme.openGit.accent,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -83,10 +87,7 @@ class CommitDetailsHeader extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   '${commit.author} • ${commit.sha.substring(0, 7)} • ${_formatDate(commit.date)}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    fontSize: 10,
-                  ),
+                  style: theme.openGitCaption,
                 ),
                 if (commit.description.isNotEmpty) ...[
                   const SizedBox(height: 6),
@@ -95,8 +96,8 @@ class CommitDetailsHeader extends StatelessWidget {
                     child: SingleChildScrollView(
                       child: Text(
                         commit.description,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                        style: theme.openGitCaption.copyWith(
+                          color: theme.openGit.textSecondary,
                           fontSize: 11,
                           height: 1.4,
                         ),
