@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:open_git/features/files_differences/domain/enums/diff_line_type.dart';
 import 'package:open_git/features/files_differences/presentation/ui/diff_layout.dart';
+import 'package:open_git/features/files_differences/presentation/ui/diff_line_colors.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
 
 class DiffLineContent extends StatelessWidget {
   final int? oldLineNumber;
@@ -16,10 +18,11 @@ class DiffLineContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final textStyle = TextStyle(
       fontFamily: 'monospace',
       fontSize: 14,
-      color: diffLineType.color,
+      color: diffLineType.themedForegroundColor(context),
       fontWeight: FontWeight.w600,
     );
 
@@ -37,10 +40,10 @@ class DiffLineContent extends StatelessWidget {
           child: Text(
             oldLineNumber?.toString() ?? '',
             textAlign: TextAlign.right,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'monospace',
               fontSize: 12,
-              color: Colors.grey,
+              color: theme.openGit.textMuted,
             ),
           ),
         ),
@@ -50,10 +53,10 @@ class DiffLineContent extends StatelessWidget {
           child: Text(
             newLineNumber?.toString() ?? '',
             textAlign: TextAlign.right,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'monospace',
               fontSize: 12,
-              color: Colors.grey,
+              color: theme.openGit.textMuted,
             ),
           ),
         ),

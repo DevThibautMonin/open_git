@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_git/features/commit_history/presentation/ui/commit_history_item.dart';
 import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_empty_state.dart';
 
 class CommitHistoryList extends StatelessWidget {
   final List<GitCommitEntity> commits;
@@ -21,17 +22,14 @@ class CommitHistoryList extends StatelessWidget {
     }
 
     if (commits.isEmpty) {
-      return const Center(
-        child: Text(
-          "No commits yet",
-          style: TextStyle(color: Colors.grey),
-        ),
+      return const DesktopEmptyState(
+        icon: Icons.history,
+        title: "No commits yet",
       );
     }
 
-    return ListView.separated(
+    return ListView.builder(
       itemCount: commits.length,
-      separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final commit = commits[index];
         return CommitHistoryItem(commit: commit);

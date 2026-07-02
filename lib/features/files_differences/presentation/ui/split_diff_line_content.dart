@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:open_git/features/files_differences/domain/enums/diff_line_type.dart';
 import 'package:open_git/features/files_differences/presentation/ui/diff_layout.dart';
+import 'package:open_git/features/files_differences/presentation/ui/diff_line_colors.dart';
 import 'package:open_git/features/files_differences/presentation/ui/diff_line_content.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
 import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
 class SplitDiffLineContent extends StatelessWidget {
@@ -22,12 +24,14 @@ class SplitDiffLineContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (!visible) {
       return const SizedBox(height: 22);
     }
 
     return Container(
-      color: diffLineType.backgroundColor,
+      color: diffLineType.themedBackgroundColor(context),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: Row(
         children: [
@@ -45,9 +49,10 @@ class SplitDiffLineContent extends StatelessWidget {
           Expanded(
             child: Text(
               content,
-              style: const TextStyle(
+              style: theme.openGitMono.copyWith(
                 fontFamily: 'monospace',
                 fontSize: 13,
+                color: theme.openGit.textPrimary,
               ),
             ),
           ),

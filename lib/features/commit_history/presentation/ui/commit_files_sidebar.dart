@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
 import 'package:open_git/features/commit_history/presentation/ui/commit_history_file_item.dart';
-import 'package:open_git/shared/presentation/widgets/gaps.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_empty_state.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_section_header.dart';
 
 class CommitFilesSidebar extends StatelessWidget {
   const CommitFilesSidebar({
@@ -14,26 +15,18 @@ class CommitFilesSidebar extends StatelessWidget {
     return BlocBuilder<CommitHistoryBloc, CommitHistoryState>(
       builder: (context, state) {
         if (state.selectedCommitFiles.isEmpty) {
-          return const Center(
-            child: Text(
-              "No files",
-              style: TextStyle(color: Colors.grey),
-            ),
+          return const DesktopEmptyState(
+            icon: Icons.list_alt,
+            title: "No files",
           );
         }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Icon(Icons.list),
-                  Gaps.w4,
-                  Text("${state.selectedCommitFiles.length} committed file${state.selectedCommitFiles.length > 1 ? "s" : ""}"),
-                ],
-              ),
+            DesktopSectionHeader(
+              title: "Committed files",
+              count: state.selectedCommitFiles.length.toString(),
             ),
             Expanded(
               child: ListView.builder(
@@ -44,7 +37,9 @@ class CommitFilesSidebar extends StatelessWidget {
                   return CommitHistoryFileItem(
                     filePath: file,
                     onTap: () {
-                      context.read<CommitHistoryBloc>().add(SelectCommitFile(filePath: file));
+                      context.read<CommitHistoryBloc>().add(
+                        SelectCommitFile(filePath: file),
+                      );
                     },
                   );
                 },
