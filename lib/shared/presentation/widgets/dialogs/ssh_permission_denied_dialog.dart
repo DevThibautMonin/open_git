@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:open_git/shared/presentation/widgets/code_block.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_dialog.dart';
 
 class SshPermissionDeniedDialog extends StatelessWidget {
   const SshPermissionDeniedDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text("SSH authentication failed"),
-      content: SingleChildScrollView(
+    return DesktopDialog(
+      title: "SSH authentication failed",
+      icon: Icons.key_off_outlined,
+      width: 560,
+      actions: [
+        DesktopButton(
+          label: "Close",
+          onPressed: Navigator.of(context).pop,
+        ),
+      ],
+      child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
@@ -52,12 +62,6 @@ class SshPermissionDeniedDialog extends StatelessWidget {
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: Navigator.of(context).pop,
-          child: const Text("Close"),
-        ),
-      ],
     );
   }
 }

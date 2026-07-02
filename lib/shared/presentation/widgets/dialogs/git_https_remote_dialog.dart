@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
 import 'package:open_git/shared/presentation/widgets/code_block.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_dialog.dart';
 
 class GitHttpsRemoteDialog extends StatelessWidget {
   final String sshCommand;
@@ -11,9 +14,16 @@ class GitHttpsRemoteDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text("SSH required"),
-      content: Column(
+    return DesktopDialog(
+      title: "SSH required",
+      icon: Icons.key,
+      actions: [
+        DesktopButton(
+          label: "Close",
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -27,18 +37,15 @@ class GitHttpsRemoteDialog extends StatelessWidget {
           const SizedBox(height: 8),
           CodeBlock(sshCommand),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             "This command updates your Git remote to use SSH.",
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(
+              color: Theme.of(context).openGit.textSecondary,
+              fontSize: 12,
+            ),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Close"),
-        ),
-      ],
     );
   }
 }

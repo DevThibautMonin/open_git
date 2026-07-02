@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_dialog.dart';
 
 class BranchDeleteConfirmationDialog extends StatelessWidget {
   final String branchName;
@@ -12,40 +14,39 @@ class BranchDeleteConfirmationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text("Delete branch"),
-      content: RichText(
+    return DesktopDialog(
+      title: "Delete branch",
+      icon: Icons.delete_outline,
+      actions: [
+        DesktopButton(
+          label: "Cancel",
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        DesktopButton(
+          label: "Delete",
+          icon: Icons.delete_outline,
+          variant: DesktopButtonVariant.danger,
+          onPressed: () {
+            Navigator.of(context).pop();
+            onDelete();
+          },
+        ),
+      ],
+      child: RichText(
         text: TextSpan(
           style: Theme.of(context).textTheme.bodyMedium,
           children: [
             const TextSpan(text: "Are you sure you want to delete the branch "),
             TextSpan(
               text: branchName,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(fontWeight: FontWeight.w700),
             ),
-            const TextSpan(text: " ?\n\nThis action cannot be undone."),
+            const TextSpan(text: "?\n\nThis action cannot be undone."),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: const Text("Cancel"),
-        ),
-        FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.error,
-            foregroundColor: Theme.of(context).colorScheme.onError,
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-            onDelete();
-          },
-          child: const Text("Delete"),
-        ),
-      ],
     );
   }
 }

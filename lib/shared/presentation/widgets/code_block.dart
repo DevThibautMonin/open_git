@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
 
 class CodeBlock extends StatefulWidget {
   final String code;
@@ -27,6 +28,8 @@ class _CodeBlockState extends State<CodeBlock> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Stack(
       children: [
         Container(
@@ -34,14 +37,15 @@ class _CodeBlockState extends State<CodeBlock> {
           padding: const EdgeInsets.fromLTRB(12, 12, 40, 12),
           margin: const EdgeInsets.symmetric(vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.grey.shade900,
-            borderRadius: BorderRadius.circular(8),
+            color: theme.openGit.panelAlt,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: theme.openGit.border),
           ),
           child: SelectableText(
             widget.code,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'monospace',
-              color: Colors.white,
+              color: theme.openGit.textPrimary,
               fontSize: 13,
             ),
           ),
@@ -54,12 +58,15 @@ class _CodeBlockState extends State<CodeBlock> {
             tooltip: _copied ? "Copied" : "Copy to clipboard",
             icon: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
-              transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+              transitionBuilder: (child, animation) =>
+                  ScaleTransition(scale: animation, child: child),
               child: Icon(
                 _copied ? Icons.check : Icons.copy,
                 key: ValueKey(_copied),
                 size: 18,
-                color: _copied ? Colors.greenAccent : Colors.white70,
+                color: _copied
+                    ? theme.openGit.success
+                    : theme.openGit.textMuted,
               ),
             ),
             onPressed: _copied ? null : () => _copy(context),

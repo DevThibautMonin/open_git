@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
 
 class CommitButton extends StatelessWidget {
   final String text;
@@ -14,17 +15,11 @@ class CommitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return ElevatedButton(
+    return DesktopButton(
+      icon: Icons.check,
+      label: text,
+      variant: DesktopButtonVariant.primary,
       onPressed: isEnabled ? onPressed : null,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: theme.colorScheme.onPrimary,
-        disabledBackgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.12),
-        disabledForegroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.38),
-      ),
-      child: Text(text),
     );
   }
 }

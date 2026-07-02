@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_dialog.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_text_field.dart';
 
 class BranchRenameDialog extends StatefulWidget {
   final String initialName;
@@ -48,60 +52,70 @@ class _BranchRenameDialogState extends State<BranchRenameDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return AlertDialog(
-      title: const Text('Rename branch'),
-      content: SizedBox(
-        width: 500,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (widget.hasUpstream) ...[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    color: Colors.orange,
-                    size: 32,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      "This branch is tracking origin/${widget.initialName} and renaming this branch will not change the branch name on the remote.",
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
-            TextField(
-              controller: _controller,
-              autofocus: true,
-              focusNode: _focusNode,
-              decoration: const InputDecoration(
-                labelText: 'Branch name',
-              ),
-              onSubmitted: (_) {
-                _submit();
-              },
-            ),
-          ],
-        ),
-      ),
+    return DesktopDialog(
+      title: 'Rename branch',
+      icon: Icons.edit_outlined,
+      width: 500,
       actions: [
-        TextButton(
+        DesktopButton(
+          label: 'Cancel',
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
         ),
-        FilledButton(
+        DesktopButton(
+          label: 'Rename',
+          icon: Icons.check,
+          variant: DesktopButtonVariant.primary,
           onPressed: () {
             _submit();
           },
-          child: const Text('Rename'),
         ),
       ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.hasUpstream) ...[
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: theme.openGit.warning.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: theme.openGit.warning.withValues(alpha: 0.28),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: theme.openGit.warning,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "This branch tracks origin/${widget.initialName}. Renaming it will not rename the remote branch.",
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          DesktopTextField(
+            controller: _controller,
+            focusNode: _focusNode,
+            labelText: 'Branch name',
+            hintText: 'feature/new-branch',
+            onSubmitted: (_) {
+              _submit();
+            },
+          ),
+        ],
+      ),
     );
   }
 

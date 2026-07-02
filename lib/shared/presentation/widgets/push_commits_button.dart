@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
 
 class PushCommitsButton extends StatelessWidget {
   final int commitsToPush;
@@ -32,16 +33,15 @@ class PushCommitsButton extends StatelessWidget {
       enabled = false;
     }
 
-    return ElevatedButton.icon(
+    return DesktopButton(
+      icon: icon,
+      label: isLoading ? "Pushing" : label,
+      tooltip: label,
+      isLoading: isLoading,
+      variant: enabled
+          ? DesktopButtonVariant.primary
+          : DesktopButtonVariant.subtle,
       onPressed: enabled ? onPush : null,
-      icon: isLoading
-          ? const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : Icon(icon),
-      label: Text(isLoading ? "Pushing..." : label),
     );
   }
 }

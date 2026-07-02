@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
 
 class FetchButton extends StatelessWidget {
   final VoidCallback onFetch;
@@ -12,16 +13,12 @@ class FetchButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton.icon(
+    return DesktopButton(
+      icon: Icons.sync,
+      label: isLoading ? "Fetching" : "Fetch",
+      tooltip: "Fetch remote updates",
+      isLoading: isLoading,
       onPressed: isLoading ? null : onFetch,
-      icon: isLoading
-          ? const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Icon(Icons.sync),
-      label: Text(isLoading ? "Fetching..." : "Fetch"),
     );
   }
 }
