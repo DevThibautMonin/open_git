@@ -16,7 +16,9 @@ Future<void> main() async {
   await windowManager.maximize();
   if (Platform.isMacOS) {
     final int intervalInSeconds = 3600;
-    await autoUpdater.setFeedURL('https://raw.githubusercontent.com/DevThibautMonin/open_git/main/appcast.xml');
+    await autoUpdater.setFeedURL(
+      'https://raw.githubusercontent.com/DevThibautMonin/open_git/main/appcast.xml',
+    );
     await autoUpdater.setScheduledCheckInterval(intervalInSeconds);
   }
   await configureDependencies();
