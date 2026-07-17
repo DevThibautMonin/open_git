@@ -1,4 +1,4 @@
-part of 'repository_bloc.dart';
+part of "repository_bloc.dart";
 
 sealed class RepositoryEvent {}
 
@@ -8,6 +8,18 @@ class InitLastRepository extends RepositoryEvent {
 
 class SelectRepository extends RepositoryEvent {
   SelectRepository();
+}
+
+class LoadRecentRepositories extends RepositoryEvent {
+  LoadRecentRepositories();
+}
+
+class SelectRecentRepository extends RepositoryEvent {
+  final String path;
+
+  SelectRecentRepository({
+    required this.path,
+  });
 }
 
 class UpdateRepositoryStatus extends RepositoryEvent {

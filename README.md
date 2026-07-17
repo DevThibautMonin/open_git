@@ -38,7 +38,7 @@ brew upgrade --cask opengit
 
 ## macOS (Manual)
 - Go to the Releases page.
-- Download the latest `.dmg` file (e.g., OpenGit-1.0.2.dmg).
+- Download the latest `.dmg` file (e.g., OpenGit-1.2.0.dmg).
 - Open the downloaded `.dmg` file.
 - Drag and drop the OpenGit icon into your Applications folder.
 
@@ -51,6 +51,7 @@ brew upgrade --cask opengit
 - Automatically reopen the last repository on launch.
 - Clone a remote repository using SSH.
 - Display the repository name.
+- Quickly switch between recently opened repositories from the header.
 
 ### Branches
 - List local branches.
@@ -88,6 +89,10 @@ brew upgrade --cask opengit
 - Line numbers support.
 - Support for newly created files.
 - Unified / Split view.
+- Monaco-powered read-only text diffs with language highlighting.
+- Language detection for popular file names and extensions.
+- Image preview for changed image files.
+- SVG source view.
 
 ### Commit History
 - List commit / merge history.

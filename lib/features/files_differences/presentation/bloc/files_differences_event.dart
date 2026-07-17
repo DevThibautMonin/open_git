@@ -14,6 +14,12 @@ class SetDiffModeDisplay extends FilesDifferencesEvent {
   SetDiffModeDisplay(this.mode);
 }
 
+class SetFileContentDisplay extends FilesDifferencesEvent {
+  final FileContentDisplay display;
+
+  SetFileContentDisplay(this.display);
+}
+
 class LoadDiffModeDisplay extends FilesDifferencesEvent {
   LoadDiffModeDisplay();
 }

@@ -38,6 +38,8 @@ extension FileTypeEnumResolver on String {
         return FileTypeEnum.jenkins;
       case 'rs':
         return FileTypeEnum.rust;
+      case 'go':
+        return FileTypeEnum.go;
       case 'ts':
         return FileTypeEnum.typescript;
       case 'md':
