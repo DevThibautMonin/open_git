@@ -1,9 +1,11 @@
+import "dart:io";
 import "package:either_dart/either.dart";
 import "package:injectable/injectable.dart";
 import "package:open_git/shared/core/services/git_command_runner.dart";
 import "package:open_git/shared/domain/entities/git_commit_entity.dart";
 import "package:open_git/shared/domain/enums/git_file_status.dart";
 import "package:open_git/shared/domain/failures/git_service_failure.dart";
+import "package:path/path.dart" as p;
 
 @LazySingleton()
 class GitDiffService {
@@ -69,6 +71,34 @@ class GitDiffService {
       (failure) => Left(failure),
       (data) => Right(data),
     );
+  }
+
+  Future<Either<GitServiceFailure, List<int>>> getWorkingTreeFileBytes({
+    required String filePath,
+  }) async {
+    final repoPathResult = commandRunner.getRepoPath();
+
+    if (repoPathResult.isLeft) {
+      return Left(repoPathResult.left);
+    }
+
+    try {
+      final path = p.normalize(p.join(repoPathResult.right, filePath));
+      final file = File(path);
+
+      if (!await file.exists()) {
+        return Left(RepositoryPathInvalidFailure(command: path));
+      }
+
+      return Right(await file.readAsBytes());
+    } catch (e) {
+      return Left(
+        GitServiceUnknownFailure(
+          command: "read file $filePath",
+          stdErr: e.toString(),
+        ),
+      );
+    }
   }
 
   List<String> _buildDiffArgs({

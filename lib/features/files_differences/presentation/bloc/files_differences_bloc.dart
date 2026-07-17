@@ -1,23 +1,30 @@
-import 'package:dart_mappable/dart_mappable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:injectable/injectable.dart';
-import 'package:open_git/features/files_differences/core/diff_mode_display_extensions.dart';
-import 'package:open_git/features/files_differences/domain/enums/diff_mode_display.dart';
-import 'package:open_git/shared/core/constants/shared_preferences_keys.dart';
-import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
-import 'package:open_git/shared/core/services/git_diff_parser.dart';
-import 'package:open_git/shared/core/services/git_diff_service.dart';
-import 'package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart';
-import 'package:open_git/features/files_differences/domain/entities/diff_hunk_entity.dart';
-import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
-import 'package:open_git/shared/domain/entities/git_file_entity.dart';
+import "dart:convert";
 
-part 'files_differences_event.dart';
-part 'files_differences_state.dart';
-part 'files_differences_bloc.mapper.dart';
+import "package:dart_mappable/dart_mappable.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
+import "package:injectable/injectable.dart";
+import "package:open_git/features/files_differences/core/diff_mode_display_extensions.dart";
+import "package:open_git/features/files_differences/domain/enums/file_content_display.dart";
+import "package:open_git/features/files_differences/domain/enums/diff_mode_display.dart";
+import "package:open_git/shared/core/constants/shared_preferences_keys.dart";
+import "package:open_git/shared/core/extensions/git_service_failure_extension.dart";
+import "package:open_git/shared/core/extensions/string_extensions.dart";
+import "package:open_git/shared/core/services/git_diff_parser.dart";
+import "package:open_git/shared/core/services/git_diff_service.dart";
+import "package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart";
+import "package:open_git/features/files_differences/domain/entities/diff_hunk_entity.dart";
+import "package:open_git/shared/domain/entities/git_commit_entity.dart";
+import "package:open_git/shared/domain/entities/git_file_entity.dart";
+import "package:open_git/shared/domain/enums/file_type_enum.dart";
+import "package:open_git/shared/domain/enums/git_file_status.dart";
+
+part "files_differences_event.dart";
+part "files_differences_state.dart";
+part "files_differences_bloc.mapper.dart";
 
 @LazySingleton()
-class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesState> {
+class FilesDifferencesBloc
+    extends Bloc<FilesDifferencesEvent, FilesDifferencesState> {
   final SharedPreferencesService sharedPreferencesService;
   final GitDiffService gitDiffService;
 
@@ -34,8 +41,14 @@ class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesS
       emit(state.copyWith(diffModeDisplay: event.mode));
     });
 
+    on<SetFileContentDisplay>((event, emit) {
+      emit(state.copyWith(fileContentDisplay: event.display));
+    });
+
     on<LoadDiffModeDisplay>((event, emit) {
-      final raw = sharedPreferencesService.getString(SharedPreferencesKeys.diffModeDisplay);
+      final raw = sharedPreferencesService.getString(
+        SharedPreferencesKeys.diffModeDisplay,
+      );
 
       final mode = DiffModeDisplayExtensions.fromRaw(raw);
 
@@ -47,6 +60,11 @@ class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesS
         state.copyWith(
           status: FilesDifferencesStatus.loading,
           selectedFile: event.file,
+          diff: const [],
+          imagePreviewBytes: null,
+          sourceContent: null,
+          previewErrorMessage: "",
+          fileContentDisplay: FileContentDisplay.diff,
         ),
       );
 
@@ -68,10 +86,18 @@ class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesS
 
       final hunks = GitDiffParser.parse(diffResult.right);
 
+      final preview = await _loadPreview(event.file);
+
       emit(
         state.copyWith(
           diff: hunks,
           status: FilesDifferencesStatus.loaded,
+          imagePreviewBytes: preview.bytes,
+          sourceContent: preview.source,
+          previewErrorMessage: preview.errorMessage,
+          fileContentDisplay: preview.bytes != null
+              ? FileContentDisplay.preview
+              : FileContentDisplay.diff,
         ),
       );
     });
@@ -80,6 +106,11 @@ class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesS
       emit(
         state.copyWith(
           status: FilesDifferencesStatus.loading,
+          diff: const [],
+          imagePreviewBytes: null,
+          sourceContent: null,
+          previewErrorMessage: "",
+          fileContentDisplay: FileContentDisplay.diff,
         ),
       );
 
@@ -111,10 +142,57 @@ class FilesDifferencesBloc extends Bloc<FilesDifferencesEvent, FilesDifferencesS
     on<ClearFileDiff>((event, emit) {
       emit(
         state.copyWith(
-          diff: null,
+          diff: const [],
           selectedFile: null,
+          imagePreviewBytes: null,
+          sourceContent: null,
+          previewErrorMessage: "",
+          fileContentDisplay: FileContentDisplay.diff,
         ),
       );
     });
   }
+
+  Future<_FilePreviewData> _loadPreview(GitFileEntity file) async {
+    if (file.path.fileType != FileTypeEnum.image ||
+        file.status == GitFileStatus.deleted) {
+      return const _FilePreviewData();
+    }
+
+    final bytesResult = await gitDiffService.getWorkingTreeFileBytes(
+      filePath: file.path,
+    );
+
+    if (bytesResult.isLeft) {
+      return _FilePreviewData(
+        errorMessage: bytesResult.left.errorMessage,
+      );
+    }
+
+    final bytes = bytesResult.right;
+    final source = _isSvg(file.path)
+        ? utf8.decode(bytes, allowMalformed: true)
+        : null;
+
+    return _FilePreviewData(
+      bytes: bytes,
+      source: source,
+    );
+  }
+
+  bool _isSvg(String filePath) {
+    return filePath.toLowerCase().endsWith(".svg");
+  }
+}
+
+class _FilePreviewData {
+  final List<int>? bytes;
+  final String? source;
+  final String errorMessage;
+
+  const _FilePreviewData({
+    this.bytes,
+    this.source,
+    this.errorMessage = "",
+  });
 }

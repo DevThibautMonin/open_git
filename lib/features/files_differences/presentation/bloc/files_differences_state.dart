@@ -14,6 +14,10 @@ class FilesDifferencesState with FilesDifferencesStateMappable {
   final List<DiffHunkEntity> diff;
   final GitFileEntity? selectedFile;
   final DiffModeDisplay diffModeDisplay;
+  final FileContentDisplay fileContentDisplay;
+  final List<int>? imagePreviewBytes;
+  final String? sourceContent;
+  final String previewErrorMessage;
 
   const FilesDifferencesState({
     this.status = FilesDifferencesStatus.initial,
@@ -21,5 +25,9 @@ class FilesDifferencesState with FilesDifferencesStateMappable {
     this.diff = const [],
     this.selectedFile,
     this.diffModeDisplay = DiffModeDisplay.split,
+    this.fileContentDisplay = FileContentDisplay.diff,
+    this.imagePreviewBytes,
+    this.sourceContent,
+    this.previewErrorMessage = "",
   });
 }

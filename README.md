@@ -38,7 +38,7 @@ brew upgrade --cask opengit
 
 ## macOS (Manual)
 - Go to the Releases page.
-- Download the latest `.dmg` file (e.g., OpenGit-1.0.2.dmg).
+- Download the latest `.dmg` file (e.g., OpenGit-1.2.0.dmg).
 - Open the downloaded `.dmg` file.
 - Drag and drop the OpenGit icon into your Applications folder.
 
@@ -88,6 +88,8 @@ brew upgrade --cask opengit
 - Line numbers support.
 - Support for newly created files.
 - Unified / Split view.
+- Image preview for changed image files.
+- SVG source view.
 
 ### Commit History
 - List commit / merge history.
