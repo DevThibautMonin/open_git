@@ -5,8 +5,7 @@ import "package:open_git/features/files_differences/domain/enums/diff_mode_displ
 import "package:open_git/features/files_differences/domain/enums/file_content_display.dart";
 import "package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart";
 import "package:open_git/features/files_differences/presentation/ui/file_differences_header.dart";
-import "package:open_git/features/files_differences/presentation/ui/split_diff_viewer.dart";
-import "package:open_git/features/files_differences/presentation/ui/unified_diff_viewer.dart";
+import "package:open_git/features/files_differences/presentation/ui/monaco_diff_viewer.dart";
 import "package:open_git/features/commit_history/presentation/ui/commit_files_sidebar.dart";
 import "package:open_git/features/commit_history/presentation/ui/commit_details_header_host.dart";
 import "package:open_git/shared/presentation/widgets/desktop/desktop_empty_state.dart";
@@ -59,8 +58,8 @@ class CommitHistoryScreen extends StatelessWidget {
                                     "Select a file from the commit to inspect its diff.",
                               )
                             : diffState.diffModeDisplay == DiffModeDisplay.split
-                            ? SplitDiffViewer()
-                            : UnifiedDiffViewer(),
+                            ? const MonacoDiffViewer(renderSideBySide: true)
+                            : const MonacoDiffViewer(renderSideBySide: false),
                       );
                     },
                   ),

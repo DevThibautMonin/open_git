@@ -89,6 +89,8 @@ brew upgrade --cask opengit
 - Line numbers support.
 - Support for newly created files.
 - Unified / Split view.
+- Monaco-powered read-only text diffs with language highlighting.
+- Language detection for popular file names and extensions.
 - Image preview for changed image files.
 - SVG source view.
 

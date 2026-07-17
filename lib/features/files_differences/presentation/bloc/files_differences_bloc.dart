@@ -60,7 +60,10 @@ class FilesDifferencesBloc
         state.copyWith(
           status: FilesDifferencesStatus.loading,
           selectedFile: event.file,
+          selectedFilePath: event.file.path,
           diff: const [],
+          originalContent: "",
+          modifiedContent: "",
           imagePreviewBytes: null,
           sourceContent: null,
           previewErrorMessage: "",
@@ -85,12 +88,23 @@ class FilesDifferencesBloc
       }
 
       final hunks = GitDiffParser.parse(diffResult.right);
+      final contentPairResult = await gitDiffService.getFileDiffContentPair(
+        filePath: event.file.path,
+        staged: event.file.staged,
+        status: event.file.status,
+      );
 
       final preview = await _loadPreview(event.file);
 
       emit(
         state.copyWith(
           diff: hunks,
+          originalContent: contentPairResult.isRight
+              ? contentPairResult.right.original
+              : "",
+          modifiedContent: contentPairResult.isRight
+              ? contentPairResult.right.modified
+              : "",
           status: FilesDifferencesStatus.loaded,
           imagePreviewBytes: preview.bytes,
           sourceContent: preview.source,
@@ -106,7 +120,10 @@ class FilesDifferencesBloc
       emit(
         state.copyWith(
           status: FilesDifferencesStatus.loading,
+          selectedFilePath: event.filePath,
           diff: const [],
+          originalContent: "",
+          modifiedContent: "",
           imagePreviewBytes: null,
           sourceContent: null,
           previewErrorMessage: "",
@@ -130,10 +147,21 @@ class FilesDifferencesBloc
       }
 
       final hunks = GitDiffParser.parse(diffResult.right);
+      final contentPairResult = await gitDiffService
+          .getCommitFileDiffContentPair(
+            commit: event.commit,
+            filePath: event.filePath,
+          );
 
       emit(
         state.copyWith(
           diff: hunks,
+          originalContent: contentPairResult.isRight
+              ? contentPairResult.right.original
+              : "",
+          modifiedContent: contentPairResult.isRight
+              ? contentPairResult.right.modified
+              : "",
           status: FilesDifferencesStatus.loaded,
         ),
       );
@@ -143,7 +171,10 @@ class FilesDifferencesBloc
       emit(
         state.copyWith(
           diff: const [],
+          originalContent: "",
+          modifiedContent: "",
           selectedFile: null,
+          selectedFilePath: "",
           imagePreviewBytes: null,
           sourceContent: null,
           previewErrorMessage: "",

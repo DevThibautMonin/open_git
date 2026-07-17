@@ -1,13 +1,13 @@
-import 'package:get_it/get_it.dart';
-import 'package:injectable/injectable.dart';
+import "package:get_it/get_it.dart";
+import "package:injectable/injectable.dart";
 
-import 'package:open_git/shared/core/di/injectable.config.dart';
-import 'package:open_git/shared/core/logger/log_service.dart';
+import "package:open_git/shared/core/di/injectable.config.dart";
+import "package:open_git/shared/core/logger/log_service.dart";
 
 final getIt = GetIt.instance;
 
 @InjectableInit(
-  initializerName: 'init',
+  initializerName: "init",
   preferRelativeImports: true,
   asExtension: true,
 )
