@@ -61,6 +61,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
         BlocProvider(
           create: (context) => _repositoryBloc
             ..add(InitLastRepository())
+            ..add(LoadRecentRepositories())
             ..add(RetrieveAppVersion()),
         ),
         BlocProvider(
@@ -458,6 +459,11 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                               status:
                                   RepositoryBlocStatus.askForCloningRepository,
                             ),
+                          );
+                        },
+                        onRecentRepositorySelected: (path) {
+                          _repositoryBloc.add(
+                            SelectRecentRepository(path: path),
                           );
                         },
                         commitsToPush: wdState.commitsToPush,

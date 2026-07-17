@@ -10,6 +10,8 @@ import "package:open_git/shared/domain/failures/git_service_failure.dart";
 
 @LazySingleton()
 class GitRepositoryService {
+  static const int maxRecentRepositories = 20;
+
   final SharedPreferencesService sharedPreferencesService;
 
   GitRepositoryService({
@@ -17,7 +19,9 @@ class GitRepositoryService {
   });
 
   Future<Either<GitServiceFailure, bool>> repositoryExists() async {
-    final path = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath);
+    final path = sharedPreferencesService.getString(
+      SharedPreferencesKeys.repositoryPath,
+    );
 
     if (path == null || path.isEmpty) {
       return Left(RepositoryDoesntExistsFailure());
@@ -33,9 +37,74 @@ class GitRepositoryService {
       return Left(RepositoryNotSelectedFailure());
     }
 
-    await sharedPreferencesService.setString(SharedPreferencesKeys.repositoryPath, path);
+    return setRepositoryPath(path);
+  }
+
+  Future<Either<GitServiceFailure, String>> setRepositoryPath(
+    String path,
+  ) async {
+    final dir = Directory(path);
+
+    if (!await dir.exists()) {
+      await removeRecentRepositoryPath(path);
+      return Left(
+        RepositoryPathInvalidFailure(
+          command: path,
+        ),
+      );
+    }
+
+    await sharedPreferencesService.setString(
+      SharedPreferencesKeys.repositoryPath,
+      path,
+    );
+    await addRecentRepositoryPath(path);
 
     return Right(path);
+  }
+
+  List<String> getRecentRepositoryPaths() {
+    final raw = sharedPreferencesService.getString(
+      SharedPreferencesKeys.recentRepositoryPaths,
+    );
+
+    if (raw == null || raw.isEmpty) return const [];
+
+    try {
+      final data = jsonDecode(raw);
+      if (data is! List) return const [];
+
+      return data.whereType<String>().toList(growable: false);
+    } on FormatException {
+      return const [];
+    }
+  }
+
+  Future<void> addRecentRepositoryPath(String path) async {
+    final paths = [
+      path,
+      ...getRecentRepositoryPaths().where((recentPath) {
+        return recentPath != path;
+      }),
+    ].take(maxRecentRepositories).toList(growable: false);
+
+    await sharedPreferencesService.setString(
+      SharedPreferencesKeys.recentRepositoryPaths,
+      jsonEncode(paths),
+    );
+  }
+
+  Future<void> removeRecentRepositoryPath(String path) async {
+    final paths = getRecentRepositoryPaths()
+        .where((recentPath) {
+          return recentPath != path;
+        })
+        .toList(growable: false);
+
+    await sharedPreferencesService.setString(
+      SharedPreferencesKeys.recentRepositoryPaths,
+      jsonEncode(paths),
+    );
   }
 
   Future<Either<GitServiceFailure, void>> cloneRepositoryWithProgress({
@@ -52,16 +121,22 @@ class GitRepositoryService {
 
     final progressRegex = GitRegex.cloneRepositoryProgress;
 
-    process.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
-      stderrBuffer.writeln(line);
+    process.stderr
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen((line) {
+          stderrBuffer.writeln(line);
 
-      final match = progressRegex.firstMatch(line);
-      if (match != null) {
-        onProgress(double.parse(match.group(1)!) / 100);
-      }
-    });
+          final match = progressRegex.firstMatch(line);
+          if (match != null) {
+            onProgress(double.parse(match.group(1)!) / 100);
+          }
+        });
 
-    process.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen((_) {});
+    process.stdout
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen((_) {});
 
     final exitCode = await process.exitCode;
 
@@ -79,7 +154,9 @@ class GitRepositoryService {
     return const Right(null);
   }
 
-  Future<Either<GitServiceFailure, bool>> ensureDirectoryIsEmpty(String path) async {
+  Future<Either<GitServiceFailure, bool>> ensureDirectoryIsEmpty(
+    String path,
+  ) async {
     final dir = Directory(path);
 
     if (!await dir.exists()) {

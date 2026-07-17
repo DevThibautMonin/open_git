@@ -1,16 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
-import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart';
-import 'package:open_git/shared/presentation/widgets/fetch_button.dart';
-import 'package:open_git/shared/presentation/widgets/gaps.dart';
-import 'package:open_git/shared/presentation/widgets/push_commits_button.dart';
+import "package:flutter/material.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
+import "package:open_git/features/repository/presentation/bloc/repository_bloc.dart";
+import "package:open_git/features/repository/presentation/ui/recent_repositories_button.dart";
+import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
+import "package:open_git/shared/presentation/widgets/desktop/desktop_button.dart";
+import "package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart";
+import "package:open_git/shared/presentation/widgets/fetch_button.dart";
+import "package:open_git/shared/presentation/widgets/gaps.dart";
+import "package:open_git/shared/presentation/widgets/push_commits_button.dart";
 
 class RepositoryHeader extends StatelessWidget {
   final VoidCallback onSelectRepository;
   final VoidCallback onCloneRepository;
+  final ValueChanged<String> onRecentRepositorySelected;
   final int commitsToPush;
   final Function() onPush;
   final bool isLoading;
@@ -23,6 +25,7 @@ class RepositoryHeader extends StatelessWidget {
     required this.onPush,
     required this.isLoading,
     required this.onCloneRepository,
+    required this.onRecentRepositorySelected,
     required this.hasUpstream,
   });
 
@@ -41,14 +44,14 @@ class RepositoryHeader extends StatelessWidget {
             children: [
               DesktopButton(
                 icon: Icons.download,
-                label: 'Clone',
-                tooltip: 'Clone repository',
+                label: "Clone",
+                tooltip: "Clone repository",
                 onPressed: onCloneRepository,
               ),
               DesktopButton(
                 icon: Icons.folder_open,
-                label: 'Open',
-                tooltip: 'Open local repository',
+                label: "Open",
+                tooltip: "Open local repository",
                 onPressed: onSelectRepository,
               ),
             ],
@@ -58,35 +61,15 @@ class RepositoryHeader extends StatelessWidget {
             child: BlocBuilder<RepositoryBloc, RepositoryState>(
               builder: (context, state) {
                 final hasRepository = state.currentRepositoryName.isNotEmpty;
-                final theme = Theme.of(context);
 
-                return Row(
-                  children: [
-                    Icon(
-                      hasRepository
-                          ? Icons.data_object
-                          : Icons.folder_off_outlined,
-                      size: 16,
-                      color: hasRepository
-                          ? theme.openGit.accent
-                          : theme.openGit.textMuted,
-                    ),
-                    Gaps.w8,
-                    Expanded(
-                      child: Text(
-                        hasRepository
-                            ? state.currentRepositoryName
-                            : "No repository selected",
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.openGitBody.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: hasRepository
-                              ? theme.openGit.textPrimary
-                              : theme.openGit.textMuted,
-                        ),
-                      ),
-                    ),
-                  ],
+                return RecentRepositoriesButton(
+                  currentRepositoryName: hasRepository
+                      ? state.currentRepositoryName
+                      : "",
+                  currentRepositoryPath: state.repositoryPath,
+                  recentRepositoryPaths: state.recentRepositoryPaths,
+                  onOpenRepository: onSelectRepository,
+                  onRepositorySelected: onRecentRepositorySelected,
                 );
               },
             ),

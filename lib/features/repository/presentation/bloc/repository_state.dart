@@ -1,4 +1,4 @@
-part of 'repository_bloc.dart';
+part of "repository_bloc.dart";
 
 enum RepositoryBlocStatus {
   initial,
@@ -26,6 +26,7 @@ class RepositoryState with RepositoryStateMappable {
   final double cloneProgress;
   final String version;
   final RepositoryViewMode? repositoryViewMode;
+  final List<String> recentRepositoryPaths;
 
   const RepositoryState({
     this.status = RepositoryBlocStatus.initial,
@@ -37,5 +38,6 @@ class RepositoryState with RepositoryStateMappable {
     this.cloneProgress = 0.0,
     this.version = "",
     this.repositoryViewMode,
+    this.recentRepositoryPaths = const [],
   });
 }

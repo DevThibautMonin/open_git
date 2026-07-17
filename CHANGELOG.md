@@ -7,6 +7,7 @@
 - [Files differences] Add image preview mode for changed image files in the working directory.
 - [Files differences] Add SVG source view to inspect SVG markup from the diff panel.
 - [Files differences] Add support for SVG files embedding raster images through base64 data URLs.
+- [Repository] Add quick switching between recently opened repositories from the header.
 
 ### Updated
 

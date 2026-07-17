@@ -51,6 +51,7 @@ brew upgrade --cask opengit
 - Automatically reopen the last repository on launch.
 - Clone a remote repository using SSH.
 - Display the repository name.
+- Quickly switch between recently opened repositories from the header.
 
 ### Branches
 - List local branches.
