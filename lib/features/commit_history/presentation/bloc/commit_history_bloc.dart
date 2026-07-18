@@ -19,7 +19,9 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
     on<LoadCommitHistory>((event, emit) async {
       emit(state.copyWith(status: CommitHistoryBlocStatus.loading));
 
-      final commitsResult = await gitCommitHistoryService.getCommitHistory(limit: event.limit);
+      final commitsResult = await gitCommitHistoryService.getCommitHistory(
+        limit: event.limit,
+      );
 
       commitsResult.fold(
         (failure) {
@@ -31,18 +33,48 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
           );
         },
         (data) {
+          final filteredCommits = _filterCommits(
+            commits: data,
+            query: state.searchQuery,
+          );
+
           emit(
             state.copyWith(
-              commits: data,
+              commits: filteredCommits,
+              allCommits: data,
+              selectedCommit: null,
+              selectedCommitFile: null,
+              selectedCommitFiles: [],
               status: CommitHistoryBlocStatus.loaded,
             ),
           );
 
-          if (data.isNotEmpty) {
-            add(SelectCommit(commit: data.first));
+          if (filteredCommits.isNotEmpty) {
+            add(SelectCommit(commit: filteredCommits.first));
           }
         },
       );
+    });
+
+    on<SearchCommitHistory>((event, emit) {
+      final filteredCommits = _filterCommits(
+        commits: state.allCommits,
+        query: event.query,
+      );
+
+      emit(
+        state.copyWith(
+          commits: filteredCommits,
+          searchQuery: event.query,
+          selectedCommit: null,
+          selectedCommitFile: null,
+          selectedCommitFiles: [],
+        ),
+      );
+
+      if (filteredCommits.isNotEmpty) {
+        add(SelectCommit(commit: filteredCommits.first));
+      }
     });
 
     on<SelectCommit>((event, emit) async {
@@ -54,7 +86,9 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
         ),
       );
 
-      final filesResult = await gitCommitHistoryService.getCommitFiles(event.commit);
+      final filesResult = await gitCommitHistoryService.getCommitFiles(
+        event.commit,
+      );
 
       filesResult.fold(
         (failure) {
@@ -93,5 +127,26 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
         ),
       );
     });
+  }
+
+  List<GitCommitEntity> _filterCommits({
+    required List<GitCommitEntity> commits,
+    required String query,
+  }) {
+    final cleanQuery = query.trim().toLowerCase();
+
+    if (cleanQuery.isEmpty) {
+      return commits;
+    }
+
+    return commits
+        .where((commit) {
+          return commit.sha.toLowerCase().contains(cleanQuery) ||
+              commit.message.toLowerCase().contains(cleanQuery) ||
+              commit.description.toLowerCase().contains(cleanQuery) ||
+              commit.author.toLowerCase().contains(cleanQuery) ||
+              commit.authorEmail.toLowerCase().contains(cleanQuery);
+        })
+        .toList(growable: false);
   }
 }

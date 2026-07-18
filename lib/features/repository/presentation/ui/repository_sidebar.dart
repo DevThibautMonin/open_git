@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/branches/presentation/ui/branches_sidebar.dart';
 import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
 import 'package:open_git/features/commit_history/presentation/ui/commit_history_list.dart';
+import 'package:open_git/features/commit_history/presentation/ui/commit_history_search_field.dart';
 import 'package:open_git/features/repository/domain/repository_view_mode.dart';
 import 'package:open_git/features/repository/presentation/bloc/repository_bloc.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_sidebar_footer.dart';
@@ -38,6 +39,8 @@ class RepositorySidebar extends StatelessWidget {
                   }
                 },
               ),
+              if (selectedMode == RepositoryViewMode.commitHistory)
+                const CommitHistorySearchField(),
               Expanded(
                 child: switch (selectedMode) {
                   RepositoryViewMode.branches => const BranchesSidebar(),

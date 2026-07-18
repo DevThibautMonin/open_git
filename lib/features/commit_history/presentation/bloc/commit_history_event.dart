@@ -8,6 +8,14 @@ class LoadCommitHistory extends CommitHistoryEvent {
   LoadCommitHistory({this.limit = 100});
 }
 
+class SearchCommitHistory extends CommitHistoryEvent {
+  final String query;
+
+  SearchCommitHistory({
+    required this.query,
+  });
+}
+
 class SelectCommit extends CommitHistoryEvent {
   final GitCommitEntity commit;
 
