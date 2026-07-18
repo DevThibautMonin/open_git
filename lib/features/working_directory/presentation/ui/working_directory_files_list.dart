@@ -235,10 +235,9 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
                         },
                       ),
               ),
-              if (state.files.isNotEmpty)
-                CommitMessageTextfield(
-                  hasStagedFiles: state.files.any((file) => file.staged),
-                ),
+              CommitMessageTextfield(
+                hasStagedFiles: state.files.any((file) => file.staged),
+              ),
             ],
           ),
         );
