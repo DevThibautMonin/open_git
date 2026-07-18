@@ -16,7 +16,8 @@ part 'working_directory_state.dart';
 part 'working_directory_bloc.mapper.dart';
 
 @LazySingleton()
-class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryState> {
+class WorkingDirectoryBloc
+    extends Bloc<WorkingDirectoryEvent, WorkingDirectoryState> {
   final GitWorkingDirectoryService gitWorkingDirectoryService;
   final GitRemoteService gitRemoteService;
   final GitStashService gitStashService;
@@ -31,20 +32,23 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
     on<GetRepositoryStatus>((event, emit) async {
       emit(state.copyWith(status: WorkingDirectoryBlocStatus.loading));
 
-      final filesResult = await gitWorkingDirectoryService.getWorkingDirectoryStatus();
+      final filesResult = await gitWorkingDirectoryService
+          .getWorkingDirectoryStatus();
 
       if (filesResult.isLeft) {
         final failure = filesResult.left;
 
-        if (failure is RepositoryDoesntExistsFailure || failure is RepositoryNotSelectedFailure || failure is RepositoryPathInvalidFailure) {
+        if (failure is RepositoryDoesntExistsFailure ||
+            failure is RepositoryNotSelectedFailure ||
+            failure is RepositoryPathInvalidFailure) {
           emit(
             state.copyWith(
               status: WorkingDirectoryBlocStatus.noRepositorySelected,
-              stashes: const [],
               files: const [],
               commitsToPush: 0,
               hasUpstream: false,
               selectedFile: null,
+              stashes: const [],
             ),
           );
           return;
@@ -212,7 +216,9 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
         emit(
           state.copyWith(
             status: WorkingDirectoryBlocStatus.gitRemoteIsHttps,
-            gitRemoteCommand: slugResult.right != null ? 'git remote set-url origin git@github.com:${slugResult.right}.git' : null,
+            gitRemoteCommand: slugResult.right != null
+                ? 'git remote set-url origin git@github.com:${slugResult.right}.git'
+                : null,
           ),
         );
         return;

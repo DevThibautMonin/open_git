@@ -4,7 +4,8 @@ extension GitServiceFailureExtension on GitServiceFailure {
   String get errorMessage {
     return switch (this) {
       RepositoryDoesntExistsFailure() => "No repository is currently selected.",
-      RepositoryNotSelectedFailure() => "Please select a repository to continue.",
+      RepositoryNotSelectedFailure() =>
+        "Please select a repository to continue.",
       RepositoryPathInvalidFailure() =>
         "The repository folder no longer exists or is inaccessible. "
             "Please select or clone the repository again.",

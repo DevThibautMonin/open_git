@@ -14,7 +14,8 @@ class GitWorkingDirectoryService {
     required this.commandRunner,
   });
 
-  Future<Either<GitServiceFailure, List<GitFileEntity>>> getWorkingDirectoryStatus() async {
+  Future<Either<GitServiceFailure, List<GitFileEntity>>>
+  getWorkingDirectoryStatus() async {
     final result = await commandRunner.run(
       GitCommands.statusPorcelain,
       allowedExitCodes: const {0, 1},
@@ -39,7 +40,10 @@ class GitWorkingDirectoryService {
   }
 
   Future<Either<GitServiceFailure, void>> unstageFile(String filePath) async {
-    final result = await commandRunner.run([...GitCommands.gitRestoreStaged, filePath]);
+    final result = await commandRunner.run([
+      ...GitCommands.gitRestoreStaged,
+      filePath,
+    ]);
 
     return result.fold(
       (failure) => Left(failure),
@@ -65,7 +69,9 @@ class GitWorkingDirectoryService {
     );
   }
 
-  Future<Either<GitServiceFailure, void>> discardFileChanges(GitFileEntity file) async {
+  Future<Either<GitServiceFailure, void>> discardFileChanges(
+    GitFileEntity file,
+  ) async {
     if (file.status == GitFileStatus.untracked) {
       final result = await commandRunner.run([
         ...GitCommands.cleanFile,
@@ -79,7 +85,10 @@ class GitWorkingDirectoryService {
     }
 
     if (file.staged) {
-      final unstageResult = await commandRunner.run([...GitCommands.gitRestoreStaged, file.path]);
+      final unstageResult = await commandRunner.run([
+        ...GitCommands.gitRestoreStaged,
+        file.path,
+      ]);
       if (unstageResult.isLeft) {
         return Left(unstageResult.left);
       }
@@ -97,12 +106,16 @@ class GitWorkingDirectoryService {
   }
 
   Future<Either<GitServiceFailure, void>> discardAllChanges() async {
-    final restoreResult = await commandRunner.run(GitCommands.restoreTrackedFiles);
+    final restoreResult = await commandRunner.run(
+      GitCommands.restoreTrackedFiles,
+    );
     if (restoreResult.isLeft) {
       return Left(restoreResult.left);
     }
 
-    final cleanResult = await commandRunner.run(GitCommands.removeUntrackedFiles);
+    final cleanResult = await commandRunner.run(
+      GitCommands.removeUntrackedFiles,
+    );
     return cleanResult.fold(
       (failure) => Left(failure),
       (_) => const Right(null),
