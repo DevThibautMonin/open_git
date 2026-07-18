@@ -295,7 +295,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             listener: (context, state) {
               context.read<FilesDifferencesBloc>().add(ClearFileDiff());
               context.read<WorkingDirectoryBloc>().add(ClearSelectedFile());
-              context.read<CommitHistoryBloc>().add(ClearSelectedCommitFile());
+              context.read<CommitHistoryBloc>().add(CloseCommitDetails());
             },
           ),
           BlocListener<RepositoryBloc, RepositoryState>(

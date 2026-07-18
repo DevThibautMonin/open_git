@@ -13,6 +13,8 @@
 ### Updated
 
 - [Repository] Run clone operations through the shared Git command runner while keeping progress feedback.
+- [Commit history] Rework the history layout so selecting a commit opens its details and changed files inside the sidebar.
+- [Commit history] Keep the main commit history area dedicated to the selected file diff.
 - [Commit history] Handle empty repositories without surfacing Git log errors.
 - [Branches] Handle empty repository graphs without surfacing Git log errors.
 
