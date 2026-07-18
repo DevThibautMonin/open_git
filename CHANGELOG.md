@@ -1,6 +1,6 @@
 # Changelog
 
-## Version (Unreleased)
+## Version (1.2.1+24) (18/07/2026)
 
 ### Added
 

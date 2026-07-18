@@ -38,7 +38,7 @@ brew upgrade --cask opengit
 
 ## macOS (Manual)
 - Go to the Releases page.
-- Download the latest `.dmg` file (e.g., OpenGit-1.2.0.dmg).
+- Download the latest `.dmg` file (e.g., OpenGit-1.2.1.dmg).
 - Open the downloaded `.dmg` file.
 - Drag and drop the OpenGit icon into your Applications folder.
 
