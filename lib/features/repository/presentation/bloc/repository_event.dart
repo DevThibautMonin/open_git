@@ -67,3 +67,7 @@ class SetRepositoryViewMode extends RepositoryEvent {
 class FetchRepository extends RepositoryEvent {
   FetchRepository();
 }
+
+class PullRepository extends RepositoryEvent {
+  PullRepository();
+}

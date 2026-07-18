@@ -18,6 +18,7 @@ class GitCommands {
   static const List<String> gitUnstageAll = ["reset"];
   static const List<String> commitsAheadCount = ["rev-list", "--count", "@{u}..HEAD"];
   static const List<String> gitPush = ["push"];
+  static const List<String> gitPullFastForwardOnly = ["pull", "--ff-only"];
   static const List<String> remoteVerbose = ["remote", "-v"];
   static const List<String> remoteGetOrigin = ["remote", "get-url", "origin"];
   static const List<String> getUpstreamState = ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"];

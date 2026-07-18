@@ -249,6 +249,26 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
       );
     });
 
+    on<PullRepository>((event, emit) async {
+      emit(state.copyWith(status: RepositoryBlocStatus.pulling));
+
+      final result = await gitRemoteService.pullFastForwardOnly();
+
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: RepositoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          emit(state.copyWith(status: RepositoryBlocStatus.pulled));
+        },
+      );
+    });
+
     on<CloneRepositoryConfirmed>((event, emit) async {
       emit(
         state.copyWith(

@@ -320,6 +320,20 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     ),
                   );
                   break;
+                case RepositoryBlocStatus.pulled:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Repository pulled successfully",
+                  );
+                  context.read<BranchesBloc>().add(GetRepositoryBranches());
+                  _workingDirectoryBloc.add(GetRepositoryStatus());
+                  context.read<CommitHistoryBloc>().add(LoadCommitHistory());
+                  _repositoryBloc.add(
+                    UpdateRepositoryStatus(
+                      status: RepositoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
                 case RepositoryBlocStatus.repositorySelected:
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
                   _workingDirectoryBloc.add(GetRepositoryStatus());

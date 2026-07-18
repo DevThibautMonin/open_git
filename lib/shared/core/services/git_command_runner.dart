@@ -110,6 +110,15 @@ class GitCommandRunner {
     if (error.contains("could not read username")) {
       return GitHttpsAuthRequiredFailure();
     }
+    if (error.contains("not possible to fast-forward") ||
+        error.contains("divergent branches") ||
+        error.contains("need to specify how to reconcile divergent branches")) {
+      return GitPullNotFastForwardFailure(
+        command: "git ${args.join(" ")}",
+        stdErr: stderr,
+      );
+    }
+
 
     return GitServiceUnknownFailure(
       command: "git ${args.join(" ")}",

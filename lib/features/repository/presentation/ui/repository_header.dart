@@ -7,6 +7,7 @@ import "package:open_git/shared/presentation/widgets/desktop/desktop_button.dart
 import "package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart";
 import "package:open_git/shared/presentation/widgets/fetch_button.dart";
 import "package:open_git/shared/presentation/widgets/gaps.dart";
+import "package:open_git/shared/presentation/widgets/pull_button.dart";
 import "package:open_git/shared/presentation/widgets/push_commits_button.dart";
 
 class RepositoryHeader extends StatelessWidget {
@@ -90,6 +91,17 @@ class RepositoryHeader extends StatelessWidget {
                   context.read<RepositoryBloc>().add(FetchRepository());
                 },
                 isLoading: state.status == RepositoryBlocStatus.fetching,
+              );
+            },
+          ),
+          Gaps.w8,
+          BlocBuilder<RepositoryBloc, RepositoryState>(
+            builder: (context, state) {
+              return PullButton(
+                onPull: () {
+                  context.read<RepositoryBloc>().add(PullRepository());
+                },
+                isLoading: state.status == RepositoryBlocStatus.pulling,
               );
             },
           ),

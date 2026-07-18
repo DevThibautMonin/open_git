@@ -23,6 +23,9 @@ extension GitServiceFailureExtension on GitServiceFailure {
       GitHttpsAuthRequiredFailure() =>
         "Authentication is required to access this repository. "
             "Please check your HTTPS credentials or switch to SSH.",
+      GitPullNotFastForwardFailure() =>
+        "Pull cannot fast-forward this branch. "
+            "Fetch first, inspect the divergence, then merge or rebase manually.",
       GitCloneFailure() =>
         "Failed to clone the repository. "
             "Please check your network connection and repository access.",

@@ -14,6 +14,8 @@ enum RepositoryBlocStatus {
   fetched,
   initializing,
   repositoryInitialized,
+  pulling,
+  pulled,
   repositoryDeleted,
 }
 
