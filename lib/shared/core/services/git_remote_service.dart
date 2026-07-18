@@ -22,6 +22,15 @@ class GitRemoteService {
     );
   }
 
+  Future<Either<GitServiceFailure, void>> pullFastForwardOnly() async {
+    final result = await commandRunner.run(GitCommands.gitPullFastForwardOnly);
+
+    return result.fold(
+      (failure) => Left(failure),
+      (_) => const Right(null),
+    );
+  }
+
   Future<Either<GitServiceFailure, bool>> hasUpstream() async {
     final result = await commandRunner.run(
       GitCommands.getUpstreamState,

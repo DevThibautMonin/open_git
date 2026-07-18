@@ -77,6 +77,46 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
       );
     });
 
+    on<InitRepository>((event, emit) async {
+      emit(state.copyWith(status: RepositoryBlocStatus.initializing));
+
+      final result = await gitRepositoryService.initRepository();
+
+      if (result.isLeft) {
+        if (result.left is RepositoryNotSelectedFailure) {
+          emit(state.copyWith(status: RepositoryBlocStatus.initial));
+          return;
+        }
+
+        emit(
+          state.copyWith(
+            status: RepositoryBlocStatus.error,
+            errorMessage: result.left.errorMessage,
+            recentRepositoryPaths: gitRepositoryService
+                .getRecentRepositoryPaths(),
+          ),
+        );
+        return;
+      }
+
+      final path = result.right;
+
+      if (path == null || path.isEmpty) {
+        emit(state.copyWith(status: RepositoryBlocStatus.initial));
+        return;
+      }
+
+      emit(
+        state.copyWith(
+          repositoryPath: path,
+          currentRepositoryName: p.basename(path),
+          recentRepositoryPaths: gitRepositoryService
+              .getRecentRepositoryPaths(),
+          status: RepositoryBlocStatus.repositoryInitialized,
+        ),
+      );
+    });
+
     on<SelectRecentRepository>((event, emit) async {
       final result = await gitRepositoryService.setRepositoryPath(event.path);
 
@@ -205,6 +245,26 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
         },
         (_) {
           emit(state.copyWith(status: RepositoryBlocStatus.fetched));
+        },
+      );
+    });
+
+    on<PullRepository>((event, emit) async {
+      emit(state.copyWith(status: RepositoryBlocStatus.pulling));
+
+      final result = await gitRemoteService.pullFastForwardOnly();
+
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: RepositoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          emit(state.copyWith(status: RepositoryBlocStatus.pulled));
         },
       );
     });

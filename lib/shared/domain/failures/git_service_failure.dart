@@ -26,6 +26,13 @@ final class GitHttpsAuthRequiredFailure extends GitServiceFailure {
   GitHttpsAuthRequiredFailure();
 }
 
+final class GitPullNotFastForwardFailure extends GitServiceFailure {
+  GitPullNotFastForwardFailure({
+    super.command,
+    super.stdErr,
+  });
+}
+
 final class DirectoryNotEmptyFailure extends GitServiceFailure {
   DirectoryNotEmptyFailure();
 }

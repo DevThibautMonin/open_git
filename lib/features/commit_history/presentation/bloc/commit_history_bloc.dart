@@ -48,10 +48,6 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
               status: CommitHistoryBlocStatus.loaded,
             ),
           );
-
-          if (filteredCommits.isNotEmpty) {
-            add(SelectCommit(commit: filteredCommits.first));
-          }
         },
       );
     });
@@ -71,10 +67,6 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
           selectedCommitFiles: [],
         ),
       );
-
-      if (filteredCommits.isNotEmpty) {
-        add(SelectCommit(commit: filteredCommits.first));
-      }
     });
 
     on<SelectCommit>((event, emit) async {
@@ -118,7 +110,7 @@ class CommitHistoryBloc extends Bloc<CommitHistoryEvent, CommitHistoryState> {
       );
     });
 
-    on<ClearSelectedCommitFile>((event, emit) {
+    on<CloseCommitDetails>((event, emit) {
       emit(
         state.copyWith(
           selectedCommitFile: null,

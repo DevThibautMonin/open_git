@@ -4,7 +4,8 @@ extension GitServiceFailureExtension on GitServiceFailure {
   String get errorMessage {
     return switch (this) {
       RepositoryDoesntExistsFailure() => "No repository is currently selected.",
-      RepositoryNotSelectedFailure() => "Please select a repository to continue.",
+      RepositoryNotSelectedFailure() =>
+        "Please select a repository to continue.",
       RepositoryPathInvalidFailure() =>
         "The repository folder no longer exists or is inaccessible. "
             "Please select or clone the repository again.",
@@ -23,6 +24,9 @@ extension GitServiceFailureExtension on GitServiceFailure {
       GitHttpsAuthRequiredFailure() =>
         "Authentication is required to access this repository. "
             "Please check your HTTPS credentials or switch to SSH.",
+      GitPullNotFastForwardFailure() =>
+        "Pull cannot fast-forward this branch. "
+            "Fetch first, inspect the divergence, then merge or rebase manually.",
       GitCloneFailure() =>
         "Failed to clone the repository. "
             "Please check your network connection and repository access.",

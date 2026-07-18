@@ -1,3 +1,4 @@
+import "dart:convert";
 import "dart:io";
 import "package:either_dart/either.dart";
 import "package:injectable/injectable.dart";
@@ -17,7 +18,9 @@ class GitCommandRunner {
   });
 
   Either<GitServiceFailure, String> getRepoPath() {
-    final path = sharedPreferencesService.getString(SharedPreferencesKeys.repositoryPath);
+    final path = sharedPreferencesService.getString(
+      SharedPreferencesKeys.repositoryPath,
+    );
     if (path == null || path.isEmpty) {
       return Left(RepositoryDoesntExistsFailure());
     }
@@ -34,10 +37,20 @@ class GitCommandRunner {
       return Left(repoPathResult.left);
     }
 
-    final repoPath = repoPathResult.right;
+    return runInDirectory(
+      args,
+      workingDirectory: repoPathResult.right,
+      allowedExitCodes: allowedExitCodes,
+    );
+  }
 
+  Future<Either<GitServiceFailure, String>> runInDirectory(
+    List<String> args, {
+    required String workingDirectory,
+    Set<int> allowedExitCodes = const {0},
+  }) async {
     try {
-      final dir = Directory(repoPath);
+      final dir = Directory(workingDirectory);
       if (!await dir.exists()) {
         return Left(
           RepositoryPathInvalidFailure(
@@ -51,7 +64,7 @@ class GitCommandRunner {
       final result = await Process.run(
         "git",
         args,
-        workingDirectory: repoPath,
+        workingDirectory: workingDirectory,
       );
 
       if (!allowedExitCodes.contains(result.exitCode)) {
@@ -88,6 +101,84 @@ class GitCommandRunner {
     }
   }
 
+  Future<Either<GitServiceFailure, String>> runStreaming(
+    List<String> args, {
+    String? workingDirectory,
+    Set<int> allowedExitCodes = const {0},
+    void Function(String line)? onStdErrLine,
+  }) async {
+    try {
+      if (workingDirectory != null) {
+        final dir = Directory(workingDirectory);
+        if (!await dir.exists()) {
+          return Left(
+            RepositoryPathInvalidFailure(
+              command: 'git ${args.join(" ")}',
+            ),
+          );
+        }
+      }
+
+      logService.debug("Git command : git $args");
+
+      final process = await Process.start(
+        "git",
+        args,
+        workingDirectory: workingDirectory,
+      );
+
+      final stdoutBuffer = StringBuffer();
+      final stderrBuffer = StringBuffer();
+
+      process.stdout
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen((line) {
+            stdoutBuffer.writeln(line);
+          });
+
+      process.stderr
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen((line) {
+            stderrBuffer.writeln(line);
+            onStdErrLine?.call(line);
+          });
+
+      final exitCode = await process.exitCode;
+      final stderr = stderrBuffer.toString();
+
+      if (!allowedExitCodes.contains(exitCode)) {
+        logService.error(stderr);
+        return Left(mapGitFailure(stderr, args));
+      }
+
+      return Right(stdoutBuffer.toString());
+    } on ProcessException catch (e) {
+      logService.error(e.toString());
+
+      if (e.executable == "git") {
+        return Left(GitNotFoundFailure());
+      }
+
+      return Left(
+        GitProcessFailure(
+          command: 'git ${args.join(" ")}',
+          stdErr: e.message,
+        ),
+      );
+    } catch (e) {
+      logService.error(e.toString());
+
+      return Left(
+        GitProcessFailure(
+          command: 'git ${args.join(" ")}',
+          stdErr: e.toString(),
+        ),
+      );
+    }
+  }
+
   GitServiceFailure mapGitFailure(String stderr, List<String> args) {
     final error = stderr.toLowerCase();
 
@@ -99,6 +190,20 @@ class GitCommandRunner {
     }
     if (error.contains("could not read username")) {
       return GitHttpsAuthRequiredFailure();
+    }
+    if (error.contains("not possible to fast-forward") ||
+        error.contains("divergent branches") ||
+        error.contains("need to specify how to reconcile divergent branches")) {
+      return GitPullNotFastForwardFailure(
+        command: "git ${args.join(" ")}",
+        stdErr: stderr,
+      );
+    }
+    if (args.isNotEmpty && args.first == "clone") {
+      return GitCloneFailure(
+        command: "git ${args.join(" ")}",
+        stdErr: stderr,
+      );
     }
 
     return GitServiceUnknownFailure(

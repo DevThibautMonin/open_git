@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
-import 'package:open_git/shared/presentation/widgets/commit_button.dart';
-import 'package:open_git/shared/presentation/widgets/gaps.dart';
-import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_text_field.dart';
+import "package:flutter/material.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
+import "package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart";
+import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
+import "package:open_git/shared/presentation/widgets/commit_button.dart";
+import "package:open_git/shared/presentation/widgets/desktop/desktop_checkbox.dart";
+import "package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart";
+import "package:open_git/shared/presentation/widgets/desktop/desktop_text_field.dart";
+import "package:open_git/shared/presentation/widgets/gaps.dart";
 
 class CommitMessageTextfield extends StatefulWidget {
   final bool hasStagedFiles;
@@ -16,86 +17,146 @@ class CommitMessageTextfield extends StatefulWidget {
   });
 
   @override
-  State<CommitMessageTextfield> createState() => _CommitMessageTextfieldState();
+  State<CommitMessageTextfield> createState() => CommitMessageTextfieldState();
 }
 
-class _CommitMessageTextfieldState extends State<CommitMessageTextfield> {
-  final _summaryController = TextEditingController();
-  final _descriptionController = TextEditingController();
+class CommitMessageTextfieldState extends State<CommitMessageTextfield> {
+  final TextEditingController summaryController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _summaryController.addListener(_onTextChanged);
-  }
-
-  void _onTextChanged() {
-    setState(() {});
+    summaryController.addListener(onSummaryChanged);
+    descriptionController.addListener(onDescriptionChanged);
   }
 
   @override
   void dispose() {
-    _summaryController.removeListener(_onTextChanged);
-    _summaryController.dispose();
-    _descriptionController.dispose();
+    summaryController.removeListener(onSummaryChanged);
+    descriptionController.removeListener(onDescriptionChanged);
+    summaryController.dispose();
+    descriptionController.dispose();
     super.dispose();
   }
 
-  bool get _isCommitEnabled {
-    return widget.hasStagedFiles && _summaryController.text.trim().isNotEmpty;
+  void onSummaryChanged() {
+    context.read<WorkingDirectoryBloc>().add(
+      UpdateCommitSummary(summary: summaryController.text),
+    );
   }
 
-  void _onCommit() {
-    if (!_isCommitEnabled) return;
-
+  void onDescriptionChanged() {
     context.read<WorkingDirectoryBloc>().add(
-      AddCommit(
-        summary: _summaryController.text.trim(),
-        description: _descriptionController.text.trim(),
-      ),
+      UpdateCommitDescription(description: descriptionController.text),
     );
-
-    _summaryController.clear();
-    _descriptionController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return DesktopPanel(
-      topBorder: true,
-      color: theme.openGit.toolbar,
-      padding: const EdgeInsets.all(10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Commit',
-            style: theme.openGitSectionLabel,
+    return BlocConsumer<WorkingDirectoryBloc, WorkingDirectoryState>(
+      listenWhen: (previous, current) {
+        return previous.commitSummary != current.commitSummary ||
+            previous.commitDescription != current.commitDescription;
+      },
+      listener: (context, state) {
+        if (summaryController.text != state.commitSummary) {
+          summaryController.text = state.commitSummary;
+        }
+
+        if (descriptionController.text != state.commitDescription) {
+          descriptionController.text = state.commitDescription;
+        }
+      },
+      builder: (context, state) {
+        final summary = state.commitSummary.trim();
+        final description = state.commitDescription.trim();
+        final isAmending = state.amendLatestCommit;
+        final isCommitEnabled = widget.hasStagedFiles && summary.isNotEmpty;
+        final isAmendEnabled = summary.isNotEmpty;
+        final isEnabled = isAmending ? isAmendEnabled : isCommitEnabled;
+        final buttonText = isAmending
+            ? "Amend commit"
+            : widget.hasStagedFiles
+            ? "Commit"
+            : "No staged files";
+
+        return DesktopPanel(
+          topBorder: true,
+          color: theme.openGit.toolbar,
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                "Commit",
+                style: theme.openGitSectionLabel,
+              ),
+              Gaps.h8,
+              DesktopTextField(
+                controller: summaryController,
+                maxLength: 50,
+                labelText: "Summary",
+                hintText: "Short summary of the commit",
+              ),
+              const SizedBox(height: 8),
+              DesktopTextField(
+                controller: descriptionController,
+                labelText: "Description",
+                hintText: "More detailed explanation...",
+                maxLines: 4,
+              ),
+              Gaps.h8,
+              Row(
+                children: [
+                  DesktopCheckbox(
+                    value: isAmending,
+                    tooltip: "Amend latest commit",
+                    onChanged: (checked) {
+                      context.read<WorkingDirectoryBloc>().add(
+                        ToggleAmendLatestCommit(amend: checked),
+                      );
+                    },
+                  ),
+                  Gaps.w8,
+                  Expanded(
+                    child: Text(
+                      "Amend latest commit",
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.openGitCaption,
+                    ),
+                  ),
+                ],
+              ),
+              Gaps.h8,
+              CommitButton(
+                text: buttonText,
+                onPressed: () {
+                  if (isAmending) {
+                    context.read<WorkingDirectoryBloc>().add(
+                      AmendCommit(
+                        summary: summary,
+                        description: description,
+                      ),
+                    );
+                    return;
+                  }
+
+                  context.read<WorkingDirectoryBloc>().add(
+                    AddCommit(
+                      summary: summary,
+                      description: description,
+                    ),
+                  );
+                },
+                isEnabled: isEnabled,
+              ),
+            ],
           ),
-          Gaps.h8,
-          DesktopTextField(
-            controller: _summaryController,
-            maxLength: 50,
-            labelText: 'Summary',
-            hintText: 'Short summary of the commit',
-          ),
-          const SizedBox(height: 8),
-          DesktopTextField(
-            controller: _descriptionController,
-            labelText: 'Description',
-            hintText: 'More detailed explanation...',
-            maxLines: 4,
-          ),
-          Gaps.h8,
-          CommitButton(
-            text: widget.hasStagedFiles ? 'Commit' : 'No staged files',
-            onPressed: _onCommit,
-            isEnabled: _isCommitEnabled,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

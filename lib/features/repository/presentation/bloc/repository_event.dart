@@ -10,6 +10,10 @@ class SelectRepository extends RepositoryEvent {
   SelectRepository();
 }
 
+class InitRepository extends RepositoryEvent {
+  InitRepository();
+}
+
 class LoadRecentRepositories extends RepositoryEvent {
   LoadRecentRepositories();
 }
@@ -62,4 +66,8 @@ class SetRepositoryViewMode extends RepositoryEvent {
 
 class FetchRepository extends RepositoryEvent {
   FetchRepository();
+}
+
+class PullRepository extends RepositoryEvent {
+  PullRepository();
 }

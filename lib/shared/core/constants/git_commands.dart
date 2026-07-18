@@ -1,4 +1,5 @@
 class GitCommands {
+  static const List<String> gitInit = ["init"];
   static const List<String> listBranches = [
     "branch",
     "--format=%(refname:short)|%(HEAD)",
@@ -9,30 +10,66 @@ class GitCommands {
   static const List<String> switchToBranch = ["switch"];
   static const List<String> checkoutBranch = ["checkout", "-b"];
   static const List<String> deleteBranch = ["branch", "-D"];
-  static const List<String> statusPorcelain = ["status", "--porcelain", "--untracked-files=all"];
+  static const List<String> statusPorcelain = [
+    "status",
+    "--porcelain",
+    "--untracked-files=all",
+  ];
   static const List<String> gitAdd = ["add"];
   static const List<String> gitAddAll = ["add", "-A"];
   static const List<String> gitCommit = ["commit"];
+  static const List<String> gitCommitAmend = ["commit", "--amend"];
   static const List<String> gitRestoreStaged = ["restore", "--staged"];
   static const List<String> gitUnstageAll = ["reset"];
-  static const List<String> commitsAheadCount = ["rev-list", "--count", "@{u}..HEAD"];
+  static const List<String> commitsAheadCount = [
+    "rev-list",
+    "--count",
+    "@{u}..HEAD",
+  ];
   static const List<String> gitPush = ["push"];
+  static const List<String> gitPullFastForwardOnly = ["pull", "--ff-only"];
   static const List<String> remoteVerbose = ["remote", "-v"];
   static const List<String> remoteGetOrigin = ["remote", "get-url", "origin"];
-  static const List<String> getUpstreamState = ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"];
+  static const List<String> getUpstreamState = [
+    "rev-parse",
+    "--abbrev-ref",
+    "--symbolic-full-name",
+    "@{u}",
+  ];
   static const List<String> publishBranch = ["push", "-u", "origin", "HEAD"];
   static const List<String> restoreTrackedFiles = ["restore", "."];
   static const List<String> removeUntrackedFiles = ["clean", "-fd"];
   static const List<String> restoreFile = ["restore", "--"];
   static const List<String> cleanFile = ["clean", "-f", "--"];
   static const List<String> renameBranch = ["branch", "-m"];
-  static const List<String> getBranchUpstream = ["rev-parse", "--abbrev-ref", "--symbolic-full-name"];
-  static const List<String> showCommitFiles = ["show", "--name-only", "--pretty="];
+  static const List<String> getBranchUpstream = [
+    "rev-parse",
+    "--abbrev-ref",
+    "--symbolic-full-name",
+  ];
+  static const List<String> showCommitFiles = [
+    "show",
+    "--name-only",
+    "--pretty=",
+  ];
   static const List<String> diffCommitFile = ["diff"];
   static const List<String> gitFetchPrune = ['fetch', '--prune'];
   static const List<String> checkoutRemoteBranch = ['checkout', '-t'];
-  static const List<String> gitUnpushedCommits = ['log', '--pretty=format:%H', '@{u}..HEAD'];
-  
+  static const List<String> gitUnpushedCommits = [
+    'log',
+    '--pretty=format:%H',
+    '@{u}..HEAD',
+  ];
+  static const List<String> gitStashList = [
+    "stash",
+    "list",
+    "--format=%gd%x1f%cr%x1f%s",
+  ];
+  static const List<String> gitStashPush = ["stash", "push", "-u"];
+  static const List<String> gitStashApply = ["stash", "apply"];
+  static const List<String> gitStashPop = ["stash", "pop"];
+  static const List<String> gitStashDrop = ["stash", "drop"];
+
   static const List<String> gitLogGraphAll = [
     'log',
     '--all',

@@ -38,7 +38,7 @@ brew upgrade --cask opengit
 
 ## macOS (Manual)
 - Go to the Releases page.
-- Download the latest `.dmg` file (e.g., OpenGit-1.2.0.dmg).
+- Download the latest `.dmg` file (e.g., OpenGit-1.2.1.dmg).
 - Open the downloaded `.dmg` file.
 - Drag and drop the OpenGit icon into your Applications folder.
 
@@ -48,9 +48,11 @@ brew upgrade --cask opengit
 
 ### Repository
 - Open a local Git repository.
+- Initialize a selected folder as a local Git repository.
 - Automatically reopen the last repository on launch.
-- Clone a remote repository using SSH.
+- Clone a remote repository from a Git URL with progress feedback.
 - Display the repository name.
+- Pull remote changes with fast-forward-only safety.
 - Quickly switch between recently opened repositories from the header.
 
 ### Branches
@@ -76,8 +78,11 @@ brew upgrade --cask opengit
 - Create commits
   - mandatory commit summary
   - optional commit description
+- Amend the latest commit.
 - Push commits to the remote repository.
 - Display the number of commits waiting to be pushed.
+- Create stashes with optional messages.
+- List, apply, pop, and drop stashes.
 - Discard changes (all files / single file).
 
 ### Files Differences
@@ -98,9 +103,11 @@ brew upgrade --cask opengit
 - List commit / merge history.
 - Display author, date, and message.
 - Show full commit description in scrollable details panel.
-- Auto-select first commit and file on feature load.
+- Open a commit details view from the history list.
+- Display changed files inside the selected commit details view.
 - Visual indicators for selected commits and files.
 - Clean and readable chronological view.
+- Search commits from the history view.
 - Commit diff split view from history.
 - Show unpushed commits.
 - Display GitHub user avatars for authors.
@@ -122,7 +129,7 @@ brew upgrade --cask opengit
 # 📦 Roadmap
 
 ### Git & Collaboration
-- Fetch / Pull with behind/ahead indicators.
+- Behind/ahead indicators.
 
 ### Branch Management
 - Conflict resolution UI.

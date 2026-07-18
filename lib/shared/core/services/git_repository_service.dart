@@ -3,8 +3,10 @@ import "dart:io";
 import "package:either_dart/either.dart";
 import "package:file_picker/file_picker.dart";
 import "package:injectable/injectable.dart";
+import "package:open_git/shared/core/constants/git_commands.dart";
 import "package:open_git/shared/core/constants/git_regex.dart";
 import "package:open_git/shared/core/constants/shared_preferences_keys.dart";
+import "package:open_git/shared/core/services/git_command_runner.dart";
 import "package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart";
 import "package:open_git/shared/domain/failures/git_service_failure.dart";
 
@@ -13,9 +15,11 @@ class GitRepositoryService {
   static const int maxRecentRepositories = 20;
 
   final SharedPreferencesService sharedPreferencesService;
+  final GitCommandRunner commandRunner;
 
   GitRepositoryService({
     required this.sharedPreferencesService,
+    required this.commandRunner,
   });
 
   Future<Either<GitServiceFailure, bool>> repositoryExists() async {
@@ -35,6 +39,34 @@ class GitRepositoryService {
 
     if (path == null) {
       return Left(RepositoryNotSelectedFailure());
+    }
+
+    return setRepositoryPath(path);
+  }
+
+  Future<Either<GitServiceFailure, String?>> initRepository() async {
+    final path = await FilePicker.platform.getDirectoryPath();
+
+    if (path == null) {
+      return Left(RepositoryNotSelectedFailure());
+    }
+
+    final dir = Directory(path);
+    if (!await dir.exists()) {
+      return Left(
+        RepositoryPathInvalidFailure(
+          command: path,
+        ),
+      );
+    }
+
+    final initResult = await commandRunner.runInDirectory(
+      GitCommands.gitInit,
+      workingDirectory: path,
+    );
+
+    if (initResult.isLeft) {
+      return Left(initResult.left);
     }
 
     return setRepositoryPath(path);
@@ -112,43 +144,20 @@ class GitRepositoryService {
     required String targetPath,
     required void Function(double progress) onProgress,
   }) async {
-    final process = await Process.start(
-      'git',
-      ['clone', '--progress', sshUrl, targetPath],
-    );
-
-    final stderrBuffer = StringBuffer();
-
     final progressRegex = GitRegex.cloneRepositoryProgress;
 
-    process.stderr
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen((line) {
-          stderrBuffer.writeln(line);
+    final cloneResult = await commandRunner.runStreaming(
+      ["clone", "--progress", sshUrl, targetPath],
+      onStdErrLine: (line) {
+        final match = progressRegex.firstMatch(line);
+        if (match != null) {
+          onProgress(double.parse(match.group(1)!) / 100);
+        }
+      },
+    );
 
-          final match = progressRegex.firstMatch(line);
-          if (match != null) {
-            onProgress(double.parse(match.group(1)!) / 100);
-          }
-        });
-
-    process.stdout
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen((_) {});
-
-    final exitCode = await process.exitCode;
-
-    if (exitCode != 0) {
-      final stderr = stderrBuffer.toString().trim();
-
-      return Left(
-        GitCloneFailure(
-          stdErr: stderr,
-          command: 'git clone $sshUrl $targetPath',
-        ),
-      );
+    if (cloneResult.isLeft) {
+      return Left(cloneResult.left);
     }
 
     return const Right(null);

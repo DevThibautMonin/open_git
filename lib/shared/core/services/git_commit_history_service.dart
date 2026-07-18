@@ -21,12 +21,15 @@ class GitCommitHistoryService {
       return Left(unpushedResult.left);
     }
 
-    final logResult = await commandRunner.run([
-      'log',
-      '--pretty=format:%H|%P|%an|%ae|%ad|%B%x00',
-      '--date=iso',
-      '--max-count=$limit',
-    ]);
+    final logResult = await commandRunner.run(
+      [
+        'log',
+        '--pretty=format:%H|%P|%an|%ae|%ad|%B%x00',
+        '--date=iso',
+        '--max-count=$limit',
+      ],
+      allowedExitCodes: const {0, 128},
+    );
 
     if (logResult.isLeft) {
       return Left(logResult.left);
@@ -35,12 +38,22 @@ class GitCommitHistoryService {
     final unpushedShas = unpushedResult.right;
     final output = logResult.right;
 
-    final commits = output.split('\x00').where((l) => l.trim().isNotEmpty).map(_parseCommitLine(unpushedShas)).toList();
+    if (output.trim().isEmpty) {
+      return const Right([]);
+    }
+
+    final commits = output
+        .split('\x00')
+        .where((l) => l.trim().isNotEmpty)
+        .map(_parseCommitLine(unpushedShas))
+        .toList();
 
     return Right(commits);
   }
 
-  Future<Either<GitServiceFailure, List<String>>> getCommitFiles(GitCommitEntity commit) async {
+  Future<Either<GitServiceFailure, List<String>>> getCommitFiles(
+    GitCommitEntity commit,
+  ) async {
     if (commit.isMergeCommit) {
       return await _getMergeCommitFiles(commit);
     }
@@ -52,14 +65,16 @@ class GitCommitHistoryService {
 
     return result.fold(
       (failure) => Left(failure),
-      (data) => Right(data.split("\n").where((line) => line.trim().isNotEmpty).toList()),
+      (data) => Right(
+        data.split("\n").where((line) => line.trim().isNotEmpty).toList(),
+      ),
     );
   }
 
   Future<Either<GitServiceFailure, Set<String>>> getUnpushedCommitShas() async {
     final result = await commandRunner.run(
       GitCommands.gitUnpushedCommits,
-      allowedExitCodes: const {0, 1},
+      allowedExitCodes: const {0, 1, 128},
     );
 
     return result.fold(
@@ -70,7 +85,9 @@ class GitCommitHistoryService {
     );
   }
 
-  Future<Either<GitServiceFailure, List<String>>> _getMergeCommitFiles(GitCommitEntity commit) async {
+  Future<Either<GitServiceFailure, List<String>>> _getMergeCommitFiles(
+    GitCommitEntity commit,
+  ) async {
     final parent1 = commit.parents[0];
     final parent2 = commit.parents[1];
 
@@ -83,7 +100,8 @@ class GitCommitHistoryService {
 
     return result.fold(
       (failure) => Left(failure),
-      (data) => Right(data.split("\n").where((l) => l.trim().isNotEmpty).toList()),
+      (data) =>
+          Right(data.split("\n").where((l) => l.trim().isNotEmpty).toList()),
     );
   }
 
@@ -100,7 +118,11 @@ class GitCommitHistoryService {
       final messageParts = fullMessage.split('\n');
       final message = messageParts.first.trim();
       final description = messageParts.length > 1
-          ? messageParts.sublist(1).where((line) => line.trim().isNotEmpty).join('\n').trim()
+          ? messageParts
+                .sublist(1)
+                .where((line) => line.trim().isNotEmpty)
+                .join('\n')
+                .trim()
           : '';
 
       return GitCommitEntity(

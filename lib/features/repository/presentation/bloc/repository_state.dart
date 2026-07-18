@@ -12,6 +12,10 @@ enum RepositoryBlocStatus {
   cloneProgress,
   fetching,
   fetched,
+  initializing,
+  repositoryInitialized,
+  pulling,
+  pulled,
   repositoryDeleted,
 }
 

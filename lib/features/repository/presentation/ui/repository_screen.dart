@@ -106,6 +106,67 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                 case WorkingDirectoryBlocStatus.commitsAdded:
                   _filesDifferencesBloc.add(ClearFileDiff());
                   _workingDirectoryBloc.add(ClearSelectedFile());
+                  context.read<CommitHistoryBloc>().add(LoadCommitHistory());
+                  break;
+                case WorkingDirectoryBlocStatus.commitAmended:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Commit amended successfully",
+                  );
+                  _filesDifferencesBloc.add(ClearFileDiff());
+                  _workingDirectoryBloc.add(ClearSelectedFile());
+                  context.read<CommitHistoryBloc>().add(LoadCommitHistory());
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
+                case WorkingDirectoryBlocStatus.stashCreated:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Changes stashed successfully",
+                  );
+                  _filesDifferencesBloc.add(ClearFileDiff());
+                  _workingDirectoryBloc.add(ClearSelectedFile());
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
+                case WorkingDirectoryBlocStatus.stashApplied:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Stash applied successfully",
+                  );
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
+                case WorkingDirectoryBlocStatus.stashPopped:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Stash popped successfully",
+                  );
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
+                case WorkingDirectoryBlocStatus.stashDropped:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Stash dropped successfully",
+                  );
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
                   break;
                 case WorkingDirectoryBlocStatus.askForDiscardFileChanges:
                   if (state.selectedFile != null) {
@@ -234,7 +295,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
             listener: (context, state) {
               context.read<FilesDifferencesBloc>().add(ClearFileDiff());
               context.read<WorkingDirectoryBloc>().add(ClearSelectedFile());
-              context.read<CommitHistoryBloc>().add(ClearSelectedCommitFile());
+              context.read<CommitHistoryBloc>().add(CloseCommitDetails());
             },
           ),
           BlocListener<RepositoryBloc, RepositoryState>(
@@ -305,6 +366,36 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
 
                 case RepositoryBlocStatus.fetched:
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
+                  _workingDirectoryBloc.add(GetRepositoryStatus());
+                  context.read<CommitHistoryBloc>().add(LoadCommitHistory());
+                  break;
+                case RepositoryBlocStatus.pulled:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Repository pulled successfully",
+                  );
+                  context.read<BranchesBloc>().add(GetRepositoryBranches());
+                  _workingDirectoryBloc.add(GetRepositoryStatus());
+                  context.read<CommitHistoryBloc>().add(LoadCommitHistory());
+                  _repositoryBloc.add(
+                    UpdateRepositoryStatus(
+                      status: RepositoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
+                case RepositoryBlocStatus.repositoryInitialized:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Repository initialized successfully",
+                  );
+                  context.read<BranchesBloc>().add(GetRepositoryBranches());
+                  _workingDirectoryBloc.add(GetRepositoryStatus());
+                  context.read<CommitHistoryBloc>().add(LoadCommitHistory());
+                  _repositoryBloc.add(
+                    UpdateRepositoryStatus(
+                      status: RepositoryBlocStatus.initial,
+                    ),
+                  );
                   break;
                 case RepositoryBlocStatus.repositorySelected:
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
@@ -452,6 +543,9 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                       return RepositoryHeader(
                         onSelectRepository: () {
                           _repositoryBloc.add(SelectRepository());
+                        },
+                        onInitRepository: () {
+                          _repositoryBloc.add(InitRepository());
                         },
                         onCloneRepository: () {
                           _repositoryBloc.add(
