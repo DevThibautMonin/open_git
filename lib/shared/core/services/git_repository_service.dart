@@ -144,43 +144,20 @@ class GitRepositoryService {
     required String targetPath,
     required void Function(double progress) onProgress,
   }) async {
-    final process = await Process.start(
-      'git',
-      ['clone', '--progress', sshUrl, targetPath],
-    );
-
-    final stderrBuffer = StringBuffer();
-
     final progressRegex = GitRegex.cloneRepositoryProgress;
 
-    process.stderr
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen((line) {
-          stderrBuffer.writeln(line);
+    final cloneResult = await commandRunner.runStreaming(
+      ["clone", "--progress", sshUrl, targetPath],
+      onStdErrLine: (line) {
+        final match = progressRegex.firstMatch(line);
+        if (match != null) {
+          onProgress(double.parse(match.group(1)!) / 100);
+        }
+      },
+    );
 
-          final match = progressRegex.firstMatch(line);
-          if (match != null) {
-            onProgress(double.parse(match.group(1)!) / 100);
-          }
-        });
-
-    process.stdout
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen((_) {});
-
-    final exitCode = await process.exitCode;
-
-    if (exitCode != 0) {
-      final stderr = stderrBuffer.toString().trim();
-
-      return Left(
-        GitCloneFailure(
-          stdErr: stderr,
-          command: 'git clone $sshUrl $targetPath',
-        ),
-      );
+    if (cloneResult.isLeft) {
+      return Left(cloneResult.left);
     }
 
     return const Right(null);

@@ -366,11 +366,13 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
 
                 case RepositoryBlocStatus.fetched:
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
+                  _workingDirectoryBloc.add(GetRepositoryStatus());
+                  context.read<CommitHistoryBloc>().add(LoadCommitHistory());
                   break;
-                case RepositoryBlocStatus.repositoryInitialized:
+                case RepositoryBlocStatus.pulled:
                   SuccessSnackBar.show(
                     context,
-                    message: "Repository initialized successfully",
+                    message: "Repository pulled successfully",
                   );
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
                   _workingDirectoryBloc.add(GetRepositoryStatus());
@@ -381,10 +383,10 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     ),
                   );
                   break;
-                case RepositoryBlocStatus.pulled:
+                case RepositoryBlocStatus.repositoryInitialized:
                   SuccessSnackBar.show(
                     context,
-                    message: "Repository pulled successfully",
+                    message: "Repository initialized successfully",
                   );
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
                   _workingDirectoryBloc.add(GetRepositoryStatus());

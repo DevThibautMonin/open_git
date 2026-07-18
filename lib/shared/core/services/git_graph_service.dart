@@ -17,18 +17,28 @@ class GitGraphService {
   Future<Either<GitServiceFailure, List<GraphCommitEntity>>> getGraphCommits({
     int limit = 1000,
   }) async {
-    final logResult = await commandRunner.run([
-      ...GitCommands.gitLogGraphAll,
-      '-n',
-      limit.toString(),
-    ]);
+    final logResult = await commandRunner.run(
+      [
+        ...GitCommands.gitLogGraphAll,
+        '-n',
+        limit.toString(),
+      ],
+      allowedExitCodes: const {0, 128},
+    );
 
     if (logResult.isLeft) {
       return Left(logResult.left);
     }
 
     final output = logResult.right;
-    final lines = output.split('\x00').where((l) => l.trim().isNotEmpty).toList();
+    if (output.trim().isEmpty) {
+      return const Right([]);
+    }
+
+    final lines = output
+        .split('\x00')
+        .where((l) => l.trim().isNotEmpty)
+        .toList();
 
     return Right(_parseGraph(lines));
   }
@@ -37,14 +47,14 @@ class GitGraphService {
     if (lines.isEmpty) return [];
 
     final result = <GraphCommitEntity>[];
-    
+
     // Track active branches by their current expected commit SHA
     final List<String?> activeBranches = [];
-    
+
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i];
       final p = line.split('|').map((e) => e.trim()).toList();
-      
+
       if (p.length < 7) continue;
 
       final sha = p[0];
@@ -64,7 +74,7 @@ class GitGraphService {
 
       // Find the lane for this commit
       int laneIndex = activeBranches.indexOf(sha);
-      
+
       // If we don't have a lane for it, find the first empty lane or add a new one
       if (laneIndex == -1) {
         laneIndex = activeBranches.indexWhere((b) => b == null);
@@ -85,15 +95,21 @@ class GitGraphService {
       } else {
         // Primary parent takes the current lane
         activeBranches[laneIndex] = parents.first;
-        routes.add(GraphRoute(fromLane: laneIndex, toLane: laneIndex, commitSha: parents.first));
+        routes.add(
+          GraphRoute(
+            fromLane: laneIndex,
+            toLane: laneIndex,
+            commitSha: parents.first,
+          ),
+        );
 
         // Additional parents (merges) get new lanes
         for (int pIndex = 1; pIndex < parents.length; pIndex++) {
           final parent = parents[pIndex];
-          
+
           // Does this parent already have a lane?
           int parentLane = activeBranches.indexOf(parent);
-          
+
           if (parentLane == -1) {
             // Find empty or add new
             parentLane = activeBranches.indexWhere((b) => b == null);
@@ -104,16 +120,24 @@ class GitGraphService {
               activeBranches[parentLane] = parent;
             }
           }
-          
-          routes.add(GraphRoute(fromLane: laneIndex, toLane: parentLane, commitSha: parent));
+
+          routes.add(
+            GraphRoute(
+              fromLane: laneIndex,
+              toLane: parentLane,
+              commitSha: parent,
+            ),
+          );
         }
       }
 
       // Record routes that pass through this row without interacting
       for (int l = 0; l < activeBranches.length; l++) {
-        if (activeBranches[l] != null && l != laneIndex && activeBranches[l] != sha) {
-           // We don't add these to routes of *this* commit to avoid duplicating data. 
-           // The UI can extrapolate continuous lanes.
+        if (activeBranches[l] != null &&
+            l != laneIndex &&
+            activeBranches[l] != sha) {
+          // We don't add these to routes of *this* commit to avoid duplicating data.
+          // The UI can extrapolate continuous lanes.
         }
       }
 
@@ -122,17 +146,19 @@ class GitGraphService {
         activeBranches.removeLast();
       }
 
-      result.add(GraphCommitEntity(
-        sha: sha,
-        parents: parents,
-        author: author,
-        authorEmail: authorEmail,
-        date: DateTime.parse(dateStr),
-        message: message,
-        refs: refs,
-        lane: laneIndex,
-        routes: routes,
-      ));
+      result.add(
+        GraphCommitEntity(
+          sha: sha,
+          parents: parents,
+          author: author,
+          authorEmail: authorEmail,
+          date: DateTime.parse(dateStr),
+          message: message,
+          refs: refs,
+          lane: laneIndex,
+          routes: routes,
+        ),
+      );
     }
 
     return result;
