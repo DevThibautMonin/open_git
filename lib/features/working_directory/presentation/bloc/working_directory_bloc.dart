@@ -231,6 +231,28 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
       emit(state.copyWith(status: event.status));
     });
 
+    on<UpdateCommitSummary>((event, emit) {
+      emit(state.copyWith(commitSummary: event.summary));
+    });
+
+    on<UpdateCommitDescription>((event, emit) {
+      emit(state.copyWith(commitDescription: event.description));
+    });
+
+    on<ToggleAmendLatestCommit>((event, emit) {
+      emit(state.copyWith(amendLatestCommit: event.amend));
+    });
+
+    on<ClearCommitForm>((event, emit) {
+      emit(
+        state.copyWith(
+          commitSummary: "",
+          commitDescription: "",
+          amendLatestCommit: false,
+        ),
+      );
+    });
+
     on<ClearSelectedFile>((event, emit) {
       emit(
         state.copyWith(
@@ -258,7 +280,35 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
         },
         (_) {
           add(GetRepositoryStatus());
+          add(ClearCommitForm());
           emit(state.copyWith(status: WorkingDirectoryBlocStatus.commitsAdded));
+        },
+      );
+    });
+
+    on<AmendCommit>((event, emit) async {
+      emit(state.copyWith(status: WorkingDirectoryBlocStatus.amendingCommit));
+
+      final result = await gitWorkingDirectoryService.amendCommit(
+        summary: event.summary,
+        description: event.description,
+      );
+
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryStatus());
+          add(ClearCommitForm());
+          emit(
+            state.copyWith(status: WorkingDirectoryBlocStatus.commitAmended),
+          );
         },
       );
     });

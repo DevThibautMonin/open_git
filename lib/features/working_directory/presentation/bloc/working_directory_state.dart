@@ -13,7 +13,9 @@ enum WorkingDirectoryBlocStatus {
   askForDiscardAllChanges,
   askForDiscardFileChanges,
   addingCommits,
+  amendingCommit,
   commitsAdded,
+  commitAmended,
   noRepositorySelected,
 }
 
@@ -26,6 +28,9 @@ class WorkingDirectoryState with WorkingDirectoryStateMappable {
   final String gitRemoteCommand;
   final bool hasUpstream;
   final GitFileEntity? selectedFile;
+  final String commitSummary;
+  final String commitDescription;
+  final bool amendLatestCommit;
 
   const WorkingDirectoryState({
     this.status = WorkingDirectoryBlocStatus.initial,
@@ -35,5 +40,8 @@ class WorkingDirectoryState with WorkingDirectoryStateMappable {
     this.gitRemoteCommand = "",
     this.hasUpstream = false,
     this.selectedFile,
+    this.commitSummary = "",
+    this.commitDescription = "",
+    this.amendLatestCommit = false,
   });
 }

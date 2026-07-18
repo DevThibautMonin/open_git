@@ -13,6 +13,7 @@ class GitCommands {
   static const List<String> statusPorcelain = ["status", "--porcelain", "--untracked-files=all"];
   static const List<String> gitAdd = ["add"];
   static const List<String> gitAddAll = ["add", "-A"];
+  static const List<String> gitCommitAmend = ["commit", "--amend"];
   static const List<String> gitCommit = ["commit"];
   static const List<String> gitRestoreStaged = ["restore", "--staged"];
   static const List<String> gitUnstageAll = ["reset"];

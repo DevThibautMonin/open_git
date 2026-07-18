@@ -106,6 +106,21 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                 case WorkingDirectoryBlocStatus.commitsAdded:
                   _filesDifferencesBloc.add(ClearFileDiff());
                   _workingDirectoryBloc.add(ClearSelectedFile());
+                  context.read<CommitHistoryBloc>().add(LoadCommitHistory());
+                  break;
+                case WorkingDirectoryBlocStatus.commitAmended:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Commit amended successfully",
+                  );
+                  _filesDifferencesBloc.add(ClearFileDiff());
+                  _workingDirectoryBloc.add(ClearSelectedFile());
+                  context.read<CommitHistoryBloc>().add(LoadCommitHistory());
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
                   break;
                 case WorkingDirectoryBlocStatus.askForDiscardFileChanges:
                   if (state.selectedFile != null) {

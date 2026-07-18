@@ -132,6 +132,29 @@ class GitWorkingDirectoryService {
     );
   }
 
+  Future<Either<GitServiceFailure, void>> amendCommit({
+    required String summary,
+    String? description,
+  }) async {
+    final args = [
+      ...GitCommands.gitCommitAmend,
+      "-m",
+      summary,
+    ];
+
+    final desc = description?.trim();
+    if (desc != null && desc.isNotEmpty) {
+      args.addAll(["-m", desc]);
+    }
+
+    final result = await commandRunner.run(args);
+
+    return result.fold(
+      (failure) => Left(failure),
+      (_) => const Right(null),
+    );
+  }
+
   List<GitFileEntity> _parseGitStatusPorcelain(String output) {
     final files = <GitFileEntity>[];
 

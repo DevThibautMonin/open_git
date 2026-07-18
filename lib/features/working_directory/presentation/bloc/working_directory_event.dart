@@ -16,6 +16,44 @@ class AddCommit extends WorkingDirectoryEvent {
   });
 }
 
+class UpdateCommitSummary extends WorkingDirectoryEvent {
+  final String summary;
+
+  UpdateCommitSummary({
+    required this.summary,
+  });
+}
+
+class UpdateCommitDescription extends WorkingDirectoryEvent {
+  final String description;
+
+  UpdateCommitDescription({
+    required this.description,
+  });
+}
+
+class ToggleAmendLatestCommit extends WorkingDirectoryEvent {
+  final bool amend;
+
+  ToggleAmendLatestCommit({
+    required this.amend,
+  });
+}
+
+class ClearCommitForm extends WorkingDirectoryEvent {
+  ClearCommitForm();
+}
+
+class AmendCommit extends WorkingDirectoryEvent {
+  final String summary;
+  final String? description;
+
+  AmendCommit({
+    required this.summary,
+    this.description,
+  });
+}
+
 class ToggleFileStaging extends WorkingDirectoryEvent {
   final GitFileEntity file;
   final bool stage;
