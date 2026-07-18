@@ -5,8 +5,10 @@ import 'package:injectable/injectable.dart';
 import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
 import 'package:open_git/shared/core/logger/log_service.dart';
 import 'package:open_git/shared/core/services/git_remote_service.dart';
+import 'package:open_git/shared/core/services/git_stash_service.dart';
 import 'package:open_git/shared/core/services/git_working_directory_service.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
+import 'package:open_git/shared/domain/entities/git_stash_entity.dart';
 import 'package:open_git/shared/domain/failures/git_service_failure.dart';
 
 part 'working_directory_event.dart';
@@ -17,11 +19,13 @@ part 'working_directory_bloc.mapper.dart';
 class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryState> {
   final GitWorkingDirectoryService gitWorkingDirectoryService;
   final GitRemoteService gitRemoteService;
+  final GitStashService gitStashService;
   final LogService logService;
 
   WorkingDirectoryBloc({
     required this.gitWorkingDirectoryService,
     required this.gitRemoteService,
+    required this.gitStashService,
     required this.logService,
   }) : super(WorkingDirectoryState()) {
     on<GetRepositoryStatus>((event, emit) async {
@@ -36,6 +40,7 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
           emit(
             state.copyWith(
               status: WorkingDirectoryBlocStatus.noRepositorySelected,
+              stashes: const [],
               files: const [],
               commitsToPush: 0,
               hasUpstream: false,
@@ -95,6 +100,8 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
           commitsToPush: commitsToPush,
         ),
       );
+
+      add(LoadStashes());
     });
 
     on<DiscardFileChanges>((event, emit) async {
@@ -333,6 +340,112 @@ class WorkingDirectoryBloc extends Bloc<WorkingDirectoryEvent, WorkingDirectoryS
         },
         (_) {
           add(GetRepositoryStatus());
+        },
+      );
+    });
+
+    on<LoadStashes>((event, emit) async {
+      final result = await gitStashService.getStashes();
+
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (stashes) {
+          emit(state.copyWith(stashes: stashes));
+        },
+      );
+    });
+
+    on<CreateStash>((event, emit) async {
+      emit(state.copyWith(status: WorkingDirectoryBlocStatus.loadingStashes));
+
+      final result = await gitStashService.createStash(
+        message: event.message,
+      );
+
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryStatus());
+          emit(state.copyWith(status: WorkingDirectoryBlocStatus.stashCreated));
+        },
+      );
+    });
+
+    on<ApplyStash>((event, emit) async {
+      emit(state.copyWith(status: WorkingDirectoryBlocStatus.loadingStashes));
+
+      final result = await gitStashService.applyStash(event.stash.reference);
+
+      result.fold(
+        (failure) {
+          add(GetRepositoryStatus());
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryStatus());
+          emit(state.copyWith(status: WorkingDirectoryBlocStatus.stashApplied));
+        },
+      );
+    });
+
+    on<PopStash>((event, emit) async {
+      emit(state.copyWith(status: WorkingDirectoryBlocStatus.loadingStashes));
+
+      final result = await gitStashService.popStash(event.stash.reference);
+
+      result.fold(
+        (failure) {
+          add(GetRepositoryStatus());
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryStatus());
+          emit(state.copyWith(status: WorkingDirectoryBlocStatus.stashPopped));
+        },
+      );
+    });
+
+    on<DropStash>((event, emit) async {
+      emit(state.copyWith(status: WorkingDirectoryBlocStatus.loadingStashes));
+
+      final result = await gitStashService.dropStash(event.stash.reference);
+
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.error,
+              errorMessage: failure.errorMessage,
+            ),
+          );
+        },
+        (_) {
+          add(GetRepositoryStatus());
+          emit(state.copyWith(status: WorkingDirectoryBlocStatus.stashDropped));
         },
       );
     });

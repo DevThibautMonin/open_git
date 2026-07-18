@@ -36,6 +36,16 @@ class GitCommands {
   static const List<String> checkoutRemoteBranch = ['checkout', '-t'];
   static const List<String> gitUnpushedCommits = ['log', '--pretty=format:%H', '@{u}..HEAD'];
   
+  static const List<String> gitStashList = [
+    "stash",
+    "list",
+    "--format=%gd%x1f%cr%x1f%s",
+  ];
+  static const List<String> gitStashPush = ["stash", "push", "-u"];
+  static const List<String> gitStashApply = ["stash", "apply"];
+  static const List<String> gitStashPop = ["stash", "pop"];
+  static const List<String> gitStashDrop = ["stash", "drop"];
+
   static const List<String> gitLogGraphAll = [
     'log',
     '--all',

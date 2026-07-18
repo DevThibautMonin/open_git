@@ -106,3 +106,39 @@ class ToggleAllFilesStaging extends WorkingDirectoryEvent {
 class ClearSelectedFile extends WorkingDirectoryEvent {
   ClearSelectedFile();
 }
+
+class LoadStashes extends WorkingDirectoryEvent {
+  LoadStashes();
+}
+
+class CreateStash extends WorkingDirectoryEvent {
+  final String? message;
+
+  CreateStash({
+    this.message,
+  });
+}
+
+class ApplyStash extends WorkingDirectoryEvent {
+  final GitStashEntity stash;
+
+  ApplyStash({
+    required this.stash,
+  });
+}
+
+class PopStash extends WorkingDirectoryEvent {
+  final GitStashEntity stash;
+
+  PopStash({
+    required this.stash,
+  });
+}
+
+class DropStash extends WorkingDirectoryEvent {
+  final GitStashEntity stash;
+
+  DropStash({
+    required this.stash,
+  });
+}

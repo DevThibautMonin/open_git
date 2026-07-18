@@ -122,6 +122,52 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     ),
                   );
                   break;
+                case WorkingDirectoryBlocStatus.stashCreated:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Changes stashed successfully",
+                  );
+                  _filesDifferencesBloc.add(ClearFileDiff());
+                  _workingDirectoryBloc.add(ClearSelectedFile());
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
+                case WorkingDirectoryBlocStatus.stashApplied:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Stash applied successfully",
+                  );
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
+                case WorkingDirectoryBlocStatus.stashPopped:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Stash popped successfully",
+                  );
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
+                case WorkingDirectoryBlocStatus.stashDropped:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Stash dropped successfully",
+                  );
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
                 case WorkingDirectoryBlocStatus.askForDiscardFileChanges:
                   if (state.selectedFile != null) {
                     await showDialog(

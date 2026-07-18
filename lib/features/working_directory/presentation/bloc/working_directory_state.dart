@@ -10,6 +10,11 @@ enum WorkingDirectoryBlocStatus {
   gitRemoteIsHttps,
   commitsPushed,
   pushingCommits,
+  loadingStashes,
+  stashCreated,
+  stashApplied,
+  stashPopped,
+  stashDropped,
   askForDiscardAllChanges,
   askForDiscardFileChanges,
   addingCommits,
@@ -28,6 +33,7 @@ class WorkingDirectoryState with WorkingDirectoryStateMappable {
   final String gitRemoteCommand;
   final bool hasUpstream;
   final GitFileEntity? selectedFile;
+  final List<GitStashEntity> stashes;
   final String commitSummary;
   final String commitDescription;
   final bool amendLatestCommit;
@@ -40,6 +46,7 @@ class WorkingDirectoryState with WorkingDirectoryStateMappable {
     this.gitRemoteCommand = "",
     this.hasUpstream = false,
     this.selectedFile,
+    this.stashes = const [],
     this.commitSummary = "",
     this.commitDescription = "",
     this.amendLatestCommit = false,

@@ -4,15 +4,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart';
 import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
+import 'package:open_git/features/working_directory/presentation/ui/stashes_section.dart';
 import 'package:open_git/shared/domain/entities/git_file_entity.dart';
 import 'package:open_git/features/working_directory/presentation/ui/working_directory_item.dart';
 import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
 import 'package:open_git/shared/presentation/widgets/commit_message_textfield.dart';
+import 'package:open_git/shared/presentation/widgets/dialogs/create_stash_dialog.dart';
 import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
 import 'package:open_git/shared/presentation/widgets/desktop/desktop_checkbox.dart';
 import 'package:open_git/shared/presentation/widgets/desktop/desktop_empty_state.dart';
 import 'package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart';
 import 'package:open_git/shared/presentation/widgets/desktop/desktop_section_header.dart';
+import 'package:open_git/shared/presentation/widgets/gaps.dart';
 
 class WorkingDirectoryFilesList extends StatefulWidget {
   const WorkingDirectoryFilesList({super.key});
@@ -143,6 +146,7 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
           onKeyEvent: _handleKeyEvent,
           child: Column(
             children: [
+              StashesSection(stashes: state.stashes),
               DesktopPanel(
                 color: Theme.of(context).openGit.toolbar,
                 bottomBorder: true,
@@ -167,6 +171,32 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
                         padding: EdgeInsets.zero,
                       ),
                     ),
+                    DesktopButton(
+                      icon: Icons.archive_outlined,
+                      label: 'Stash',
+                      tooltip: 'Stash local changes',
+                      onPressed: state.files.isEmpty
+                          ? null
+                          : () async {
+                              final workingDirectoryBloc = context
+                                  .read<WorkingDirectoryBloc>();
+
+                              await showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (_) {
+                                  return CreateStashDialog(
+                                    onCreate: (message) {
+                                      workingDirectoryBloc.add(
+                                        CreateStash(message: message),
+                                      );
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                    ),
+                    Gaps.w8,
                     DesktopButton(
                       icon: Icons.remove_circle_outline,
                       label: 'Discard all',
