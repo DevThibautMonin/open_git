@@ -1,5 +1,25 @@
 # Changelog
 
+## Version (Unreleased)
+
+### Added
+
+- [Repository] Initialize a selected folder as a new Git repository.
+- [Repository] Pull remote changes with fast-forward-only safety.
+- [Working directory] Amend the latest commit from the commit panel.
+- [Working directory] Create, list, apply, pop, and drop stashes.
+- [Commit history] Search commits from the history view.
+
+### Updated
+
+- [Repository] Run clone operations through the shared Git command runner while keeping progress feedback.
+- [Commit history] Handle empty repositories without surfacing Git log errors.
+- [Branches] Handle empty repository graphs without surfacing Git log errors.
+
+### Fixes
+
+- [Working directory] Keep amend controls available when no files are modified.
+
 ## Version (1.2.0+23) (17/07/2026)
 
 ### Added
