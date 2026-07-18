@@ -34,10 +34,20 @@ class GitCommandRunner {
       return Left(repoPathResult.left);
     }
 
-    final repoPath = repoPathResult.right;
+    return runInDirectory(
+      args,
+      workingDirectory: repoPathResult.right,
+      allowedExitCodes: allowedExitCodes,
+    );
+  }
 
+  Future<Either<GitServiceFailure, String>> runInDirectory(
+    List<String> args, {
+    required String workingDirectory,
+    Set<int> allowedExitCodes = const {0},
+  }) async {
     try {
-      final dir = Directory(repoPath);
+      final dir = Directory(workingDirectory);
       if (!await dir.exists()) {
         return Left(
           RepositoryPathInvalidFailure(
@@ -51,7 +61,7 @@ class GitCommandRunner {
       final result = await Process.run(
         "git",
         args,
-        workingDirectory: repoPath,
+        workingDirectory: workingDirectory,
       );
 
       if (!allowedExitCodes.contains(result.exitCode)) {

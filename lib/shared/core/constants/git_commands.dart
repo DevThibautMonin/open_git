@@ -1,4 +1,5 @@
 class GitCommands {
+  static const List<String> gitInit = ["init"];
   static const List<String> listBranches = [
     "branch",
     "--format=%(refname:short)|%(HEAD)",

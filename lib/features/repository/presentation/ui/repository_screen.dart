@@ -306,6 +306,20 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                 case RepositoryBlocStatus.fetched:
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
                   break;
+                case RepositoryBlocStatus.repositoryInitialized:
+                  SuccessSnackBar.show(
+                    context,
+                    message: "Repository initialized successfully",
+                  );
+                  context.read<BranchesBloc>().add(GetRepositoryBranches());
+                  _workingDirectoryBloc.add(GetRepositoryStatus());
+                  context.read<CommitHistoryBloc>().add(LoadCommitHistory());
+                  _repositoryBloc.add(
+                    UpdateRepositoryStatus(
+                      status: RepositoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
                 case RepositoryBlocStatus.repositorySelected:
                   context.read<BranchesBloc>().add(GetRepositoryBranches());
                   _workingDirectoryBloc.add(GetRepositoryStatus());
@@ -452,6 +466,9 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                       return RepositoryHeader(
                         onSelectRepository: () {
                           _repositoryBloc.add(SelectRepository());
+                        },
+                        onInitRepository: () {
+                          _repositoryBloc.add(InitRepository());
                         },
                         onCloneRepository: () {
                           _repositoryBloc.add(

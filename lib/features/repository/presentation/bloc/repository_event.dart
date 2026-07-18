@@ -10,6 +10,10 @@ class SelectRepository extends RepositoryEvent {
   SelectRepository();
 }
 
+class InitRepository extends RepositoryEvent {
+  InitRepository();
+}
+
 class LoadRecentRepositories extends RepositoryEvent {
   LoadRecentRepositories();
 }

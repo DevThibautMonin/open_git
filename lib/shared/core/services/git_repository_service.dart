@@ -3,8 +3,10 @@ import "dart:io";
 import "package:either_dart/either.dart";
 import "package:file_picker/file_picker.dart";
 import "package:injectable/injectable.dart";
+import "package:open_git/shared/core/constants/git_commands.dart";
 import "package:open_git/shared/core/constants/git_regex.dart";
 import "package:open_git/shared/core/constants/shared_preferences_keys.dart";
+import "package:open_git/shared/core/services/git_command_runner.dart";
 import "package:open_git/shared/data/datasources/abstractions/shared_preferences_service.dart";
 import "package:open_git/shared/domain/failures/git_service_failure.dart";
 
@@ -13,9 +15,11 @@ class GitRepositoryService {
   static const int maxRecentRepositories = 20;
 
   final SharedPreferencesService sharedPreferencesService;
+  final GitCommandRunner commandRunner;
 
   GitRepositoryService({
     required this.sharedPreferencesService,
+    required this.commandRunner,
   });
 
   Future<Either<GitServiceFailure, bool>> repositoryExists() async {
@@ -35,6 +39,34 @@ class GitRepositoryService {
 
     if (path == null) {
       return Left(RepositoryNotSelectedFailure());
+    }
+
+    return setRepositoryPath(path);
+  }
+
+  Future<Either<GitServiceFailure, String?>> initRepository() async {
+    final path = await FilePicker.platform.getDirectoryPath();
+
+    if (path == null) {
+      return Left(RepositoryNotSelectedFailure());
+    }
+
+    final dir = Directory(path);
+    if (!await dir.exists()) {
+      return Left(
+        RepositoryPathInvalidFailure(
+          command: path,
+        ),
+      );
+    }
+
+    final initResult = await commandRunner.runInDirectory(
+      GitCommands.gitInit,
+      workingDirectory: path,
+    );
+
+    if (initResult.isLeft) {
+      return Left(initResult.left);
     }
 
     return setRepositoryPath(path);
