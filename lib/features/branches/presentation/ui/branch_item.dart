@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_git/features/branches/presentation/bloc/branches_bloc.dart';
-import 'package:open_git/shared/domain/entities/branch_entity.dart';
-import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_list_row.dart';
-import 'package:open_git/shared/presentation/widgets/gaps.dart';
+import "package:flutter/material.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
+import "package:open_git/features/branches/presentation/bloc/branches_bloc.dart";
+import "package:open_git/features/branches/presentation/ui/branch_sync_status_indicator.dart";
+import "package:open_git/shared/domain/entities/branch_entity.dart";
+import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
+import "package:open_git/shared/presentation/widgets/desktop/desktop_list_row.dart";
+import "package:open_git/shared/presentation/widgets/gaps.dart";
 
 class BranchItem extends StatelessWidget {
   final BranchEntity branch;
@@ -41,7 +42,7 @@ class BranchItem extends StatelessWidget {
                 children: [
                   Icon(Icons.edit_outlined, size: 16),
                   Gaps.w8,
-                  Text('Rename branch'),
+                  Text("Rename branch"),
                 ],
               ),
             ),
@@ -60,7 +61,7 @@ class BranchItem extends StatelessWidget {
                   children: [
                     Icon(Icons.delete_outline, size: 16),
                     Gaps.w8,
-                    Text('Delete branch'),
+                    Text("Delete branch"),
                   ],
                 ),
               ),
@@ -89,9 +90,7 @@ class BranchItem extends StatelessWidget {
           Icon(
             branch.isRemote ? Icons.cloud_outlined : Icons.call_split,
             size: 16,
-            color: isCurrent
-                ? theme.openGit.accent
-                : theme.openGit.textMuted,
+            color: isCurrent ? theme.openGit.accent : theme.openGit.textMuted,
           ),
           Gaps.w8,
           Expanded(
@@ -103,7 +102,15 @@ class BranchItem extends StatelessWidget {
               ),
             ),
           ),
-          if (branch.deletedOnRemote && !branch.isCurrent)
+          if (branch.commitsAhead > 0 || branch.commitsBehind > 0) ...[
+            Gaps.w8,
+            BranchSyncStatusIndicator(
+              commitsAhead: branch.commitsAhead,
+              commitsBehind: branch.commitsBehind,
+            ),
+          ],
+          if (branch.deletedOnRemote && !branch.isCurrent) ...[
+            Gaps.w8,
             Tooltip(
               message: "Branch deleted on remote. You can delete it safely.",
               child: Icon(
@@ -112,6 +119,7 @@ class BranchItem extends StatelessWidget {
                 color: theme.openGit.warning,
               ),
             ),
+          ],
         ],
       ),
     );

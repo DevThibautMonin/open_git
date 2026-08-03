@@ -561,6 +561,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                           );
                         },
                         commitsToPush: wdState.commitsToPush,
+                        commitsToPull: wdState.commitsToPull,
                         onPush: () {
                           _workingDirectoryBloc.add(PushCommits());
                         },

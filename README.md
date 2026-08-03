@@ -53,6 +53,7 @@ brew upgrade --cask opengit
 - Clone a remote repository from a Git URL with progress feedback.
 - Display the repository name.
 - Pull remote changes with fast-forward-only safety.
+- Display ahead / behind indicators for the current branch.
 - Quickly switch between recently opened repositories from the header.
 
 ### Branches
@@ -66,6 +67,7 @@ brew upgrade --cask opengit
 - Show remote branches state (deleted, active).
 - Checkout remote branches locally.
 - Group branches by prefix. (feature/, bugfix/).
+- Display ahead / behind indicators for local branches with an upstream.
 - Visual Git Graph of commit history, forks, and merges.
 - GitHub user avatars integrated.
 
@@ -127,9 +129,6 @@ brew upgrade --cask opengit
 ---
 
 # 📦 Roadmap
-
-### Git & Collaboration
-- Behind/ahead indicators.
 
 ### Branch Management
 - Conflict resolution UI.

@@ -1,5 +1,17 @@
 # Changelog
 
+## Version (1.3.0+25) (03/08/2026)
+
+### Added
+
+- [Repository] Display ahead / behind indicators in the header for the current branch.
+- [Branches] Display ahead / behind indicators for local branches with an upstream.
+
+### Updated
+
+- [Repository] Show pending remote commits directly on the pull action.
+- [Repository] Prevent pushing divergent branches before pulling remote commits.
+
 ## Version (1.2.1+24) (18/07/2026)
 
 ### Added

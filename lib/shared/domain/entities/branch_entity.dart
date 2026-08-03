@@ -9,6 +9,8 @@ class BranchEntity with BranchEntityMappable {
   final bool isRemote;
   final bool existsLocally;
   final bool deletedOnRemote;
+  final int commitsAhead;
+  final int commitsBehind;
 
   const BranchEntity({
     required this.isCurrent,
@@ -16,5 +18,7 @@ class BranchEntity with BranchEntityMappable {
     required this.isRemote,
     required this.existsLocally,
     this.deletedOnRemote = false,
+    this.commitsAhead = 0,
+    this.commitsBehind = 0,
   });
 }

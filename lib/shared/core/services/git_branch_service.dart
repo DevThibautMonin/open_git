@@ -14,15 +14,9 @@ class GitBranchService {
   });
 
   Future<Either<GitServiceFailure, List<BranchEntity>>> getBranches() async {
-    final currentBranchResult = await commandRunner.run(
-      GitCommands.gitCurrentBranch,
+    final localResult = await commandRunner.run(
+      GitCommands.listLocalBranchesWithTracking,
     );
-
-    if (currentBranchResult.isLeft) {
-      return Left(currentBranchResult.left);
-    }
-
-    final localResult = await commandRunner.run(GitCommands.gitBranch);
 
     if (localResult.isLeft) {
       return Left(localResult.left);
@@ -34,25 +28,40 @@ class GitBranchService {
       return Left(remoteResult.left);
     }
 
-    final currentBranch = currentBranchResult.right.trim();
     final localStdout = localResult.right;
     final remoteStdout = remoteResult.right;
 
-    final localNames = localStdout
-        .split('\n')
-        .map((e) => e.replaceAll('*', '').trim())
-        .where((e) => e.isNotEmpty)
+    final remoteFullNames = remoteStdout
+        .split("\n")
+        .where((l) => l.isNotEmpty && !l.contains("->"))
+        .map((l) => l.trim())
         .toSet();
 
-    final remoteNames = remoteStdout
-        .split('\n')
-        .where((l) => l.isNotEmpty && !l.contains('->'))
-        .map((l) => l.replaceFirst('origin/', '').trim())
+    final remoteNames = remoteFullNames
+        .map((l) => l.replaceFirst("origin/", "").trim())
+        .where((l) => l.isNotEmpty)
         .toSet();
 
-    final localBranches = localNames.map((name) {
-      final isCurrent = name == currentBranch;
-      final deletedOnRemote = !isCurrent && !remoteNames.contains(name);
+    final localBranchLines = localStdout
+        .split("\n")
+        .map((l) => l.trim())
+        .where((l) => l.isNotEmpty);
+
+    final localBranches = localBranchLines.map((line) {
+      final parts = line.split("|");
+      final name = parts.isNotEmpty ? parts[0].trim() : "";
+      final isCurrent = parts.length > 1 && parts[1].trim() == "*";
+      final upstream = parts.length > 2 ? parts[2].trim() : "";
+      final tracking = parts.length > 3 ? parts[3].trim() : "";
+      final syncStatus = _parseTrackingStatus(tracking);
+      final deletedOnRemote =
+          !isCurrent &&
+          upstream.isNotEmpty &&
+          !remoteFullNames.contains(upstream);
+
+      if (name.isEmpty) {
+        return null;
+      }
 
       return BranchEntity(
         name: name,
@@ -60,8 +69,12 @@ class GitBranchService {
         isRemote: false,
         existsLocally: true,
         deletedOnRemote: deletedOnRemote,
+        commitsAhead: syncStatus.ahead,
+        commitsBehind: syncStatus.behind,
       );
-    });
+    }).nonNulls;
+
+    final localNames = localBranches.map((branch) => branch.name).toSet();
 
     final remoteBranches = remoteNames.map((name) {
       return BranchEntity(
@@ -135,7 +148,7 @@ class GitBranchService {
   ) async {
     final result = await commandRunner.run([
       ...GitCommands.checkoutRemoteBranch,
-      'origin/$branchName',
+      "origin/$branchName",
     ]);
 
     return result.fold(
@@ -148,13 +161,12 @@ class GitBranchService {
     String branchName,
   ) async {
     final result = await commandRunner.run(
-      [...GitCommands.getBranchUpstream, "$branchName@{u}"],
-      allowedExitCodes: const {0, 1},
+      [...GitCommands.getBranchUpstreamState, "refs/heads/$branchName"],
     );
 
     return result.fold(
       (failure) => Left(failure),
-      (_) => const Right(true),
+      (data) => Right(data.trim().isNotEmpty),
     );
   }
 
@@ -164,11 +176,31 @@ class GitBranchService {
     return result.map(
       (output) {
         return output
-            .split('\n')
-            .map((l) => l.replaceFirst('origin/', '').trim())
+            .split("\n")
+            .map((l) => l.replaceFirst("origin/", "").trim())
             .where((l) => l.isNotEmpty)
             .toSet();
       },
     );
+  }
+
+  ({int ahead, int behind}) _parseTrackingStatus(String tracking) {
+    final status = tracking.replaceAll("[", "").replaceAll("]", "");
+    int ahead = 0;
+    int behind = 0;
+
+    for (final segment in status.split(",")) {
+      final value = segment.trim();
+
+      if (value.startsWith("ahead ")) {
+        ahead = int.tryParse(value.replaceFirst("ahead ", "")) ?? 0;
+      }
+
+      if (value.startsWith("behind ")) {
+        behind = int.tryParse(value.replaceFirst("behind ", "")) ?? 0;
+      }
+    }
+
+    return (ahead: ahead, behind: behind);
   }
 }

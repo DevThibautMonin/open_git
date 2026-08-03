@@ -16,6 +16,7 @@ class RepositoryHeader extends StatelessWidget {
   final VoidCallback onInitRepository;
   final ValueChanged<String> onRecentRepositorySelected;
   final int commitsToPush;
+  final int commitsToPull;
   final Function() onPush;
   final bool isLoading;
   final bool hasUpstream;
@@ -24,6 +25,7 @@ class RepositoryHeader extends StatelessWidget {
     super.key,
     required this.onSelectRepository,
     required this.commitsToPush,
+    required this.commitsToPull,
     required this.onPush,
     required this.isLoading,
     required this.onCloneRepository,
@@ -102,12 +104,14 @@ class RepositoryHeader extends StatelessWidget {
                   context.read<RepositoryBloc>().add(PullRepository());
                 },
                 isLoading: state.status == RepositoryBlocStatus.pulling,
+                commitsToPull: commitsToPull,
               );
             },
           ),
           Gaps.w8,
           PushCommitsButton(
             commitsToPush: commitsToPush,
+            commitsToPull: commitsToPull,
             onPush: onPush,
             isLoading: isLoading,
             hasUpstream: hasUpstream,
