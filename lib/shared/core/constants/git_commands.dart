@@ -83,12 +83,4 @@ class GitCommands {
   static const List<String> gitStashApply = ["stash", "apply"];
   static const List<String> gitStashPop = ["stash", "pop"];
   static const List<String> gitStashDrop = ["stash", "drop"];
-
-  static const List<String> gitLogGraphAll = [
-    'log',
-    '--all',
-    '--date-order',
-    '--format=%H|%P|%D|%an|%ae|%ad|%s%x00',
-    '--date=iso',
-  ];
 }

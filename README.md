@@ -138,6 +138,7 @@ brew upgrade --cask opengit
 
 ### Branch Management
 - Conflict resolution UI.
+- Contextual branch graph focused on main and the selected branch.
 
 ### UX & Product
 - Extended keyboard shortcuts coverage (branches, commit history).
