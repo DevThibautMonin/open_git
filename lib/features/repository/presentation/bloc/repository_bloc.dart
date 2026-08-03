@@ -70,6 +70,7 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
         state.copyWith(
           repositoryPath: path,
           currentRepositoryName: p.basename(path),
+          lastFetchAt: _getLastFetchAt(path),
           recentRepositoryPaths: gitRepositoryService
               .getRecentRepositoryPaths(),
           status: RepositoryBlocStatus.repositorySelected,
@@ -110,6 +111,7 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
         state.copyWith(
           repositoryPath: path,
           currentRepositoryName: p.basename(path),
+          lastFetchAt: _getLastFetchAt(path),
           recentRepositoryPaths: gitRepositoryService
               .getRecentRepositoryPaths(),
           status: RepositoryBlocStatus.repositoryInitialized,
@@ -136,6 +138,7 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
         state.copyWith(
           repositoryPath: event.path,
           currentRepositoryName: p.basename(event.path),
+          lastFetchAt: _getLastFetchAt(event.path),
           recentRepositoryPaths: gitRepositoryService
               .getRecentRepositoryPaths(),
           status: RepositoryBlocStatus.repositorySelected,
@@ -183,6 +186,7 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
           state.copyWith(
             repositoryPath: "",
             currentRepositoryName: "",
+            lastFetchAt: "",
             recentRepositoryPaths: gitRepositoryService
                 .getRecentRepositoryPaths(),
             status: RepositoryBlocStatus.repositoryDeleted,
@@ -198,6 +202,7 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
         state.copyWith(
           repositoryPath: path,
           currentRepositoryName: p.basename(path),
+          lastFetchAt: _getLastFetchAt(path),
           recentRepositoryPaths: gitRepositoryService
               .getRecentRepositoryPaths(),
           status: RepositoryBlocStatus.repositorySelected,
@@ -234,18 +239,27 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
 
       final result = await gitRemoteService.fetch();
 
-      result.fold(
-        (failure) {
-          emit(
-            state.copyWith(
-              status: RepositoryBlocStatus.error,
-              errorMessage: failure.errorMessage,
-            ),
-          );
-        },
-        (_) {
-          emit(state.copyWith(status: RepositoryBlocStatus.fetched));
-        },
+      if (result.isLeft) {
+        emit(
+          state.copyWith(
+            status: RepositoryBlocStatus.error,
+            errorMessage: result.left.errorMessage,
+          ),
+        );
+        return;
+      }
+
+      final now = DateTime.now().toIso8601String();
+      await sharedPreferencesService.setString(
+        _lastFetchAtKey(state.repositoryPath),
+        now,
+      );
+
+      emit(
+        state.copyWith(
+          status: RepositoryBlocStatus.fetched,
+          lastFetchAt: now,
+        ),
       );
     });
 
@@ -322,5 +336,20 @@ class RepositoryBloc extends Bloc<RepositoryEvent, RepositoryState> {
         ),
       );
     });
+  }
+
+  String _getLastFetchAt(String repositoryPath) {
+    if (repositoryPath.isEmpty) {
+      return "";
+    }
+
+    return sharedPreferencesService.getString(
+          _lastFetchAtKey(repositoryPath),
+        ) ??
+        "";
+  }
+
+  String _lastFetchAtKey(String repositoryPath) {
+    return "${SharedPreferencesKeys.repositoryLastFetchAt}:$repositoryPath";
   }
 }

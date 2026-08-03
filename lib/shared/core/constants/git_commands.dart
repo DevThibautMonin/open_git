@@ -4,6 +4,11 @@ class GitCommands {
     "branch",
     "--format=%(refname:short)|%(HEAD)",
   ];
+  static const List<String> listLocalBranchesWithTracking = [
+    "for-each-ref",
+    "--format=%(refname:short)%00%(HEAD)%00%(upstream:short)%00%(upstream:track)%00%(objectname:short)%00%(authorname)%00%(committerdate:iso8601-strict)%00%(subject)",
+    "refs/heads",
+  ];
   static const List<String> gitBranch = ['branch'];
   static const List<String> gitRemoteBranches = ['branch', '-r'];
   static const List<String> gitCurrentBranch = ['branch', '--show-current'];
@@ -26,15 +31,24 @@ class GitCommands {
     "--count",
     "@{u}..HEAD",
   ];
+  static const List<String> commitsAheadBehindCount = [
+    "rev-list",
+    "--left-right",
+    "--count",
+    "HEAD...@{u}",
+  ];
+  static const List<String> commitsLeftRightCount = [
+    "rev-list",
+    "--left-right",
+    "--count",
+  ];
   static const List<String> gitPush = ["push"];
   static const List<String> gitPullFastForwardOnly = ["pull", "--ff-only"];
   static const List<String> remoteVerbose = ["remote", "-v"];
   static const List<String> remoteGetOrigin = ["remote", "get-url", "origin"];
-  static const List<String> getUpstreamState = [
-    "rev-parse",
-    "--abbrev-ref",
-    "--symbolic-full-name",
-    "@{u}",
+  static const List<String> getBranchUpstreamState = [
+    "for-each-ref",
+    "--format=%(upstream:short)",
   ];
   static const List<String> publishBranch = ["push", "-u", "origin", "HEAD"];
   static const List<String> restoreTrackedFiles = ["restore", "."];
@@ -69,12 +83,4 @@ class GitCommands {
   static const List<String> gitStashApply = ["stash", "apply"];
   static const List<String> gitStashPop = ["stash", "pop"];
   static const List<String> gitStashDrop = ["stash", "drop"];
-
-  static const List<String> gitLogGraphAll = [
-    'log',
-    '--all',
-    '--date-order',
-    '--format=%H|%P|%D|%an|%ae|%ad|%s%x00',
-    '--date=iso',
-  ];
 }

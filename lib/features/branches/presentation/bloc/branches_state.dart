@@ -18,7 +18,6 @@ enum BranchesBlocStatus {
 class BranchesState with BranchesStateMappable {
   final BranchesBlocStatus status;
   final List<BranchEntity> branches;
-  final List<GraphCommitEntity> graphCommits;
   final String errorMessage;
   final BranchEntity? selectedBranch;
   final bool selectedBranchHasUpstream;
@@ -26,21 +25,25 @@ class BranchesState with BranchesStateMappable {
   const BranchesState({
     this.status = BranchesBlocStatus.initial,
     this.branches = const [],
-    this.graphCommits = const [],
     this.errorMessage = "",
     this.selectedBranch,
     this.selectedBranchHasUpstream = false,
   });
 
-  List<BranchEntity> get currentBranch => branches.where((b) => b.isCurrent).toList();
+  List<BranchEntity> get currentBranch =>
+      branches.where((b) => b.isCurrent).toList();
 
-  List<BranchEntity> get localBranches => branches.where((b) => !b.isRemote && !b.isCurrent).toList();
+  List<BranchEntity> get localBranches =>
+      branches.where((b) => !b.isRemote && !b.isCurrent).toList();
 
-  List<BranchEntity> get remoteOnlyBranches => branches.where((b) => b.isRemote && !b.existsLocally).toList();
+  List<BranchEntity> get remoteOnlyBranches =>
+      branches.where((b) => b.isRemote && !b.existsLocally).toList();
 
-  List<BranchGroupEntity> get localBranchGroups => _groupBranches(localBranches);
+  List<BranchGroupEntity> get localBranchGroups =>
+      _groupBranches(localBranches);
 
-  List<BranchGroupEntity> get remoteBranchGroups => _groupBranches(remoteOnlyBranches);
+  List<BranchGroupEntity> get remoteBranchGroups =>
+      _groupBranches(remoteOnlyBranches);
 
   /// Helper method to group branches by their prefix
   List<BranchGroupEntity> _groupBranches(List<BranchEntity> branches) {
@@ -64,7 +67,8 @@ class BranchesState with BranchesStateMappable {
     // Add grouped branches (sorted by prefix name)
     final sortedPrefixes = groupedMap.keys.toList()..sort();
     for (final prefix in sortedPrefixes) {
-      final branchesInGroup = groupedMap[prefix]!..sort((a, b) => a.name.compareTo(b.name));
+      final branchesInGroup = groupedMap[prefix]!
+        ..sort((a, b) => a.name.compareTo(b.name));
       result.add(
         BranchGroupEntity(
           prefix: prefix,

@@ -1,14 +1,16 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart';
-import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
-import 'package:open_git/shared/core/extensions/string_extensions.dart';
-import 'package:open_git/shared/domain/entities/git_file_entity.dart';
-import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_checkbox.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_list_row.dart';
-import 'package:open_git/shared/presentation/widgets/file_type_icon.dart';
-import 'package:open_git/shared/presentation/widgets/gaps.dart';
+import "package:flutter/material.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
+import "package:flutter/services.dart";
+import "package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart";
+import "package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart";
+import "package:open_git/shared/core/extensions/string_extensions.dart";
+import "package:open_git/shared/domain/entities/git_file_entity.dart";
+import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
+import "package:open_git/shared/presentation/widgets/desktop/desktop_checkbox.dart";
+import "package:open_git/shared/presentation/widgets/desktop/desktop_list_row.dart";
+import "package:open_git/shared/presentation/widgets/file_type_icon.dart";
+import "package:open_git/shared/presentation/widgets/gaps.dart";
+import "package:open_git/shared/presentation/widgets/snackbars/success_snackbar.dart";
 
 class WorkingDirectoryItem extends StatelessWidget {
   final GitFileEntity file;
@@ -40,6 +42,24 @@ class WorkingDirectoryItem extends StatelessWidget {
                 details.globalPosition.dy,
               ),
               items: [
+                PopupMenuItem(
+                  onTap: () async {
+                    await Clipboard.setData(ClipboardData(text: file.path));
+                    if (!context.mounted) return;
+
+                    SuccessSnackBar.show(
+                      context,
+                      message: "File path copied",
+                    );
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.copy, size: 16),
+                      Gaps.w8,
+                      Text("Copy file path"),
+                    ],
+                  ),
+                ),
                 PopupMenuItem(
                   onTap: () {
                     context.read<WorkingDirectoryBloc>().add(
@@ -75,7 +95,7 @@ class WorkingDirectoryItem extends StatelessWidget {
               Gaps.w4,
               DesktopCheckbox(
                 value: file.staged,
-                tooltip: file.staged ? 'Unstage file' : 'Stage file',
+                tooltip: file.staged ? "Unstage file" : "Stage file",
                 onChanged: (_) {
                   context.read<WorkingDirectoryBloc>().add(
                     ToggleFileStaging(

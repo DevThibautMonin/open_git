@@ -1,11 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart';
-import 'package:open_git/shared/domain/entities/git_commit_entity.dart';
-import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_list_row.dart';
-import 'package:open_git/shared/presentation/widgets/gaps.dart';
-import 'package:open_git/shared/presentation/widgets/user_avatar.dart';
+import "package:flutter/material.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
+import "package:flutter/services.dart";
+import "package:open_git/features/commit_history/presentation/bloc/commit_history_bloc.dart";
+import "package:open_git/features/commit_history/presentation/extensions/commit_date_display_extension.dart";
+import "package:open_git/shared/domain/entities/git_commit_entity.dart";
+import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
+import "package:open_git/shared/presentation/widgets/desktop/desktop_list_row.dart";
+import "package:open_git/shared/presentation/widgets/gaps.dart";
+import "package:open_git/shared/presentation/widgets/snackbars/success_snackbar.dart";
+import "package:open_git/shared/presentation/widgets/user_avatar.dart";
 
 class CommitHistoryItem extends StatelessWidget {
   final GitCommitEntity commit;
@@ -28,6 +31,40 @@ class CommitHistoryItem extends StatelessWidget {
           onTap: () {
             context.read<CommitHistoryBloc>().add(
               SelectCommit(commit: commit),
+            );
+          },
+          onSecondaryTapDown: (details) async {
+            context.read<CommitHistoryBloc>().add(
+              SelectCommit(commit: commit),
+            );
+            await showMenu(
+              context: context,
+              position: RelativeRect.fromLTRB(
+                details.globalPosition.dx,
+                details.globalPosition.dy,
+                details.globalPosition.dx,
+                details.globalPosition.dy,
+              ),
+              items: [
+                PopupMenuItem(
+                  onTap: () async {
+                    await Clipboard.setData(ClipboardData(text: commit.sha));
+                    if (!context.mounted) return;
+
+                    SuccessSnackBar.show(
+                      context,
+                      message: "Commit SHA copied",
+                    );
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.copy, size: 16),
+                      Gaps.w8,
+                      Text("Copy commit SHA"),
+                    ],
+                  ),
+                ),
+              ],
             );
           },
           child: Row(
@@ -66,7 +103,7 @@ class CommitHistoryItem extends StatelessWidget {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            '${commit.author} • ${_formatDate(commit.date)} • ${commit.sha.substring(0, 7)}',
+                            "${commit.author} • ${commit.date.commitRelativeLabel} • ${commit.sha.substring(0, 7)}",
                             overflow: TextOverflow.ellipsis,
                             style: theme.openGitCaption,
                           ),
@@ -91,24 +128,5 @@ class CommitHistoryItem extends StatelessWidget {
         );
       },
     );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
-
-    if (diff.inMinutes < 1) {
-      return 'just now';
-    }
-
-    if (diff.inMinutes < 60) {
-      return '${diff.inMinutes} min${diff.inMinutes > 1 ? 's' : ''} ago';
-    }
-
-    if (diff.inHours < 24) {
-      return '${diff.inHours} hour${diff.inHours > 1 ? 's' : ''} ago';
-    }
-
-    return '${diff.inDays} day${diff.inDays > 1 ? 's' : ''} ago';
   }
 }

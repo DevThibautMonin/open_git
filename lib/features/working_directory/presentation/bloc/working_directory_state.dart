@@ -30,6 +30,7 @@ class WorkingDirectoryState with WorkingDirectoryStateMappable {
   final List<GitFileEntity> files;
   final String errorMessage;
   final int commitsToPush;
+  final int commitsToPull;
   final String gitRemoteCommand;
   final bool hasUpstream;
   final GitFileEntity? selectedFile;
@@ -43,6 +44,7 @@ class WorkingDirectoryState with WorkingDirectoryStateMappable {
     this.files = const [],
     this.errorMessage = "",
     this.commitsToPush = 0,
+    this.commitsToPull = 0,
     this.gitRemoteCommand = "",
     this.hasUpstream = false,
     this.selectedFile,

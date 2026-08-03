@@ -3,10 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:open_git/shared/core/extensions/git_service_failure_extension.dart';
 import 'package:open_git/shared/core/services/git_branch_service.dart';
-import 'package:open_git/shared/core/services/git_graph_service.dart';
 import 'package:open_git/shared/domain/entities/branch_entity.dart';
 import 'package:open_git/shared/domain/entities/branch_group_entity.dart';
-import 'package:open_git/shared/domain/entities/graph_commit_entity.dart';
 
 part 'branches_event.dart';
 part 'branches_state.dart';
@@ -15,18 +13,18 @@ part 'branches_bloc.mapper.dart';
 @LazySingleton()
 class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
   final GitBranchService gitBranchService;
-  final GitGraphService gitGraphService;
 
   BranchesBloc({
     required this.gitBranchService,
-    required this.gitGraphService,
   }) : super(BranchesState()) {
     on<UpdateBranchesStatus>((event, emit) {
       emit(state.copyWith(status: event.status));
     });
 
     on<CheckoutRemoteBranch>((event, emit) async {
-      final result = await gitBranchService.checkoutRemoteBranch(event.branch.name);
+      final result = await gitBranchService.checkoutRemoteBranch(
+        event.branch.name,
+      );
 
       result.fold(
         (failure) {
@@ -44,7 +42,9 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
     });
 
     on<AskForRenamingBranch>((event, emit) async {
-      final upstreamResult = await gitBranchService.branchHasUpstream(event.branch.name);
+      final upstreamResult = await gitBranchService.branchHasUpstream(
+        event.branch.name,
+      );
 
       if (upstreamResult.isLeft) {
         emit(
@@ -156,35 +156,14 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
               status: BranchesBlocStatus.branchesRetrieved,
             ),
           );
-          add(GetGraphCommits());
-        },
-      );
-    });
-
-    on<GetGraphCommits>((event, emit) async {
-      final result = await gitGraphService.getGraphCommits();
-
-      result.fold(
-        (failure) {
-          emit(
-            state.copyWith(
-              status: BranchesBlocStatus.error,
-              errorMessage: failure.errorMessage,
-            ),
-          );
-        },
-        (data) {
-          emit(
-            state.copyWith(
-              graphCommits: data,
-            ),
-          );
         },
       );
     });
 
     on<CreateNewBranchAndCheckout>((event, emit) async {
-      final result = await gitBranchService.createBranchAndCheckout(event.branchName);
+      final result = await gitBranchService.createBranchAndCheckout(
+        event.branchName,
+      );
 
       result.fold(
         (failure) {

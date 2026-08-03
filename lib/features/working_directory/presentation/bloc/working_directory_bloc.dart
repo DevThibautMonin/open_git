@@ -46,6 +46,7 @@ class WorkingDirectoryBloc
               status: WorkingDirectoryBlocStatus.noRepositorySelected,
               files: const [],
               commitsToPush: 0,
+              commitsToPull: 0,
               hasUpstream: false,
               selectedFile: null,
               stashes: const [],
@@ -79,9 +80,11 @@ class WorkingDirectoryBloc
       final hasUpstream = upstreamResult.right;
 
       int commitsToPush = 0;
+      int commitsToPull = 0;
 
       if (hasUpstream) {
-        final commitsResult = await gitRemoteService.getCommitsAheadCount();
+        final commitsResult = await gitRemoteService
+            .getCommitsAheadBehindCount();
 
         if (commitsResult.isLeft) {
           emit(
@@ -93,7 +96,8 @@ class WorkingDirectoryBloc
           return;
         }
 
-        commitsToPush = commitsResult.right;
+        commitsToPush = commitsResult.right.ahead;
+        commitsToPull = commitsResult.right.behind;
       }
 
       emit(
@@ -102,6 +106,7 @@ class WorkingDirectoryBloc
           files: files,
           hasUpstream: hasUpstream,
           commitsToPush: commitsToPush,
+          commitsToPull: commitsToPull,
         ),
       );
 

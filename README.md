@@ -53,6 +53,8 @@ brew upgrade --cask opengit
 - Clone a remote repository from a Git URL with progress feedback.
 - Display the repository name.
 - Pull remote changes with fast-forward-only safety.
+- Display ahead / behind indicators for the current branch.
+- Refresh remote data with a visible last fetch indicator.
 - Quickly switch between recently opened repositories from the header.
 
 ### Branches
@@ -66,7 +68,11 @@ brew upgrade --cask opengit
 - Show remote branches state (deleted, active).
 - Checkout remote branches locally.
 - Group branches by prefix. (feature/, bugfix/).
-- Visual Git Graph of commit history, forks, and merges.
+- Branch overview table with main status, remote sync, last commit, and quick actions.
+- Selected branch details panel.
+- Display ahead / behind indicators for local branches with an upstream.
+- Display whether local branches are merged or still contain commits not in main / master.
+- Warn before deleting branches that contain commits not in main / master.
 - GitHub user avatars integrated.
 
 ### Working Directory
@@ -84,6 +90,7 @@ brew upgrade --cask opengit
 - Create stashes with optional messages.
 - List, apply, pop, and drop stashes.
 - Discard changes (all files / single file).
+- Copy changed file paths from contextual menus.
 
 ### Files Differences
 - File-by-file diff visualization.
@@ -111,6 +118,7 @@ brew upgrade --cask opengit
 - Commit diff split view from history.
 - Show unpushed commits.
 - Display GitHub user avatars for authors.
+- Copy commit SHAs and changed file paths from contextual menus.
 
 ### SSH & Authentication
 - Automatic detection of SSH issues.
@@ -128,11 +136,9 @@ brew upgrade --cask opengit
 
 # 📦 Roadmap
 
-### Git & Collaboration
-- Behind/ahead indicators.
-
 ### Branch Management
 - Conflict resolution UI.
+- Contextual branch graph focused on main and the selected branch.
 
 ### UX & Product
 - Extended keyboard shortcuts coverage (branches, commit history).

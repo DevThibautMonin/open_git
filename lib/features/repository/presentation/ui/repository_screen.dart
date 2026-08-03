@@ -461,6 +461,11 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                           branchName:
                               state.selectedBranch?.name ??
                               "No branch selected",
+                          comparisonBaseBranchName:
+                              state.selectedBranch?.comparisonBaseBranchName ??
+                              "",
+                          unmergedCommitsCount:
+                              state.selectedBranch?.commitsAheadBaseBranch ?? 0,
                           onDelete: () {
                             context.read<BranchesBloc>().add(
                               DeleteBranch(branch: state.selectedBranch!),
@@ -561,6 +566,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                           );
                         },
                         commitsToPush: wdState.commitsToPush,
+                        commitsToPull: wdState.commitsToPull,
                         onPush: () {
                           _workingDirectoryBloc.add(PushCommits());
                         },

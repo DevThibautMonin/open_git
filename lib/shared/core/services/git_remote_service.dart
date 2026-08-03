@@ -32,14 +32,28 @@ class GitRemoteService {
   }
 
   Future<Either<GitServiceFailure, bool>> hasUpstream() async {
-    final result = await commandRunner.run(
-      GitCommands.getUpstreamState,
-      allowedExitCodes: const {0, 1},
+    final currentBranchResult = await commandRunner.run(
+      GitCommands.gitCurrentBranch,
     );
 
+    if (currentBranchResult.isLeft) {
+      return Left(currentBranchResult.left);
+    }
+
+    final currentBranch = currentBranchResult.right.trim();
+
+    if (currentBranch.isEmpty) {
+      return const Right(false);
+    }
+
+    final result = await commandRunner.run([
+      ...GitCommands.getBranchUpstreamState,
+      "refs/heads/$currentBranch",
+    ]);
+
     return result.fold(
-      (_) => const Right(false),
-      (_) => const Right(true),
+      (failure) => Left(failure),
+      (data) => Right(data.trim().isNotEmpty),
     );
   }
 
@@ -52,6 +66,19 @@ class GitRemoteService {
 
     final count = int.tryParse(result.right.trim()) ?? 0;
     return Right(count);
+  }
+
+  Future<Either<GitServiceFailure, ({int ahead, int behind})>>
+  getCommitsAheadBehindCount() async {
+    final result = await commandRunner.run(
+      GitCommands.commitsAheadBehindCount,
+    );
+
+    if (result.isLeft) {
+      return Left(result.left);
+    }
+
+    return Right(_parseAheadBehindCount(result.right));
   }
 
   Future<Either<GitServiceFailure, String>> push() async {
@@ -100,8 +127,8 @@ class GitRemoteService {
   }
 
   String? _extractRepositorySlug(String output) {
-    for (final line in output.split('\n')) {
-      if (!line.contains('(fetch)')) continue;
+    for (final line in output.split("\n")) {
+      if (!line.contains("(fetch)")) continue;
 
       final parts = line.split(GitRegex.line);
       if (parts.length < 2) continue;
@@ -119,5 +146,18 @@ class GitRemoteService {
       }
     }
     return null;
+  }
+
+  ({int ahead, int behind}) _parseAheadBehindCount(String output) {
+    final parts = output.trim().split(RegExp(r"\s+"));
+
+    if (parts.length < 2) {
+      return (ahead: 0, behind: 0);
+    }
+
+    return (
+      ahead: int.tryParse(parts[0]) ?? 0,
+      behind: int.tryParse(parts[1]) ?? 0,
+    );
   }
 }

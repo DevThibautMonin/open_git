@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:open_git/features/repository/presentation/bloc/repository_bloc.dart";
+import "package:open_git/features/repository/presentation/ui/last_fetch_status.dart";
 import "package:open_git/features/repository/presentation/ui/recent_repositories_button.dart";
 import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
 import "package:open_git/shared/presentation/widgets/desktop/desktop_button.dart";
@@ -16,6 +17,7 @@ class RepositoryHeader extends StatelessWidget {
   final VoidCallback onInitRepository;
   final ValueChanged<String> onRecentRepositorySelected;
   final int commitsToPush;
+  final int commitsToPull;
   final Function() onPush;
   final bool isLoading;
   final bool hasUpstream;
@@ -24,6 +26,7 @@ class RepositoryHeader extends StatelessWidget {
     super.key,
     required this.onSelectRepository,
     required this.commitsToPush,
+    required this.commitsToPull,
     required this.onPush,
     required this.isLoading,
     required this.onCloneRepository,
@@ -96,18 +99,31 @@ class RepositoryHeader extends StatelessWidget {
           ),
           Gaps.w8,
           BlocBuilder<RepositoryBloc, RepositoryState>(
+            buildWhen: (previous, current) =>
+                previous.lastFetchAt != current.lastFetchAt,
+            builder: (context, state) {
+              return ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 118),
+                child: LastFetchStatus(lastFetchAt: state.lastFetchAt),
+              );
+            },
+          ),
+          Gaps.w8,
+          BlocBuilder<RepositoryBloc, RepositoryState>(
             builder: (context, state) {
               return PullButton(
                 onPull: () {
                   context.read<RepositoryBloc>().add(PullRepository());
                 },
                 isLoading: state.status == RepositoryBlocStatus.pulling,
+                commitsToPull: commitsToPull,
               );
             },
           ),
           Gaps.w8,
           PushCommitsButton(
             commitsToPush: commitsToPush,
+            commitsToPull: commitsToPull,
             onPush: onPush,
             isLoading: isLoading,
             hasUpstream: hasUpstream,

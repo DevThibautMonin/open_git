@@ -1,7 +1,7 @@
 name: open_git
 description: "Open-source git client"
 publish_to: 'none'
-version: 1.2.1+24
+version: 1.3.0+25
 
 environment:
   sdk: ^3.12.0
