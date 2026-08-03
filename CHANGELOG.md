@@ -4,6 +4,7 @@
 
 ### Added
 
+- [Branches] Replace the full commit graph view with a branch overview table and selected branch details panel.
 - [Repository] Display ahead / behind indicators in the header for the current branch.
 - [Branches] Display ahead / behind indicators for local branches with an upstream.
 - [Branches] Display whether local branches are merged or still contain commits not in main / master.
@@ -13,6 +14,7 @@
 
 ### Updated
 
+- [Branches] Stop loading the full branch graph automatically from the branches view.
 - [Repository] Rename fetch to refresh and show when remote data was last fetched.
 - [Repository] Show pending remote commits directly on the pull action.
 - [Repository] Prevent pushing divergent branches before pulling remote commits.

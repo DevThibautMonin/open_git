@@ -6,7 +6,7 @@ class GitCommands {
   ];
   static const List<String> listLocalBranchesWithTracking = [
     "for-each-ref",
-    "--format=%(refname:short)|%(HEAD)|%(upstream:short)|%(upstream:track)",
+    "--format=%(refname:short)%00%(HEAD)%00%(upstream:short)%00%(upstream:track)%00%(objectname:short)%00%(authorname)%00%(committerdate:iso8601-strict)%00%(subject)",
     "refs/heads",
   ];
   static const List<String> gitBranch = ['branch'];

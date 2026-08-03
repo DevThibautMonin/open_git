@@ -68,10 +68,11 @@ brew upgrade --cask opengit
 - Show remote branches state (deleted, active).
 - Checkout remote branches locally.
 - Group branches by prefix. (feature/, bugfix/).
+- Branch overview table with main status, remote sync, last commit, and quick actions.
+- Selected branch details panel.
 - Display ahead / behind indicators for local branches with an upstream.
 - Display whether local branches are merged or still contain commits not in main / master.
 - Warn before deleting branches that contain commits not in main / master.
-- Visual Git Graph of commit history, forks, and merges.
 - GitHub user avatars integrated.
 
 ### Working Directory

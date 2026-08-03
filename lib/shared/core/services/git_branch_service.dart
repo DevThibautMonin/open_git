@@ -48,11 +48,19 @@ class GitBranchService {
         .where((l) => l.isNotEmpty);
 
     final localBranchDrafts = localBranchLines.map((line) {
-      final parts = line.split("|");
+      final parts = line.split("\x00");
       final name = parts.isNotEmpty ? parts[0].trim() : "";
       final isCurrent = parts.length > 1 && parts[1].trim() == "*";
       final upstream = parts.length > 2 ? parts[2].trim() : "";
       final tracking = parts.length > 3 ? parts[3].trim() : "";
+      final lastCommitSha = parts.length > 4 ? parts[4].trim() : "";
+      final lastCommitAuthor = parts.length > 5 ? parts[5].trim() : "";
+      final lastCommitDate = parts.length > 6
+          ? DateTime.tryParse(parts[6].trim())
+          : null;
+      final lastCommitMessage = parts.length > 7
+          ? parts.sublist(7).join("\x00").trim()
+          : "";
       final syncStatus = _parseTrackingStatus(tracking);
       final deletedOnRemote =
           !isCurrent &&
@@ -68,9 +76,14 @@ class GitBranchService {
         isCurrent: isCurrent,
         isRemote: false,
         existsLocally: true,
+        hasUpstream: upstream.isNotEmpty,
         deletedOnRemote: deletedOnRemote,
         commitsAhead: syncStatus.ahead,
         commitsBehind: syncStatus.behind,
+        lastCommitSha: lastCommitSha,
+        lastCommitAuthor: lastCommitAuthor,
+        lastCommitDate: lastCommitDate,
+        lastCommitMessage: lastCommitMessage,
       );
     }).nonNulls;
 
@@ -87,6 +100,7 @@ class GitBranchService {
         isCurrent: false,
         isRemote: true,
         existsLocally: localNames.contains(name),
+        hasUpstream: false,
         deletedOnRemote: false,
       );
     });

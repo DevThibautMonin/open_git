@@ -26,7 +26,9 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
     });
 
     on<CheckoutRemoteBranch>((event, emit) async {
-      final result = await gitBranchService.checkoutRemoteBranch(event.branch.name);
+      final result = await gitBranchService.checkoutRemoteBranch(
+        event.branch.name,
+      );
 
       result.fold(
         (failure) {
@@ -44,7 +46,9 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
     });
 
     on<AskForRenamingBranch>((event, emit) async {
-      final upstreamResult = await gitBranchService.branchHasUpstream(event.branch.name);
+      final upstreamResult = await gitBranchService.branchHasUpstream(
+        event.branch.name,
+      );
 
       if (upstreamResult.isLeft) {
         emit(
@@ -156,7 +160,6 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
               status: BranchesBlocStatus.branchesRetrieved,
             ),
           );
-          add(GetGraphCommits());
         },
       );
     });
@@ -184,7 +187,9 @@ class BranchesBloc extends Bloc<BranchesEvent, BranchesState> {
     });
 
     on<CreateNewBranchAndCheckout>((event, emit) async {
-      final result = await gitBranchService.createBranchAndCheckout(event.branchName);
+      final result = await gitBranchService.createBranchAndCheckout(
+        event.branchName,
+      );
 
       result.fold(
         (failure) {
