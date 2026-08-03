@@ -37,6 +37,11 @@ class GitCommands {
     "--count",
     "HEAD...@{u}",
   ];
+  static const List<String> commitsLeftRightCount = [
+    "rev-list",
+    "--left-right",
+    "--count",
+  ];
   static const List<String> gitPush = ["push"];
   static const List<String> gitPullFastForwardOnly = ["pull", "--ff-only"];
   static const List<String> remoteVerbose = ["remote", "-v"];

@@ -6,9 +6,14 @@
 
 - [Repository] Display ahead / behind indicators in the header for the current branch.
 - [Branches] Display ahead / behind indicators for local branches with an upstream.
+- [Branches] Display whether local branches are merged or still contain commits not in main / master.
+- [Branches] Warn before deleting a branch that contains commits not in main / master.
+- [Commit history] Copy commit SHAs and changed file paths from contextual menus.
+- [Working directory] Copy changed file paths from contextual menus.
 
 ### Updated
 
+- [Repository] Rename fetch to refresh and show when remote data was last fetched.
 - [Repository] Show pending remote commits directly on the pull action.
 - [Repository] Prevent pushing divergent branches before pulling remote commits.
 

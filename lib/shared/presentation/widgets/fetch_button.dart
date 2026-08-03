@@ -15,8 +15,8 @@ class FetchButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return DesktopButton(
       icon: Icons.sync,
-      label: isLoading ? "Fetching" : "Fetch",
-      tooltip: "Fetch remote updates",
+      label: isLoading ? "Refreshing" : "Refresh",
+      tooltip: "Refresh remote branches and commit counts",
       isLoading: isLoading,
       onPressed: isLoading ? null : onFetch,
     );

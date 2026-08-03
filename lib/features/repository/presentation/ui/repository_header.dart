@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:open_git/features/repository/presentation/bloc/repository_bloc.dart";
+import "package:open_git/features/repository/presentation/ui/last_fetch_status.dart";
 import "package:open_git/features/repository/presentation/ui/recent_repositories_button.dart";
 import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
 import "package:open_git/shared/presentation/widgets/desktop/desktop_button.dart";
@@ -93,6 +94,17 @@ class RepositoryHeader extends StatelessWidget {
                   context.read<RepositoryBloc>().add(FetchRepository());
                 },
                 isLoading: state.status == RepositoryBlocStatus.fetching,
+              );
+            },
+          ),
+          Gaps.w8,
+          BlocBuilder<RepositoryBloc, RepositoryState>(
+            buildWhen: (previous, current) =>
+                previous.lastFetchAt != current.lastFetchAt,
+            builder: (context, state) {
+              return ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 118),
+                child: LastFetchStatus(lastFetchAt: state.lastFetchAt),
               );
             },
           ),

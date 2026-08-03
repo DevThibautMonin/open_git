@@ -1,11 +1,14 @@
 import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
+import "package:flutter/services.dart";
 import "package:open_git/features/branches/presentation/bloc/branches_bloc.dart";
+import "package:open_git/features/branches/presentation/ui/branch_base_status_indicator.dart";
 import "package:open_git/features/branches/presentation/ui/branch_sync_status_indicator.dart";
 import "package:open_git/shared/domain/entities/branch_entity.dart";
 import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
 import "package:open_git/shared/presentation/widgets/desktop/desktop_list_row.dart";
 import "package:open_git/shared/presentation/widgets/gaps.dart";
+import "package:open_git/shared/presentation/widgets/snackbars/success_snackbar.dart";
 
 class BranchItem extends StatelessWidget {
   final BranchEntity branch;
@@ -43,6 +46,24 @@ class BranchItem extends StatelessWidget {
                   Icon(Icons.edit_outlined, size: 16),
                   Gaps.w8,
                   Text("Rename branch"),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              onTap: () async {
+                await Clipboard.setData(ClipboardData(text: branch.name));
+                if (!context.mounted) return;
+
+                SuccessSnackBar.show(
+                  context,
+                  message: "Branch name copied",
+                );
+              },
+              child: const Row(
+                children: [
+                  Icon(Icons.copy, size: 16),
+                  Gaps.w8,
+                  Text("Copy branch name"),
                 ],
               ),
             ),
@@ -108,6 +129,11 @@ class BranchItem extends StatelessWidget {
               commitsAhead: branch.commitsAhead,
               commitsBehind: branch.commitsBehind,
             ),
+          ],
+          if (branch.hasBaseBranchComparison &&
+              branch.name != branch.comparisonBaseBranchName) ...[
+            Gaps.w8,
+            BranchBaseStatusIndicator(branch: branch),
           ],
           if (branch.deletedOnRemote && !branch.isCurrent) ...[
             Gaps.w8,

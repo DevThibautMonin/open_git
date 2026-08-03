@@ -54,6 +54,7 @@ brew upgrade --cask opengit
 - Display the repository name.
 - Pull remote changes with fast-forward-only safety.
 - Display ahead / behind indicators for the current branch.
+- Refresh remote data with a visible last fetch indicator.
 - Quickly switch between recently opened repositories from the header.
 
 ### Branches
@@ -68,6 +69,8 @@ brew upgrade --cask opengit
 - Checkout remote branches locally.
 - Group branches by prefix. (feature/, bugfix/).
 - Display ahead / behind indicators for local branches with an upstream.
+- Display whether local branches are merged or still contain commits not in main / master.
+- Warn before deleting branches that contain commits not in main / master.
 - Visual Git Graph of commit history, forks, and merges.
 - GitHub user avatars integrated.
 
@@ -86,6 +89,7 @@ brew upgrade --cask opengit
 - Create stashes with optional messages.
 - List, apply, pop, and drop stashes.
 - Discard changes (all files / single file).
+- Copy changed file paths from contextual menus.
 
 ### Files Differences
 - File-by-file diff visualization.
@@ -113,6 +117,7 @@ brew upgrade --cask opengit
 - Commit diff split view from history.
 - Show unpushed commits.
 - Display GitHub user avatars for authors.
+- Copy commit SHAs and changed file paths from contextual menus.
 
 ### SSH & Authentication
 - Automatic detection of SSH issues.

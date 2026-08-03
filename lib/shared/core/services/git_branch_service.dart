@@ -47,7 +47,7 @@ class GitBranchService {
         .map((l) => l.trim())
         .where((l) => l.isNotEmpty);
 
-    final localBranches = localBranchLines.map((line) {
+    final localBranchDrafts = localBranchLines.map((line) {
       final parts = line.split("|");
       final name = parts.isNotEmpty ? parts[0].trim() : "";
       final isCurrent = parts.length > 1 && parts[1].trim() == "*";
@@ -74,7 +74,12 @@ class GitBranchService {
       );
     }).nonNulls;
 
-    final localNames = localBranches.map((branch) => branch.name).toSet();
+    final localNames = localBranchDrafts.map((branch) => branch.name).toSet();
+    final comparisonBaseBranch = _comparisonBaseBranchName(localNames);
+    final localBranches = await _withBaseBranchComparisons(
+      branches: localBranchDrafts,
+      baseBranchName: comparisonBaseBranch,
+    );
 
     final remoteBranches = remoteNames.map((name) {
       return BranchEntity(
@@ -202,5 +207,79 @@ class GitBranchService {
     }
 
     return (ahead: ahead, behind: behind);
+  }
+
+  String _comparisonBaseBranchName(Set<String> localBranchNames) {
+    if (localBranchNames.contains("main")) {
+      return "main";
+    }
+
+    if (localBranchNames.contains("master")) {
+      return "master";
+    }
+
+    return "";
+  }
+
+  Future<List<BranchEntity>> _withBaseBranchComparisons({
+    required Iterable<BranchEntity> branches,
+    required String baseBranchName,
+  }) async {
+    if (baseBranchName.isEmpty) {
+      return branches.toList();
+    }
+
+    final List<BranchEntity> result = [];
+
+    for (final branch in branches) {
+      if (branch.name == baseBranchName) {
+        result.add(
+          branch.copyWith(
+            comparisonBaseBranchName: baseBranchName,
+          ),
+        );
+        continue;
+      }
+
+      final comparison = await _getBranchComparison(
+        baseBranchName: baseBranchName,
+        branchName: branch.name,
+      );
+
+      result.add(
+        branch.copyWith(
+          comparisonBaseBranchName: baseBranchName,
+          commitsAheadBaseBranch: comparison.ahead,
+          commitsBehindBaseBranch: comparison.behind,
+        ),
+      );
+    }
+
+    return result;
+  }
+
+  Future<({int ahead, int behind})> _getBranchComparison({
+    required String baseBranchName,
+    required String branchName,
+  }) async {
+    final result = await commandRunner.run([
+      ...GitCommands.commitsLeftRightCount,
+      "$baseBranchName...$branchName",
+    ]);
+
+    if (result.isLeft) {
+      return (ahead: 0, behind: 0);
+    }
+
+    final parts = result.right.trim().split(RegExp(r"\s+"));
+
+    if (parts.length < 2) {
+      return (ahead: 0, behind: 0);
+    }
+
+    return (
+      behind: int.tryParse(parts[0]) ?? 0,
+      ahead: int.tryParse(parts[1]) ?? 0,
+    );
   }
 }

@@ -11,6 +11,9 @@ class BranchEntity with BranchEntityMappable {
   final bool deletedOnRemote;
   final int commitsAhead;
   final int commitsBehind;
+  final String comparisonBaseBranchName;
+  final int commitsAheadBaseBranch;
+  final int commitsBehindBaseBranch;
 
   const BranchEntity({
     required this.isCurrent,
@@ -20,5 +23,12 @@ class BranchEntity with BranchEntityMappable {
     this.deletedOnRemote = false,
     this.commitsAhead = 0,
     this.commitsBehind = 0,
+    this.comparisonBaseBranchName = "",
+    this.commitsAheadBaseBranch = 0,
+    this.commitsBehindBaseBranch = 0,
   });
+
+  bool get hasBaseBranchComparison => comparisonBaseBranchName.isNotEmpty;
+
+  bool get hasUnmergedBaseBranchCommits => commitsAheadBaseBranch > 0;
 }

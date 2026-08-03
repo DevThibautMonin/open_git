@@ -31,6 +31,7 @@ class RepositoryState with RepositoryStateMappable {
   final String version;
   final RepositoryViewMode? repositoryViewMode;
   final List<String> recentRepositoryPaths;
+  final String lastFetchAt;
 
   const RepositoryState({
     this.status = RepositoryBlocStatus.initial,
@@ -43,5 +44,6 @@ class RepositoryState with RepositoryStateMappable {
     this.version = "",
     this.repositoryViewMode,
     this.recentRepositoryPaths = const [],
+    this.lastFetchAt = "",
   });
 }
