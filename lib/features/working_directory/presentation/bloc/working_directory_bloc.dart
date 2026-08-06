@@ -360,6 +360,21 @@ class WorkingDirectoryBloc
           );
         },
         (_) {
+          final selectedFile = state.selectedFile;
+
+          if (selectedFile?.path == event.file.path &&
+              selectedFile?.staged == event.file.staged) {
+            emit(
+              state.copyWith(
+                selectedFile: GitFileEntity(
+                  path: event.file.path,
+                  status: event.file.status,
+                  staged: event.stage,
+                ),
+              ),
+            );
+          }
+
           add(GetRepositoryStatus());
         },
       );
