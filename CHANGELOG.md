@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.4.0+26) (06/08/2026)
+
+### Added
+
+- [Files differences] Add Markdown preview mode for README and Markdown file diffs.
+
 ## Version (1.3.0+25) (03/08/2026)
 
 ### Added
