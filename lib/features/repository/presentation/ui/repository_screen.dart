@@ -272,6 +272,26 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     ),
                   );
                   break;
+                case WorkingDirectoryBlocStatus.loaded:
+                  final selectedFile = state.selectedFile;
+
+                  if (selectedFile == null) break;
+
+                  final selectedIndex = state.files.indexWhere(
+                    (file) => file.path == selectedFile.path,
+                  );
+
+                  if (selectedIndex == -1) {
+                    _filesDifferencesBloc.add(ClearFileDiff());
+                    _workingDirectoryBloc.add(ClearSelectedFile());
+                    break;
+                  }
+
+                  final refreshedFile = state.files[selectedIndex];
+
+                  _workingDirectoryBloc.add(SelectFile(file: refreshedFile));
+                  _filesDifferencesBloc.add(LoadFileDiff(file: refreshedFile));
+                  break;
                 case WorkingDirectoryBlocStatus.error:
                   ErrorSnackBar.show(
                     context,

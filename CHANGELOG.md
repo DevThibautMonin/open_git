@@ -6,6 +6,10 @@
 
 - [Files differences] Add Markdown preview mode for README and Markdown file diffs.
 
+### Fixes
+
+- [Working directory] Refresh the selected file diff when the app returns to the foreground.
+
 ## Version (1.3.0+25) (03/08/2026)
 
 ### Added
