@@ -168,6 +168,15 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     ),
                   );
                   break;
+                case WorkingDirectoryBlocStatus.fileChangesDiscarded:
+                case WorkingDirectoryBlocStatus.allChangesDiscarded:
+                  _filesDifferencesBloc.add(ClearFileDiff());
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
                 case WorkingDirectoryBlocStatus.askForDiscardFileChanges:
                   if (state.selectedFile != null) {
                     await showDialog(

@@ -17,6 +17,8 @@ enum WorkingDirectoryBlocStatus {
   stashDropped,
   askForDiscardAllChanges,
   askForDiscardFileChanges,
+  fileChangesDiscarded,
+  allChangesDiscarded,
   addingCommits,
   amendingCommit,
   commitsAdded,

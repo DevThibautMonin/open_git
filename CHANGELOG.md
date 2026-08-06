@@ -9,6 +9,7 @@
 ### Fixes
 
 - [Working directory] Refresh the selected file diff when the app returns to the foreground.
+- [Working directory] Clear the selected file diff after discarding changes.
 
 ## Version (1.3.0+25) (03/08/2026)
 

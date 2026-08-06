@@ -133,7 +133,12 @@ class WorkingDirectoryBloc
         },
         (_) {
           add(GetRepositoryStatus());
-          emit(state.copyWith(status: WorkingDirectoryBlocStatus.initial));
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.fileChangesDiscarded,
+              selectedFile: null,
+            ),
+          );
         },
       );
     });
@@ -154,7 +159,12 @@ class WorkingDirectoryBloc
         },
         (_) {
           add(GetRepositoryStatus());
-          emit(state.copyWith(status: WorkingDirectoryBlocStatus.initial));
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.allChangesDiscarded,
+              selectedFile: null,
+            ),
+          );
         },
       );
     });
