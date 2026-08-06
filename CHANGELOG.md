@@ -5,6 +5,7 @@
 ### Added
 
 - [Files differences] Add Markdown preview mode for README and Markdown file diffs.
+- [Repository] Show the current branch next to the active repository name.
 
 ### Fixes
 
