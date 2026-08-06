@@ -16,6 +16,9 @@
 - **Documentation:** Add concise comments for non-obvious logic.
 - **Performance:** Avoid O(n²) operations where O(n log n) or O(n) is possible.
 
+## 🧾 Git & Commits
+- **Conventional Commits:** Always write commit messages using the Conventional Commits format (e.g. `feat(scope): add feature`, `fix(scope): handle edge case`, `docs(scope): update guidance`).
+
 ## 💬 Communication Style
 - Be concise and technical.
 - When proposing a breaking change, explicitly warn the user.
