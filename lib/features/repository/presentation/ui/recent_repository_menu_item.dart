@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:open_git/features/repository/presentation/extensions/repository_branch_display_extension.dart";
 import "package:open_git/features/repository/presentation/extensions/repository_path_display_extension.dart";
 import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
 import "package:open_git/shared/presentation/widgets/desktop/desktop_list_row.dart";
@@ -9,12 +10,14 @@ class RecentRepositoryMenuItem extends StatelessWidget {
 
   final String path;
   final bool selected;
+  final String currentBranchName;
   final VoidCallback onTap;
 
   const RecentRepositoryMenuItem({
     super.key,
     required this.path,
     required this.selected,
+    this.currentBranchName = "",
     required this.onTap,
   });
 
@@ -42,7 +45,9 @@ class RecentRepositoryMenuItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  path.repositoryDisplayName,
+                  path.repositoryDisplayName.withBranchName(
+                    currentBranchName,
+                  ),
                   overflow: TextOverflow.ellipsis,
                   style: theme.openGitBody.copyWith(
                     fontWeight: FontWeight.w700,

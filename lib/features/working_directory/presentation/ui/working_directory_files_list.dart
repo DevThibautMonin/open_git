@@ -1,21 +1,23 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart';
-import 'package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart';
-import 'package:open_git/features/working_directory/presentation/ui/stashes_section.dart';
-import 'package:open_git/shared/domain/entities/git_file_entity.dart';
-import 'package:open_git/features/working_directory/presentation/ui/working_directory_item.dart';
-import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
-import 'package:open_git/shared/presentation/widgets/commit_message_textfield.dart';
-import 'package:open_git/shared/presentation/widgets/dialogs/create_stash_dialog.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_button.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_checkbox.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_empty_state.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart';
-import 'package:open_git/shared/presentation/widgets/desktop/desktop_section_header.dart';
-import 'package:open_git/shared/presentation/widgets/gaps.dart';
+import "dart:async";
+
+import "package:flutter/material.dart";
+import "package:flutter/services.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
+import "package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart";
+import "package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart";
+import "package:open_git/features/working_directory/presentation/extensions/working_directory_file_groups_extension.dart";
+import "package:open_git/features/working_directory/presentation/ui/stashes_section.dart";
+import "package:open_git/features/working_directory/presentation/ui/working_directory_file_section.dart";
+import "package:open_git/features/working_directory/presentation/ui/working_directory_staging_area.dart";
+import "package:open_git/shared/core/extensions/git_file_entity_extensions.dart";
+import "package:open_git/shared/domain/entities/git_file_entity.dart";
+import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
+import "package:open_git/shared/presentation/widgets/commit_message_textfield.dart";
+import "package:open_git/shared/presentation/widgets/dialogs/create_stash_dialog.dart";
+import "package:open_git/shared/presentation/widgets/desktop/desktop_button.dart";
+import "package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart";
+import "package:open_git/shared/presentation/widgets/desktop/desktop_section_header.dart";
+import "package:open_git/shared/presentation/widgets/gaps.dart";
 
 class WorkingDirectoryFilesList extends StatefulWidget {
   const WorkingDirectoryFilesList({super.key});
@@ -28,8 +30,8 @@ class WorkingDirectoryFilesList extends StatefulWidget {
 class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
     with AutomaticKeepAliveClientMixin {
   final FocusNode _focusNode = FocusNode();
-  final ScrollController _scrollController = ScrollController();
-  static const double _itemExtent = 40.0;
+  final ScrollController _stagedScrollController = ScrollController();
+  final ScrollController _unstagedScrollController = ScrollController();
 
   @override
   bool get wantKeepAlive => true;
@@ -37,41 +39,45 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
   @override
   void dispose() {
     _focusNode.dispose();
-    _scrollController.dispose();
+    _stagedScrollController.dispose();
+    _unstagedScrollController.dispose();
     super.dispose();
-  }
-
-  bool _areAllFilesStaged(List<GitFileEntity> files) {
-    if (files.isEmpty) return false;
-    return files.every((f) => f.staged);
   }
 
   void _selectFileAtIndex(int index, List<GitFileEntity> files) {
     final file = files[index];
     context.read<WorkingDirectoryBloc>().add(SelectFile(file: file));
     context.read<FilesDifferencesBloc>().add(LoadFileDiff(file: file));
-    _scrollToIndex(index);
+    _scrollToFile(file);
   }
 
-  void _scrollToIndex(int index) {
-    if (!_scrollController.hasClients) return;
+  void _scrollToFile(GitFileEntity file) {
+    final state = context.read<WorkingDirectoryBloc>().state;
+    final sectionFiles = file.staged ? state.stagedFiles : state.unstagedFiles;
+    final index = sectionFiles.indexWhere(file.representsSameChangeAs);
+    final scrollController = file.staged
+        ? _stagedScrollController
+        : _unstagedScrollController;
 
-    final targetOffset = index * _itemExtent;
-    final viewportHeight = _scrollController.position.viewportDimension;
-    final currentOffset = _scrollController.offset;
+    if (index == -1 || !scrollController.hasClients) return;
+
+    final itemExtent = WorkingDirectoryFileSection.itemExtent;
+    final targetOffset = index * itemExtent;
+    final viewportHeight = scrollController.position.viewportDimension;
+    final currentOffset = scrollController.offset;
 
     if (targetOffset < currentOffset) {
       unawaited(
-        _scrollController.animateTo(
+        scrollController.animateTo(
           targetOffset,
           duration: const Duration(milliseconds: 100),
           curve: Curves.easeOut,
         ),
       );
-    } else if (targetOffset + _itemExtent > currentOffset + viewportHeight) {
+    } else if (targetOffset + itemExtent > currentOffset + viewportHeight) {
       unawaited(
-        _scrollController.animateTo(
-          targetOffset + _itemExtent - viewportHeight,
+        scrollController.animateTo(
+          targetOffset + itemExtent - viewportHeight,
           duration: const Duration(milliseconds: 100),
           curve: Curves.easeOut,
         ),
@@ -91,7 +97,7 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
 
     final bloc = context.read<WorkingDirectoryBloc>();
     final state = bloc.state;
-    final files = state.files;
+    final files = state.navigationFiles;
     if (files.isEmpty) return KeyEventResult.ignored;
 
     final key = event.logicalKey;
@@ -99,7 +105,7 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
     if (key == LogicalKeyboardKey.arrowDown ||
         key == LogicalKeyboardKey.arrowUp) {
       final currentIndex = state.selectedFile != null
-          ? files.indexWhere((f) => f.path == state.selectedFile!.path)
+          ? files.indexWhere(state.selectedFile!.representsSameChangeAs)
           : -1;
 
       int newIndex;
@@ -122,7 +128,7 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
       if (selectedFile == null) return KeyEventResult.ignored;
 
       final currentFile = files.firstWhere(
-        (f) => f.path == selectedFile.path,
+        selectedFile.representsSameChangeAs,
         orElse: () => selectedFile,
       );
 
@@ -140,6 +146,9 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
     super.build(context);
     return BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
       builder: (context, state) {
+        final stagedFiles = state.stagedFiles;
+        final unstagedFiles = state.unstagedFiles;
+
         return Focus(
           focusNode: _focusNode,
           autofocus: true,
@@ -153,28 +162,17 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
                 padding: const EdgeInsets.fromLTRB(8, 7, 8, 7),
                 child: Row(
                   children: [
-                    DesktopCheckbox(
-                      value: _areAllFilesStaged(state.files),
-                      tooltip: 'Stage all files',
-                      onChanged: state.files.isEmpty
-                          ? null
-                          : (checked) {
-                              context.read<WorkingDirectoryBloc>().add(
-                                ToggleAllFilesStaging(stage: checked),
-                              );
-                            },
-                    ),
                     Expanded(
                       child: DesktopSectionHeader(
-                        title: 'Changed files',
+                        title: "Working directory",
                         count: state.files.length.toString(),
                         padding: EdgeInsets.zero,
                       ),
                     ),
                     DesktopButton(
                       icon: Icons.archive_outlined,
-                      label: 'Stash',
-                      tooltip: 'Stash local changes',
+                      label: "Stash",
+                      tooltip: "Stash local changes",
                       onPressed: state.files.isEmpty
                           ? null
                           : () async {
@@ -199,8 +197,8 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
                     Gaps.w8,
                     DesktopButton(
                       icon: Icons.remove_circle_outline,
-                      label: 'Discard all',
-                      tooltip: 'Discard all local changes',
+                      label: "Discard all",
+                      tooltip: "Discard all local changes",
                       variant: DesktopButtonVariant.danger,
                       onPressed: state.files.isEmpty
                           ? null
@@ -217,27 +215,28 @@ class _WorkingDirectoryFilesListState extends State<WorkingDirectoryFilesList>
                 ),
               ),
               Expanded(
-                child: state.files.isEmpty
-                    ? const DesktopEmptyState(
-                        icon: Icons.check_circle_outline,
-                        title: 'No local changes',
-                        message: 'Your working directory is clean.',
-                      )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        itemExtent: _itemExtent,
-                        itemCount: state.files.length,
-                        itemBuilder: (context, index) {
-                          final file = state.files[index];
-                          return WorkingDirectoryItem(
-                            file: file,
+                child: WorkingDirectoryStagingArea(
+                  stagedFiles: stagedFiles,
+                  unstagedFiles: unstagedFiles,
+                  stagedScrollController: _stagedScrollController,
+                  unstagedScrollController: _unstagedScrollController,
+                  onStageAll: unstagedFiles.isEmpty
+                      ? null
+                      : () {
+                          context.read<WorkingDirectoryBloc>().add(
+                            ToggleAllFilesStaging(stage: true),
                           );
                         },
-                      ),
+                  onUnstageAll: stagedFiles.isEmpty
+                      ? null
+                      : () {
+                          context.read<WorkingDirectoryBloc>().add(
+                            ToggleAllFilesStaging(stage: false),
+                          );
+                        },
+                ),
               ),
-              CommitMessageTextfield(
-                hasStagedFiles: state.files.any((file) => file.staged),
-              ),
+              CommitMessageTextfield(hasStagedFiles: stagedFiles.isNotEmpty),
             ],
           ),
         );

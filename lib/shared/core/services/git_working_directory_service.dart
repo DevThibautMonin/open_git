@@ -2,6 +2,7 @@ import "package:either_dart/either.dart";
 import "package:injectable/injectable.dart";
 import "package:open_git/shared/core/constants/git_commands.dart";
 import "package:open_git/shared/core/services/git_command_runner.dart";
+import "package:open_git/shared/core/services/git_status_porcelain_parser.dart";
 import "package:open_git/shared/domain/entities/git_file_entity.dart";
 import "package:open_git/shared/domain/enums/git_file_status.dart";
 import "package:open_git/shared/domain/failures/git_service_failure.dart";
@@ -9,9 +10,11 @@ import "package:open_git/shared/domain/failures/git_service_failure.dart";
 @LazySingleton()
 class GitWorkingDirectoryService {
   final GitCommandRunner commandRunner;
+  final GitStatusPorcelainParser statusPorcelainParser;
 
   GitWorkingDirectoryService({
     required this.commandRunner,
+    required this.statusPorcelainParser,
   });
 
   Future<Either<GitServiceFailure, List<GitFileEntity>>>
@@ -25,7 +28,7 @@ class GitWorkingDirectoryService {
       return Left(result.left);
     }
 
-    final files = _parseGitStatusPorcelain(result.right);
+    final files = statusPorcelainParser.parse(result.right);
 
     return Right(files);
   }
@@ -166,50 +169,5 @@ class GitWorkingDirectoryService {
       (failure) => Left(failure),
       (_) => const Right(null),
     );
-  }
-
-  List<GitFileEntity> _parseGitStatusPorcelain(String output) {
-    final files = <GitFileEntity>[];
-
-    for (final line in output.split("\n")) {
-      if (line.trim().isEmpty) continue;
-
-      final x = line[0];
-      final y = line[1];
-      var path = line.substring(3).trim();
-
-      // Remove surrounding quotes if present (Git adds quotes for paths with spaces)
-      if (path.startsWith('"') && path.endsWith('"')) {
-        path = path.substring(1, path.length - 1);
-      }
-
-      final status = _mapGitFileStatus(x, y);
-      final staged = status == GitFileStatus.untracked ? false : x != " ";
-
-      var finalPath = path.contains("->") ? path.split("->").last.trim() : path;
-
-      // Remove quotes from renamed file path as well
-      if (finalPath.startsWith('"') && finalPath.endsWith('"')) {
-        finalPath = finalPath.substring(1, finalPath.length - 1);
-      }
-
-      files.add(
-        GitFileEntity(
-          path: finalPath,
-          status: status,
-          staged: staged,
-        ),
-      );
-    }
-
-    return files;
-  }
-
-  GitFileStatus _mapGitFileStatus(String x, String y) {
-    if (x == "?" && y == "?") return GitFileStatus.untracked;
-    if (x == "A" || y == "A") return GitFileStatus.added;
-    if (x == "D" || y == "D") return GitFileStatus.deleted;
-    if (x == "R" || y == "R") return GitFileStatus.renamed;
-    return GitFileStatus.modified;
   }
 }

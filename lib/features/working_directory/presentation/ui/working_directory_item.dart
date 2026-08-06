@@ -4,6 +4,7 @@ import "package:flutter/services.dart";
 import "package:open_git/features/files_differences/presentation/bloc/files_differences_bloc.dart";
 import "package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart";
 import "package:open_git/shared/core/extensions/string_extensions.dart";
+import "package:open_git/shared/core/extensions/git_file_entity_extensions.dart";
 import "package:open_git/shared/domain/entities/git_file_entity.dart";
 import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
 import "package:open_git/shared/presentation/widgets/desktop/desktop_checkbox.dart";
@@ -23,7 +24,8 @@ class WorkingDirectoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<WorkingDirectoryBloc, WorkingDirectoryState>(
       builder: (context, state) {
-        final isSelected = state.selectedFile?.path == file.path;
+        final isSelected =
+            state.selectedFile?.representsSameChangeAs(file) == true;
         final theme = Theme.of(context);
 
         return DesktopListRow(

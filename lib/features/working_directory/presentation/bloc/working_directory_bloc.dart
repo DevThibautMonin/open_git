@@ -133,7 +133,12 @@ class WorkingDirectoryBloc
         },
         (_) {
           add(GetRepositoryStatus());
-          emit(state.copyWith(status: WorkingDirectoryBlocStatus.initial));
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.fileChangesDiscarded,
+              selectedFile: null,
+            ),
+          );
         },
       );
     });
@@ -154,7 +159,12 @@ class WorkingDirectoryBloc
         },
         (_) {
           add(GetRepositoryStatus());
-          emit(state.copyWith(status: WorkingDirectoryBlocStatus.initial));
+          emit(
+            state.copyWith(
+              status: WorkingDirectoryBlocStatus.allChangesDiscarded,
+              selectedFile: null,
+            ),
+          );
         },
       );
     });
@@ -350,6 +360,21 @@ class WorkingDirectoryBloc
           );
         },
         (_) {
+          final selectedFile = state.selectedFile;
+
+          if (selectedFile?.path == event.file.path &&
+              selectedFile?.staged == event.file.staged) {
+            emit(
+              state.copyWith(
+                selectedFile: GitFileEntity(
+                  path: event.file.path,
+                  status: event.file.status,
+                  staged: event.stage,
+                ),
+              ),
+            );
+          }
+
           add(GetRepositoryStatus());
         },
       );

@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:open_git/features/repository/presentation/extensions/repository_branch_display_extension.dart";
 import "package:open_git/features/repository/presentation/ui/recent_repositories_menu.dart";
 import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
 import "package:open_git/shared/presentation/widgets/gaps.dart";
@@ -6,6 +7,7 @@ import "package:open_git/shared/presentation/widgets/gaps.dart";
 class RecentRepositoriesButton extends StatelessWidget {
   final String currentRepositoryName;
   final String currentRepositoryPath;
+  final String currentBranchName;
   final List<String> recentRepositoryPaths;
   final VoidCallback onOpenRepository;
   final ValueChanged<String> onRepositorySelected;
@@ -14,6 +16,7 @@ class RecentRepositoriesButton extends StatelessWidget {
     super.key,
     required this.currentRepositoryName,
     required this.currentRepositoryPath,
+    required this.currentBranchName,
     required this.recentRepositoryPaths,
     required this.onOpenRepository,
     required this.onRepositorySelected,
@@ -35,6 +38,7 @@ class RecentRepositoriesButton extends StatelessWidget {
           builder: (menuContext) {
             return RecentRepositoriesMenu(
               currentRepositoryPath: currentRepositoryPath,
+              currentBranchName: currentBranchName,
               recentRepositoryPaths: recentRepositoryPaths,
               onOpenRepository: () {
                 MenuController.maybeOf(menuContext)?.close();
@@ -92,7 +96,9 @@ class RecentRepositoriesButton extends StatelessWidget {
                     Expanded(
                       child: Text(
                         hasRepository
-                            ? currentRepositoryName
+                            ? currentRepositoryName.withBranchName(
+                                currentBranchName,
+                              )
                             : "No repository selected",
                         overflow: TextOverflow.ellipsis,
                         style: theme.openGitBody.copyWith(

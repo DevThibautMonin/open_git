@@ -8,6 +8,7 @@ import "package:open_git/shared/presentation/widgets/gaps.dart";
 
 class RecentRepositoriesMenu extends StatelessWidget {
   final String currentRepositoryPath;
+  final String currentBranchName;
   final List<String> recentRepositoryPaths;
   final ValueChanged<String> onRepositorySelected;
   final VoidCallback onOpenRepository;
@@ -15,6 +16,7 @@ class RecentRepositoriesMenu extends StatelessWidget {
   const RecentRepositoriesMenu({
     super.key,
     required this.currentRepositoryPath,
+    required this.currentBranchName,
     required this.recentRepositoryPaths,
     required this.onRepositorySelected,
     required this.onOpenRepository,
@@ -63,6 +65,9 @@ class RecentRepositoriesMenu extends StatelessWidget {
                 return RecentRepositoryMenuItem(
                   path: path,
                   selected: path == currentRepositoryPath,
+                  currentBranchName: path == currentRepositoryPath
+                      ? currentBranchName
+                      : "",
                   onTap: () {
                     onRepositorySelected(path);
                   },

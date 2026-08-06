@@ -1,5 +1,19 @@
 # Changelog
 
+## Version (1.4.0+26) (06/08/2026)
+
+### Added
+
+- [Files differences] Add Markdown preview mode for README and Markdown file diffs.
+- [Repository] Show the current branch next to the active repository name.
+- [Working directory] Split changed files into staged and unstaged sections.
+
+### Fixes
+
+- [Files differences] Open Markdown files in diff mode by default while keeping preview available.
+- [Working directory] Refresh the selected file diff when the app returns to the foreground.
+- [Working directory] Clear the selected file diff after discarding changes.
+
 ## Version (1.3.0+25) (03/08/2026)
 
 ### Added

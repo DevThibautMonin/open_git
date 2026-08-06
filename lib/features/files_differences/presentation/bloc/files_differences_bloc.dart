@@ -95,7 +95,6 @@ class FilesDifferencesBloc
       );
 
       final preview = await _loadPreview(event.file);
-
       emit(
         state.copyWith(
           diff: hunks,
@@ -163,6 +162,7 @@ class FilesDifferencesBloc
               ? contentPairResult.right.modified
               : "",
           status: FilesDifferencesStatus.loaded,
+          fileContentDisplay: FileContentDisplay.diff,
         ),
       );
     });

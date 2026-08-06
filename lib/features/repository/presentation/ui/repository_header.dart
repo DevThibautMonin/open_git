@@ -1,5 +1,7 @@
 import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
+import "package:open_git/features/branches/presentation/bloc/branches_bloc.dart";
+import "package:open_git/features/branches/presentation/extensions/branches_state_display_extension.dart";
 import "package:open_git/features/repository/presentation/bloc/repository_bloc.dart";
 import "package:open_git/features/repository/presentation/ui/last_fetch_status.dart";
 import "package:open_git/features/repository/presentation/ui/recent_repositories_button.dart";
@@ -38,6 +40,9 @@ class RepositoryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final currentBranchName = context.select(
+      (BranchesBloc bloc) => bloc.state.currentBranchName,
+    );
 
     return DesktopPanel(
       color: theme.openGit.toolbar,
@@ -79,6 +84,7 @@ class RepositoryHeader extends StatelessWidget {
                       ? state.currentRepositoryName
                       : "",
                   currentRepositoryPath: state.repositoryPath,
+                  currentBranchName: currentBranchName,
                   recentRepositoryPaths: state.recentRepositoryPaths,
                   onOpenRepository: onSelectRepository,
                   onRepositorySelected: onRecentRepositorySelected,

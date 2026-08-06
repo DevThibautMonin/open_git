@@ -22,6 +22,7 @@ import 'package:open_git/shared/presentation/widgets/dialogs/ssh_host_verificati
 import 'package:open_git/shared/presentation/widgets/dialogs/ssh_permission_denied_dialog.dart';
 import 'package:open_git/shared/core/constants/constants.dart';
 import 'package:open_git/shared/core/di/injectable.dart';
+import 'package:open_git/shared/core/extensions/git_file_entity_extensions.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_header.dart';
 import 'package:open_git/features/repository/presentation/ui/repository_sidebar.dart';
 import 'package:open_git/shared/presentation/themes/open_git_theme_extension.dart';
@@ -168,6 +169,15 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                     ),
                   );
                   break;
+                case WorkingDirectoryBlocStatus.fileChangesDiscarded:
+                case WorkingDirectoryBlocStatus.allChangesDiscarded:
+                  _filesDifferencesBloc.add(ClearFileDiff());
+                  _workingDirectoryBloc.add(
+                    UpdateWorkingDirectoryStatus(
+                      status: WorkingDirectoryBlocStatus.initial,
+                    ),
+                  );
+                  break;
                 case WorkingDirectoryBlocStatus.askForDiscardFileChanges:
                   if (state.selectedFile != null) {
                     await showDialog(
@@ -271,6 +281,32 @@ class _RepositoryScreenState extends State<RepositoryScreen> {
                       status: WorkingDirectoryBlocStatus.initial,
                     ),
                   );
+                  break;
+                case WorkingDirectoryBlocStatus.loaded:
+                  final selectedFile = state.selectedFile;
+
+                  if (selectedFile == null) break;
+
+                  var selectedIndex = state.files.indexWhere(
+                    selectedFile.representsSameChangeAs,
+                  );
+
+                  if (selectedIndex == -1) {
+                    selectedIndex = state.files.indexWhere(
+                      (file) => file.path == selectedFile.path,
+                    );
+                  }
+
+                  if (selectedIndex == -1) {
+                    _filesDifferencesBloc.add(ClearFileDiff());
+                    _workingDirectoryBloc.add(ClearSelectedFile());
+                    break;
+                  }
+
+                  final refreshedFile = state.files[selectedIndex];
+
+                  _workingDirectoryBloc.add(SelectFile(file: refreshedFile));
+                  _filesDifferencesBloc.add(LoadFileDiff(file: refreshedFile));
                   break;
                 case WorkingDirectoryBlocStatus.error:
                   ErrorSnackBar.show(
