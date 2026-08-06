@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- [Files differences] Open Markdown files in diff mode by default while keeping preview available.
 - [Working directory] Refresh the selected file diff when the app returns to the foreground.
 - [Working directory] Clear the selected file diff after discarding changes.
 

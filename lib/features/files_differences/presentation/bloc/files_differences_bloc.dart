@@ -6,7 +6,6 @@ import "package:injectable/injectable.dart";
 import "package:open_git/features/files_differences/core/diff_mode_display_extensions.dart";
 import "package:open_git/features/files_differences/domain/enums/file_content_display.dart";
 import "package:open_git/features/files_differences/domain/enums/diff_mode_display.dart";
-import "package:open_git/features/files_differences/presentation/extensions/markdown_preview_extension.dart";
 import "package:open_git/shared/core/constants/shared_preferences_keys.dart";
 import "package:open_git/shared/core/extensions/git_service_failure_extension.dart";
 import "package:open_git/shared/core/extensions/string_extensions.dart";
@@ -96,11 +95,6 @@ class FilesDifferencesBloc
       );
 
       final preview = await _loadPreview(event.file);
-      final canPreviewMarkdown =
-          event.file.path.canPreviewAsMarkdown &&
-          event.file.status != GitFileStatus.deleted &&
-          contentPairResult.isRight;
-
       emit(
         state.copyWith(
           diff: hunks,
@@ -114,7 +108,7 @@ class FilesDifferencesBloc
           imagePreviewBytes: preview.bytes,
           sourceContent: preview.source,
           previewErrorMessage: preview.errorMessage,
-          fileContentDisplay: preview.bytes != null || canPreviewMarkdown
+          fileContentDisplay: preview.bytes != null
               ? FileContentDisplay.preview
               : FileContentDisplay.diff,
         ),
@@ -157,8 +151,6 @@ class FilesDifferencesBloc
             commit: event.commit,
             filePath: event.filePath,
           );
-      final canPreviewMarkdown =
-          event.filePath.canPreviewAsMarkdown && contentPairResult.isRight;
 
       emit(
         state.copyWith(
@@ -170,9 +162,7 @@ class FilesDifferencesBloc
               ? contentPairResult.right.modified
               : "",
           status: FilesDifferencesStatus.loaded,
-          fileContentDisplay: canPreviewMarkdown
-              ? FileContentDisplay.preview
-              : FileContentDisplay.diff,
+          fileContentDisplay: FileContentDisplay.diff,
         ),
       );
     });

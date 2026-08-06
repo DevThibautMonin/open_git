@@ -56,6 +56,7 @@ brew upgrade --cask opengit
 - Display ahead / behind indicators for the current branch.
 - Refresh remote data with a visible last fetch indicator.
 - Quickly switch between recently opened repositories from the header.
+- Show the current branch next to the active repository name.
 
 ### Branches
 - List local branches.
@@ -78,8 +79,10 @@ brew upgrade --cask opengit
 ### Working Directory
 - Display modified, added, deleted, and untracked files.
 - File-type icons based on extensions.
+- Separate staged and unstaged changes into a dedicated staging area.
 - Stage / unstage files.
 - Stage / unstage all files.
+- Support files with both staged and unstaged changes.
 - Keyboard navigation (Arrow Up/Down to navigate, Space to toggle staging).
 - Create commits
   - mandatory commit summary
@@ -90,6 +93,8 @@ brew upgrade --cask opengit
 - Create stashes with optional messages.
 - List, apply, pop, and drop stashes.
 - Discard changes (all files / single file).
+- Clear the selected diff after discarding changes.
+- Refresh the selected file diff when the app returns to the foreground.
 - Copy changed file paths from contextual menus.
 
 ### Files Differences
@@ -105,6 +110,7 @@ brew upgrade --cask opengit
 - Language detection for popular file names and extensions.
 - Image preview for changed image files.
 - SVG source view.
+- Markdown preview for README and Markdown files, while opening them in diff mode by default.
 
 ### Commit History
 - List commit / merge history.
