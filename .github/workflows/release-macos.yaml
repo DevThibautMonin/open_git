@@ -37,7 +37,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.44.0"
+          flutter-version: "3.47.0"
           channel: "stable"
 
       - name: Install dependencies & build
@@ -78,7 +78,7 @@ jobs:
           # Création d'un dossier source propre pour le DMG
           mkdir -p build/dmg_source
           cp -R build/macos/Build/Products/Release/OpenGit.app build/dmg_source/
-          
+
           # Génération du DMG avec lien Applications et icônes placées
           create-dmg \
             --volname "OpenGit" \
@@ -119,7 +119,7 @@ jobs:
           curl -L -o sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.6.4/Sparkle-2.6.4.tar.xz
           mkdir -p sparkle_dist
           tar -xf sparkle.tar.xz -C sparkle_dist
-          
+
           ls -R sparkle_dist/bin
           chmod +x ./sparkle_dist/bin/sign_update
 
@@ -138,7 +138,7 @@ jobs:
           # On utilise l'argument suggéré par l'erreur : --ed-key-file
           # Sparkle 2.x renvoie une ligne du type : sparkle:edSignature="ABC..." length="12345"
           RAW_OUTPUT=$($SIGN_TOOL --ed-key-file sparkle_key.priv "$DMG_PATH")
-          
+
           # On extrait uniquement la signature (ce qui est entre les guillemets après edSignature)
           SIGNATURE=$(echo "$RAW_OUTPUT" | sed -n 's/.*sparkle:edSignature="\([^"]*\)".*/\1/p')
 
@@ -169,10 +169,10 @@ jobs:
                 <pubDate>$PUB_DATE</pubDate>
                 <sparkle:version>${{ steps.version.outputs.build }}</sparkle:version>
                 <sparkle:shortVersionString>${{ steps.version.outputs.version }}</sparkle:shortVersionString>
-                <enclosure 
-                  url="$DOWNLOAD_URL" 
-                  length="$FILE_SIZE" 
-                  type="application/octet-stream" 
+                <enclosure
+                  url="$DOWNLOAD_URL"
+                  length="$FILE_SIZE"
+                  type="application/octet-stream"
                   sparkle:edSignature="$SIGNATURE" />
               </item>
             </channel>
@@ -183,10 +183,10 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          
+
           # On récupère les dernières modifs au cas où pour éviter les conflits
           git pull origin main
-          
+
           git add appcast.xml
           # On ne commit que s'il y a un changement (pour éviter d'échouer si on re-run le job)
           git diff --quiet --cached || git commit -m "chore: update appcast to v${{ steps.version.outputs.version }}"
@@ -225,7 +225,7 @@ jobs:
         run: |
           cd homebrew-tap
           git diff || true
-        
+
       - name: Commit and push cask update
         run: |
           cd homebrew-tap
