@@ -14,3 +14,10 @@ linter:
 analyzer:
   exclude:
     - packages/**
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
