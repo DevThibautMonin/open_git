@@ -9,11 +9,4 @@ extension WorkingDirectoryFileGroupsExtension on WorkingDirectoryState {
   List<GitFileEntity> get unstagedFiles {
     return files.where((file) => !file.staged).toList(growable: false);
   }
-
-  List<GitFileEntity> get navigationFiles {
-    return [
-      ...stagedFiles,
-      ...unstagedFiles,
-    ];
-  }
 }
