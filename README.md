@@ -83,10 +83,10 @@ brew upgrade --cask opengit
 - Stage / unstage files.
 - Stage / unstage all files.
 - Support files with both staged and unstaged changes.
-- Keyboard navigation (Arrow Up/Down to navigate, Space to toggle staging).
 - Create commits
   - mandatory commit summary
   - optional commit description
+  - Conventional Commit type picker
 - Amend the latest commit.
 - Push commits to the remote repository.
 - Display the number of commits waiting to be pushed.
@@ -147,4 +147,4 @@ brew upgrade --cask opengit
 - Contextual branch graph focused on main and the selected branch.
 
 ### UX & Product
-- Extended keyboard shortcuts coverage (branches, commit history).
+- Command palette for frequent Git actions.

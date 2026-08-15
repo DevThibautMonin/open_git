@@ -1,8 +1,11 @@
 import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:open_git/features/working_directory/presentation/bloc/working_directory_bloc.dart";
+import "package:open_git/shared/core/extensions/commit_summary_extensions.dart";
+import "package:open_git/shared/domain/enums/conventional_commit_type.dart";
 import "package:open_git/shared/presentation/themes/open_git_theme_extension.dart";
 import "package:open_git/shared/presentation/widgets/commit_button.dart";
+import "package:open_git/shared/presentation/widgets/conventional_commit_type_picker.dart";
 import "package:open_git/shared/presentation/widgets/desktop/desktop_checkbox.dart";
 import "package:open_git/shared/presentation/widgets/desktop/desktop_panel.dart";
 import "package:open_git/shared/presentation/widgets/desktop/desktop_text_field.dart";
@@ -52,6 +55,14 @@ class CommitMessageTextfieldState extends State<CommitMessageTextfield> {
     );
   }
 
+  void applyConventionalCommitType(ConventionalCommitType type) {
+    final nextSummary = summaryController.text.withConventionalCommitType(type);
+    summaryController.text = nextSummary;
+    summaryController.selection = TextSelection.collapsed(
+      offset: nextSummary.length,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -95,11 +106,22 @@ class CommitMessageTextfieldState extends State<CommitMessageTextfield> {
                 style: theme.openGitSectionLabel,
               ),
               Gaps.h8,
-              DesktopTextField(
-                controller: summaryController,
-                maxLength: 50,
-                labelText: "Summary",
-                hintText: "Short summary of the commit",
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ConventionalCommitTypePicker(
+                    onSelected: applyConventionalCommitType,
+                  ),
+                  Gaps.w8,
+                  Expanded(
+                    child: DesktopTextField(
+                      controller: summaryController,
+                      maxLength: 50,
+                      labelText: "Summary",
+                      hintText: "Short summary of the commit",
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               DesktopTextField(

@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.4.1+27) (15/08/2026)
+
+### Added
+
+- [Working directory] Add a Conventional Commit helper dialog next to the commit summary field.
+
 ## Version (1.4.0+26) (06/08/2026)
 
 ### Added
@@ -108,7 +114,6 @@
 
 ### Added
 
-- [Working directory] Keyboard navigation support (Arrow Up/Down to navigate files, Space to toggle staging).
 - [Commit history] Display full commit message description in commit details panel.
 
 ### Updated
