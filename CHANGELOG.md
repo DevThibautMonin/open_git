@@ -1,5 +1,11 @@
 # Changelog
 
+## Version (1.4.1+27) (15/08/2026)
+
+### Added
+
+- [Working directory] Add a Conventional Commit helper dialog next to the commit summary field.
+
 ## Version (1.4.0+26) (06/08/2026)
 
 ### Added

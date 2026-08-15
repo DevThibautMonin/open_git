@@ -86,6 +86,7 @@ brew upgrade --cask opengit
 - Create commits
   - mandatory commit summary
   - optional commit description
+  - Conventional Commit type picker
 - Amend the latest commit.
 - Push commits to the remote repository.
 - Display the number of commits waiting to be pushed.
