@@ -27,6 +27,7 @@ extension FileTypeEnumResolver on String {
       case 'swift':
         return FileTypeEnum.swift;
       case 'kt':
+      case 'kts':
         return FileTypeEnum.kotlin;
       case 'php':
         return FileTypeEnum.php;
